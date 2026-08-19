@@ -1,0 +1,22 @@
+[package]
+name = "prefab_adapter"
+version = "0.0.1"
+authors = ["Amethyst Foundation <contact@amethyst.rs>"]
+edition = "2018"
+
+[[bin]]
+path = "main.rs"
+name = "prefab_adapter"
+
+[dependencies]
+amethyst = { path = "../../", features = ["optional"] }
+log = { version = "^0.4", features = ["serde"] }
+serde = "^1"
+derivative = "^2"
+lazy_static = "^1.4"
+serde-diff = "0.4"
+type-uuid = "0.1"
+glsl-layout = "0.4"
+ron = "^0.6"
+legion-prefab = { git = "https://github.com/amethyst/prefab", rev = "49ba008a3b398033725726c641b96cd48b5a1080" }
+prefab-format = { git = "https://github.com/amethyst/prefab", rev = "49ba008a3b398033725726c641b96cd48b5a1080" }

@@ -1,0 +1,254 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.ui.actions
+
+import android.content.Context
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.vitorpamplona.amethyst.R
+import com.vitorpamplona.amethyst.commons.richtext.RichTextParser
+import com.vitorpamplona.amethyst.model.Account
+import com.vitorpamplona.amethyst.service.uploads.MediaCompressor
+import com.vitorpamplona.amethyst.service.uploads.MultiOrchestrator
+import com.vitorpamplona.amethyst.service.uploads.SuspendableConfirmation
+import com.vitorpamplona.amethyst.service.uploads.UploadOrchestrator
+import com.vitorpamplona.amethyst.ui.actions.mediaServers.DEFAULT_MEDIA_SERVERS
+import com.vitorpamplona.amethyst.ui.actions.mediaServers.ServerName
+import com.vitorpamplona.amethyst.ui.actions.uploads.SelectedMedia
+import com.vitorpamplona.amethyst.ui.actions.uploads.SelectedMediaProcessing
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
+import com.vitorpamplona.amethyst.ui.stringRes
+import com.vitorpamplona.quartz.nip01Core.signers.SignerExceptions
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+
+@Stable
+open class NewMediaModel : ViewModel() {
+    var account: Account? = null
+
+    var isUploadingImage by mutableStateOf(false)
+
+    var selectedServer by mutableStateOf<ServerName?>(null)
+    var caption by mutableStateOf("")
+    var sensitiveContent by mutableStateOf(false)
+
+    /** When true, uploads publish as kind-30923 ephemeral stories (24h) instead of permanent media notes. */
+    var publishAsEphemeralStory by mutableStateOf(false)
+
+    // Images and Videos
+    var multiOrchestrator by mutableStateOf<MultiOrchestrator?>(null)
+    var onceUploaded: () -> Unit = {}
+
+    // Stripping failure dialog
+    val strippingFailureConfirmation = SuspendableConfirmation()
+
+    // 0 = Low, 1 = Medium, 2 = High, 3=UNCOMPRESSED
+    var mediaQualitySlider by mutableIntStateOf(1)
+
+    // Codec selection: false = H264, true = H265
+    var useH265Codec by mutableStateOf(false)
+
+    // Strip location and sensitive metadata from files before upload
+    var stripMetadata by mutableStateOf(true)
+
+    open fun load(
+        account: Account,
+        uris: ImmutableList<SelectedMedia>,
+    ) {
+        this.caption = ""
+        this.account = account
+        this.multiOrchestrator = MultiOrchestrator(uris)
+        this.selectedServer = defaultServer()
+        this.stripMetadata = account.settings.stripLocationOnUpload
+    }
+
+    fun isImage(
+        url: String,
+        mimeType: String?,
+    ): Boolean = mimeType?.startsWith("image/") == true || RichTextParser.isImageUrl(url)
+
+    fun upload(
+        context: Context,
+        accountViewModel: AccountViewModel,
+        onSucess: () -> Unit,
+        onError: (String, String) -> Unit,
+    ) = try {
+        uploadUnsafe(context, accountViewModel, onSucess, onError)
+    } catch (e: SignerExceptions.ReadOnlyException) {
+        onError(
+            stringRes(context, R.string.read_only_user),
+            stringRes(context, R.string.login_with_a_private_key_to_be_able_to_sign_events),
+        )
+    }
+
+    fun uploadUnsafe(
+        context: Context,
+        accountViewModel: AccountViewModel,
+        onSucess: () -> Unit,
+        onError: (String, String) -> Unit,
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val myAccount = account ?: return@launch
+            val serverToUse = selectedServer ?: return@launch
+
+            val myMultiOrchestrator = multiOrchestrator ?: return@launch
+
+            isUploadingImage = true
+
+            val results =
+                myMultiOrchestrator.upload(
+                    caption,
+                    if (sensitiveContent) "" else null,
+                    MediaCompressor.intToCompressorQuality(mediaQualitySlider),
+                    serverToUse,
+                    myAccount,
+                    context,
+                    useH265Codec,
+                    stripMetadata,
+                    onStrippingFailed = strippingFailureConfirmation::awaitConfirmation,
+                )
+
+            if (results.allGood) {
+                // It all finished successfully
+                val nip95s =
+                    results.successful.mapNotNull {
+                        it.result as? UploadOrchestrator.OrchestratorResult.NIP95Result
+                    }
+
+                val videosAndOthers =
+                    results.successful.mapNotNull {
+                        val map = it.result as? UploadOrchestrator.OrchestratorResult.ServerResult
+                        if (map != null && !isImage(map.url, map.fileHeader.mimeType)) {
+                            map
+                        } else {
+                            null
+                        }
+                    }
+
+                val imageUrls =
+                    results.successful
+                        .mapNotNull {
+                            val map = it.result as? UploadOrchestrator.OrchestratorResult.ServerResult
+                            if (map != null && isImage(map.url, map.fileHeader.mimeType)) {
+                                Pair(map.url, map.fileHeader)
+                            } else {
+                                null
+                            }
+                        }.toMap()
+
+                if (publishAsEphemeralStory) {
+                    val storyJobs =
+                        results.successful.mapNotNull {
+                            val map = it.result as? UploadOrchestrator.OrchestratorResult.ServerResult ?: return@mapNotNull null
+                            accountViewModel.launchSigner {
+                                myAccount.sendEphemeralStory(
+                                    url = map.url,
+                                    headerInfo = map.fileHeader,
+                                    caption = caption.ifBlank { null },
+                                )
+                            }
+                        }
+                    storyJobs.joinAll()
+                } else {
+                    // Sign + publish via launchSigner so SignerExceptions surface
+                    // through the standard toastManager pipeline (and timed-out /
+                    // rejected prompts get logged instead of crashing the process).
+                    val nip95jobs =
+                        nip95s.map {
+                            // upload each file as an individual nip95 event.
+                            accountViewModel.launchSigner {
+                                val nip95 = myAccount.createNip95(it.bytes, headerInfo = it.fileHeader, caption, if (sensitiveContent) "" else null)
+                                myAccount.consumeAndSendNip95(nip95.first, nip95.second)
+                            }
+                        }
+
+                    val videoJobs =
+                        videosAndOthers.map {
+                            accountViewModel.launchSigner {
+                                myAccount.sendHeader(
+                                    url = it.url,
+                                    magnetUri = it.magnet,
+                                    headerInfo = it.fileHeader,
+                                    alt = caption,
+                                    contentWarningReason = if (sensitiveContent) "" else null,
+                                    originalHash = it.uploadedHash,
+                                )
+                            }
+                        }
+
+                    val imageJobs =
+                        if (imageUrls.isNotEmpty()) {
+                            listOf(
+                                accountViewModel.launchSigner {
+                                    myAccount.sendAllAsOnePictureEvent(
+                                        urlHeaderInfo = imageUrls,
+                                        caption = caption,
+                                        contentWarningReason = if (sensitiveContent) "" else null,
+                                    )
+                                },
+                            )
+                        } else {
+                            emptyList()
+                        }
+
+                    nip95jobs.joinAll()
+                    videoJobs.joinAll()
+                    imageJobs.joinAll()
+                }
+
+                onSucess()
+                onceUploaded()
+                cancelModel()
+            } else {
+                val errorMessages = results.errors.map { stringRes(context, it.errorResource, *it.params) }.distinct()
+
+                onError(stringRes(context, R.string.failed_to_upload_media_no_details), errorMessages.joinToString(".\n"))
+            }
+        }
+    }
+
+    open fun cancelModel() {
+        multiOrchestrator = null
+        isUploadingImage = false
+        caption = ""
+        publishAsEphemeralStory = false
+        selectedServer = defaultServer()
+    }
+
+    fun deleteMediaToUpload(selected: SelectedMediaProcessing) {
+        multiOrchestrator?.remove(selected)
+    }
+
+    fun canPost(): Boolean = !isUploadingImage && multiOrchestrator != null && selectedServer != null
+
+    fun defaultServer() = account?.settings?.defaultFileServer ?: DEFAULT_MEDIA_SERVERS[0]
+
+    fun onceUploaded(onceUploaded: () -> Unit) {
+        this.onceUploaded = onceUploaded
+    }
+}

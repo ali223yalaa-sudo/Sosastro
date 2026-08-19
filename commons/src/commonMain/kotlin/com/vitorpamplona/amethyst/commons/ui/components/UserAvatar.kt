@@ -1,0 +1,142 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.commons.ui.components
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.DefaultAlpha
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
+import coil3.compose.AsyncImage
+import com.vitorpamplona.amethyst.commons.robohash.CachedRobohash
+import com.vitorpamplona.amethyst.commons.ui.theme.isLight
+
+/**
+ * Wrapper class for profile picture URLs that signals Coil to use the thumbnail
+ * disk cache fetcher instead of the normal network pipeline. Passing this as the
+ * model to AsyncImage avoids string concatenation/parsing and lets Coil route
+ * by type via Fetcher.Factory<ProfilePictureUrl>.
+ */
+data class ProfilePictureUrl(
+    val url: String,
+)
+
+/**
+ * Shared avatar component that displays a user's profile picture with Robohash fallback.
+ *
+ * @param userHex The user's public key hex (used for Robohash generation)
+ * @param pictureUrl Optional URL to the user's profile picture
+ * @param size Size of the avatar (both width and height)
+ * @param modifier Additional modifiers to apply
+ * @param contentDescription Accessibility description
+ * @param loadProfilePicture Whether to load the profile picture (false = show robohash only)
+ * @param loadRobohash Whether to generate robohash (false = show generic icon)
+ * @param useThumbnailCache Whether to use the thumbnail disk cache for faster repeated loads
+ * @param badge Optional overlay drawn on top of the avatar (bottom-right by
+ *   convention). Used by Desktop for the WoT trust-score chip; Android call
+ *   sites leave it null. When null the avatar renders as before (no extra
+ *   `Box` wrapper).
+ */
+@Composable
+fun UserAvatar(
+    userHex: String,
+    pictureUrl: String?,
+    size: Dp,
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+    loadProfilePicture: Boolean = true,
+    loadRobohash: Boolean = true,
+    useThumbnailCache: Boolean = false,
+    badge: @Composable (BoxScope.() -> Unit)? = null,
+) {
+    if (badge != null) {
+        Box(modifier = modifier.size(size)) {
+            UserAvatar(
+                userHex = userHex,
+                pictureUrl = pictureUrl,
+                size = size,
+                modifier = Modifier,
+                contentDescription = contentDescription,
+                loadProfilePicture = loadProfilePicture,
+                loadRobohash = loadRobohash,
+                useThumbnailCache = useThumbnailCache,
+                badge = null,
+            )
+            badge()
+        }
+        return
+    }
+
+    val avatarModifier =
+        remember(size, modifier) {
+            modifier
+                .size(size)
+                .clip(shape = CircleShape)
+        }
+
+    val imageModel: Any? =
+        if (pictureUrl != null && useThumbnailCache) {
+            ProfilePictureUrl(pictureUrl)
+        } else {
+            pictureUrl
+        }
+
+    val defaultAvatar =
+        CachedRobohash.get(userHex, MaterialTheme.colorScheme.isLight)
+
+    if (imageModel != null && loadProfilePicture) {
+        // Show profile picture with Instagram-style blank avatar as fallback
+        val fallbackPainter = rememberVectorPainter(image = defaultAvatar)
+
+        AsyncImage(
+            model = imageModel,
+            contentDescription = contentDescription,
+            modifier = avatarModifier,
+            placeholder = fallbackPainter,
+            fallback = fallbackPainter,
+            error = fallbackPainter,
+            alignment = Alignment.Center,
+            contentScale = ContentScale.Crop,
+            alpha = DefaultAlpha,
+            colorFilter = null,
+            filterQuality = DrawScope.DefaultFilterQuality,
+        )
+    } else {
+        // Shared blank avatar for users without a picture (or when pictures are disabled)
+        Image(
+            imageVector = defaultAvatar,
+            contentDescription = contentDescription,
+            modifier = avatarModifier,
+            contentScale = ContentScale.Crop,
+        )
+    }
+}

@@ -1,0 +1,181 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.quartz.nip01Core.jackson
+
+import com.fasterxml.jackson.core.json.JsonReadFeature
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JavaType
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.databind.node.ArrayNode
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.vitorpamplona.quartz.nip01Core.core.Event
+import com.vitorpamplona.quartz.nip01Core.core.OptimizedSerializable
+import com.vitorpamplona.quartz.nip01Core.core.TagArray
+import com.vitorpamplona.quartz.nip01Core.relay.commands.toClient.Message
+import com.vitorpamplona.quartz.nip01Core.relay.commands.toClient.MessageDeserializer
+import com.vitorpamplona.quartz.nip01Core.relay.commands.toClient.MessageSerializer
+import com.vitorpamplona.quartz.nip01Core.relay.commands.toRelay.Command
+import com.vitorpamplona.quartz.nip01Core.relay.commands.toRelay.CommandDeserializer
+import com.vitorpamplona.quartz.nip01Core.relay.commands.toRelay.CommandSerializer
+import com.vitorpamplona.quartz.nip01Core.relay.filters.Filter
+import com.vitorpamplona.quartz.nip01Core.relay.filters.FilterDeserializer
+import com.vitorpamplona.quartz.nip01Core.relay.filters.FilterSerializer
+import com.vitorpamplona.quartz.nip01Core.signers.EventTemplate
+import com.vitorpamplona.quartz.nip01Core.signers.EventTemplateDeserializer
+import com.vitorpamplona.quartz.nip01Core.signers.EventTemplateSerializer
+import com.vitorpamplona.quartz.nip46RemoteSigner.BunkerMessage
+import com.vitorpamplona.quartz.nip46RemoteSigner.BunkerRequest
+import com.vitorpamplona.quartz.nip46RemoteSigner.BunkerResponse
+import com.vitorpamplona.quartz.nip46RemoteSigner.jackson.BunkerMessageDeserializer
+import com.vitorpamplona.quartz.nip46RemoteSigner.jackson.BunkerRequestDeserializer
+import com.vitorpamplona.quartz.nip46RemoteSigner.jackson.BunkerRequestSerializer
+import com.vitorpamplona.quartz.nip46RemoteSigner.jackson.BunkerResponseDeserializer
+import com.vitorpamplona.quartz.nip46RemoteSigner.jackson.BunkerResponseSerializer
+import com.vitorpamplona.quartz.nip47WalletConnect.jackson.NotificationDeserializer
+import com.vitorpamplona.quartz.nip47WalletConnect.jackson.NotificationSerializer
+import com.vitorpamplona.quartz.nip47WalletConnect.jackson.RequestDeserializer
+import com.vitorpamplona.quartz.nip47WalletConnect.jackson.RequestSerializer
+import com.vitorpamplona.quartz.nip47WalletConnect.jackson.ResponseDeserializer
+import com.vitorpamplona.quartz.nip47WalletConnect.jackson.ResponseSerializer
+import com.vitorpamplona.quartz.nip47WalletConnect.rpc.Notification
+import com.vitorpamplona.quartz.nip47WalletConnect.rpc.Request
+import com.vitorpamplona.quartz.nip47WalletConnect.rpc.Response
+import com.vitorpamplona.quartz.nip59Giftwrap.rumors.Rumor
+import com.vitorpamplona.quartz.nip59Giftwrap.rumors.jackson.RumorDeserializer
+import com.vitorpamplona.quartz.nip59Giftwrap.rumors.jackson.RumorSerializer
+import java.io.InputStream
+
+class JacksonMapper {
+    companion object {
+        val defaultPrettyPrinter = InliningTagArrayPrettyPrinter()
+
+        val mapper =
+            jacksonObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .configure(DeserializationFeature.FAIL_ON_TRAILING_TOKENS, false)
+                .configure(DeserializationFeature.UNWRAP_ROOT_VALUE, false)
+                // Tolerate a single JSON object where a list is declared. Several Nostr-native
+                // RPCs (e.g. CLINK Manage `details`, typed `OfferData | OfferData[]`) return a
+                // bare object for single-item results and an array for lists; accept both.
+                .configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
+                .enable(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature())
+                .setDefaultPrettyPrinter(defaultPrettyPrinter)
+                .registerModule(
+                    SimpleModule()
+                        // nip 01
+                        .addSerializer(Event::class.java, EventSerializer())
+                        .addDeserializer(Event::class.java, EventDeserializer())
+                        .addSerializer(Filter::class.java, FilterSerializer())
+                        .addDeserializer(Filter::class.java, FilterDeserializer())
+                        .addSerializer(Message::class.java, MessageSerializer())
+                        .addDeserializer(Message::class.java, MessageDeserializer())
+                        .addSerializer(Command::class.java, CommandSerializer())
+                        .addDeserializer(Command::class.java, CommandDeserializer())
+                        .addDeserializer(TagArray::class.java, TagArrayDeserializer())
+                        .addSerializer(TagArray::class.java, TagArraySerializer())
+                        .addDeserializer(EventTemplate::class.java, EventTemplateDeserializer())
+                        .addSerializer(EventTemplate::class.java, EventTemplateSerializer())
+                        // nip 59
+                        .addSerializer(Rumor::class.java, RumorSerializer())
+                        .addDeserializer(Rumor::class.java, RumorDeserializer())
+                        // nip 47
+                        .addSerializer(Response::class.java, ResponseSerializer())
+                        .addDeserializer(Response::class.java, ResponseDeserializer())
+                        .addSerializer(Request::class.java, RequestSerializer())
+                        .addDeserializer(Request::class.java, RequestDeserializer())
+                        .addSerializer(Notification::class.java, NotificationSerializer())
+                        .addDeserializer(Notification::class.java, NotificationDeserializer())
+                        // nip 46
+                        .addDeserializer(BunkerMessage::class.java, BunkerMessageDeserializer())
+                        .addSerializer(BunkerRequest::class.java, BunkerRequestSerializer())
+                        .addDeserializer(BunkerRequest::class.java, BunkerRequestDeserializer())
+                        .addSerializer(BunkerResponse::class.java, BunkerResponseSerializer())
+                        .addDeserializer(BunkerResponse::class.java, BunkerResponseDeserializer()),
+                )
+
+        /**
+         * Shortcuts
+         */
+        val eventTypeInstance: JavaType = mapper.typeFactory.constructType(jacksonTypeRef<Event>())
+        val tagArrayTypeInstance: JavaType = mapper.typeFactory.constructType(jacksonTypeRef<TagArray>())
+        val rumorTypeInstance: JavaType = mapper.typeFactory.constructType(jacksonTypeRef<Rumor>())
+        val eventTemplateTypeInstance: JavaType = mapper.typeFactory.constructType(jacksonTypeRef<EventTemplate<Event>>())
+        val eventListTypeInstance: JavaType = mapper.typeFactory.constructType(jacksonTypeRef<List<Event>>())
+        val messageTypeInstance: JavaType = mapper.typeFactory.constructType(jacksonTypeRef<Message>())
+        val commandTypeInstance: JavaType = mapper.typeFactory.constructType(jacksonTypeRef<Command>())
+
+        fun fromJson(json: String): Event = mapper.readValue(json, eventTypeInstance)
+
+        fun fromJsonToMessage(json: String): Message = mapper.readValue(json, messageTypeInstance)
+
+        fun fromJsonToCommand(json: String): Command = mapper.readValue(json, commandTypeInstance)
+
+        fun fromJsonToTagArray(json: String): TagArray = mapper.readValue(json, tagArrayTypeInstance)
+
+        fun fromJsonToRumor(json: String): Rumor = mapper.readValue(json, rumorTypeInstance)
+
+        fun fromJsonToEventTemplate(json: String): EventTemplate<Event> = mapper.readValue(json, eventTemplateTypeInstance)
+
+        fun fromJsonToEventList(json: String): List<Event> = mapper.readValue(json, eventListTypeInstance)
+
+        inline fun <reified T : OptimizedSerializable> fromJsonTo(json: String): T = mapper.readValue<T>(json)
+
+        inline fun <reified T : OptimizedSerializable> fromJsonTo(json: InputStream): T = mapper.readValue<T>(json)
+
+        fun toJson(event: Event): String = EventManualSerializer.toJson(event.id, event.pubKey, event.createdAt, event.kind, event.tags, event.content, event.sig)
+
+        /**
+         * Pretty-printed event JSON for human inspection. Uses the
+         * [InliningTagArrayPrettyPrinter] already configured on the
+         * mapper so each tag array stays on its own line (no nested
+         * line-per-element noise) and the seven event fields get their
+         * own indented lines. Re-canonicalisation is the caller's
+         * problem — this output is not canonical NIP-01.
+         */
+        fun toJsonPretty(event: Event): String =
+            mapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(
+                    EventManualSerializer.assemble(
+                        event.id,
+                        event.pubKey,
+                        event.createdAt,
+                        event.kind,
+                        event.tags,
+                        event.content,
+                        event.sig,
+                    ),
+                )
+
+        fun toJsonPretty(template: EventTemplate<*>): String = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(template)
+
+        fun toJson(event: ArrayNode): String = mapper.writeValueAsString(event)
+
+        fun toJson(event: ObjectNode?): String = mapper.writeValueAsString(event)
+
+        fun toJson(value: OptimizedSerializable): String = mapper.writeValueAsString(value)
+
+        fun toJson(tags: TagArray): String = mapper.writeValueAsString(tags)
+    }
+}

@@ -1,0 +1,230 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.ui.screen.loggedIn.video.dal
+
+import com.vitorpamplona.amethyst.commons.defaults.Constants
+import com.vitorpamplona.amethyst.commons.richtext.RichTextParser
+import com.vitorpamplona.amethyst.commons.richtext.UrlParser
+import com.vitorpamplona.amethyst.commons.ui.feeds.RelayOrderFeedFilter
+import com.vitorpamplona.amethyst.model.Account
+import com.vitorpamplona.amethyst.model.AddressableNote
+import com.vitorpamplona.amethyst.model.LocalCache
+import com.vitorpamplona.amethyst.model.Note
+import com.vitorpamplona.amethyst.model.TopFilter
+import com.vitorpamplona.amethyst.model.filterIntoSet
+import com.vitorpamplona.amethyst.ui.dal.AdditiveFeedFilter
+import com.vitorpamplona.amethyst.ui.dal.FilterByListParams
+import com.vitorpamplona.amethyst.ui.dal.sortedByInterestOrDefault
+import com.vitorpamplona.amethyst.ui.dal.usesAstroInterestOrder
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts.datasource.isReelPlayableVideo
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.SUPPORTED_VIDEO_FEED_MIME_TYPES_SET
+import com.vitorpamplona.quartz.experimental.audio.header.AudioHeaderEvent
+import com.vitorpamplona.quartz.experimental.ephemeralStory.EphemeralStoryEvent
+import com.vitorpamplona.quartz.nip01Core.core.AddressableEvent
+import com.vitorpamplona.quartz.nip01Core.core.Event
+import com.vitorpamplona.quartz.nip10Notes.TextNoteEvent
+import com.vitorpamplona.quartz.nip68Picture.PictureEvent
+import com.vitorpamplona.quartz.nip68Picture.PictureMeta
+import com.vitorpamplona.quartz.nip71Video.VideoHorizontalEvent
+import com.vitorpamplona.quartz.nip71Video.VideoMeta
+import com.vitorpamplona.quartz.nip71Video.VideoNormalEvent
+import com.vitorpamplona.quartz.nip71Video.VideoShortEvent
+import com.vitorpamplona.quartz.nip71Video.VideoVerticalEvent
+import com.vitorpamplona.quartz.nip92IMeta.imetas
+import com.vitorpamplona.quartz.nip94FileMetadata.FileHeaderEvent
+import com.vitorpamplona.quartz.nipA0VoiceMessages.VoiceEvent
+
+class VideoFeedFilter(
+    val account: Account,
+) : AdditiveFeedFilter<Note>(),
+    RelayOrderFeedFilter {
+    val videoFeedSupport =
+        SupportedContent(
+            blockedUrls = listOf("youtu.be", "youtube.com"),
+            mimeTypes = SUPPORTED_VIDEO_FEED_MIME_TYPES_SET,
+            supportedFileExtensions = (RichTextParser.videoExtensions + RichTextParser.imageExtensions).toSet(),
+        )
+
+    override fun feedKey(): String = account.userProfile().pubkeyHex + "-" + account.settings.defaultStoriesFollowList.value.code
+
+    override fun limit() = 300
+
+    fun followList(): TopFilter = account.settings.defaultStoriesFollowList.value
+
+    fun TopFilter.isMuteList() = this is TopFilter.MuteList
+
+    fun TopFilter.isBlockList() = this is TopFilter.PeopleList && this.address == account.blockPeopleList.getBlockListAddress()
+
+    fun TopFilter.wantsToSeeNegativeStuff() = isMuteList() || isBlockList()
+
+    override fun showHiddenKey(): Boolean = followList().wantsToSeeNegativeStuff()
+
+    override fun feed(): List<Note> {
+        val params = buildFilterParams(account)
+
+        val notes =
+            LocalCache.notes.filterIntoSet { _, it ->
+                acceptableEvent(it, params)
+            } +
+                LocalCache.addressables.filterIntoSet(VideoHorizontalEvent.KIND) { _, it ->
+                    acceptableEvent(it, params)
+                } +
+                LocalCache.addressables.filterIntoSet(VideoVerticalEvent.KIND) { _, it ->
+                    acceptableEvent(it, params)
+                } +
+                LocalCache.addressables.filterIntoSet(EphemeralStoryEvent.KIND) { _, it ->
+                    acceptableEvent(it, params)
+                }
+
+        return sort(notes)
+    }
+
+    override fun applyFilter(newItems: Set<Note>): Set<Note> = innerApplyFilter(newItems)
+
+    private fun innerApplyFilter(collection: Collection<Note>): Set<Note> {
+        val params = buildFilterParams(account)
+
+        return collection.filterTo(HashSet()) { acceptableEvent(it, params) }
+    }
+
+    fun acceptableUrls(
+        baseUrls: List<String>,
+        mimeType: String?,
+    ) = baseUrls.any { videoFeedSupport.acceptableUrl(it, mimeType) }
+
+    fun acceptableVideoiMetas(iMetas: List<VideoMeta>): Boolean = iMetas.any { videoFeedSupport.acceptableUrl(it.url, it.mimeType) }
+
+    fun acceptablePictureiMetas(iMetas: List<PictureMeta>): Boolean = iMetas.any { videoFeedSupport.acceptableUrl(it.url, it.mimeType) }
+
+    fun acceptanceEvent(noteEvent: PictureEvent) = acceptablePictureiMetas(noteEvent.imetaTags())
+
+    fun acceptanceEvent(noteEvent: FileHeaderEvent) = acceptableUrls(noteEvent.urls(), noteEvent.mimeType())
+
+    fun acceptanceEvent(noteEvent: VideoVerticalEvent) = acceptableVideoiMetas(noteEvent.imetaTags())
+
+    fun acceptanceEvent(noteEvent: VideoHorizontalEvent) = acceptableVideoiMetas(noteEvent.imetaTags())
+
+    fun acceptanceEvent(noteEvent: VideoNormalEvent) = acceptableVideoiMetas(noteEvent.imetaTags())
+
+    fun acceptanceEvent(noteEvent: VideoShortEvent) = acceptableVideoiMetas(noteEvent.imetaTags())
+
+    fun acceptableEvent(
+        note: Note,
+        params: FilterByListParams,
+    ): Boolean {
+        val noteEvent = note.event ?: return false
+
+        if (noteEvent is AddressableEvent && note !is AddressableNote) {
+            return false
+        }
+
+        val isMine = noteEvent.pubKey == account.userProfile().pubkeyHex
+        val textsOnly = followList() == TopFilter.Texts
+        val isAnimatedImage = isAnimatedImageNote(noteEvent)
+        val matchesContent =
+            if (textsOnly) {
+                isAnimatedImage ||
+                    (noteEvent is TextNoteEvent && noteEvent.isNewThread() && noteEvent.isPlainTextOrLinkPost())
+            } else {
+                !isAnimatedImage &&
+                    (
+                        (noteEvent is FileHeaderEvent && acceptanceEvent(noteEvent)) ||
+                            (noteEvent is VideoVerticalEvent && acceptanceEvent(noteEvent)) ||
+                            (noteEvent is VideoHorizontalEvent && acceptanceEvent(noteEvent)) ||
+                            (noteEvent is VideoNormalEvent && acceptanceEvent(noteEvent)) ||
+                            (noteEvent is VideoShortEvent && acceptanceEvent(noteEvent)) ||
+                            (noteEvent is PictureEvent && acceptanceEvent(noteEvent)) ||
+                            (noteEvent is EphemeralStoryEvent && acceptableEphemeralStory(noteEvent)) ||
+                            (noteEvent is TextNoteEvent && noteEvent.isReelPlayableVideo()) ||
+                            (noteEvent is VoiceEvent && note.isNewThread()) ||
+                            (noteEvent is AudioHeaderEvent && note.isNewThread())
+                    )
+            }
+
+        return matchesContent &&
+            (isMine || params.match(noteEvent, note.relays)) &&
+            (params.isHiddenList || isMine || account.isAcceptable(note))
+    }
+
+    fun acceptableEphemeralStory(event: EphemeralStoryEvent): Boolean = event.stillActive() && (event.isVideo() || event.isImage())
+
+    fun buildFilterParams(account: Account): FilterByListParams =
+        FilterByListParams.create(
+            followLists = account.liveStoriesFollowLists.value,
+            hiddenUsers = account.hiddenUsers.flow.value,
+        )
+
+    override fun prefersServedOrder(): Boolean =
+        account.settings.defaultStoriesFollowList.value
+            .usesAstroInterestOrder()
+
+    override fun sort(items: Set<Note>): List<Note> =
+        items.sortedByInterestOrDefault(
+            prefersServedOrder(),
+            account.userProfile().pubkeyHex,
+            if (followList() == TopFilter.MiddleEast) Constants.amethystHome else null,
+        )
+
+    private fun TextNoteEvent.isPlainTextOrLinkPost(): Boolean {
+        if (isReelPlayableVideo()) return false
+        for (imeta in imetas()) {
+            val mime = imeta.properties["m"]?.firstOrNull().orEmpty()
+            if (mime.startsWith("image/") || mime.startsWith("video/") || mime.startsWith("audio/")) {
+                return false
+            }
+            if (imeta.url.isNotBlank() && RichTextParser.isImageOrVideoUrl(imeta.url)) {
+                return false
+            }
+        }
+        val urls = UrlParser().parseValidUrls(content)
+        return urls.withScheme.none { RichTextParser.isImageOrVideoUrl(it) } &&
+            urls.withoutScheme.none { RichTextParser.isImageOrVideoUrl(it) }
+    }
+}
+
+private fun isGifUrl(
+    url: String,
+    mimeType: String? = null,
+): Boolean {
+    if (mimeType?.equals("image/gif", ignoreCase = true) == true) return true
+    val path = url.substringBefore('?').substringBefore('#')
+    return path.endsWith(".gif", ignoreCase = true)
+}
+
+private fun isAnimatedImageNote(noteEvent: Event): Boolean =
+    when (noteEvent) {
+        is PictureEvent -> noteEvent.imetaTags().any { isGifUrl(it.url, it.mimeType) }
+        is FileHeaderEvent ->
+            noteEvent.mimeType()?.equals("image/gif", ignoreCase = true) == true ||
+                noteEvent.urls().any { isGifUrl(it, noteEvent.mimeType()) }
+        is EphemeralStoryEvent ->
+            noteEvent.isImage() && isGifUrl(noteEvent.url().orEmpty(), noteEvent.mimeType())
+        is TextNoteEvent -> {
+            noteEvent.imetas().any { imeta ->
+                isGifUrl(imeta.url, imeta.properties["m"]?.firstOrNull())
+            } ||
+                run {
+                    val urls = UrlParser().parseValidUrls(noteEvent.content)
+                    (urls.withScheme + urls.withoutScheme).any { isGifUrl(it) }
+                }
+        }
+        else -> false
+    }

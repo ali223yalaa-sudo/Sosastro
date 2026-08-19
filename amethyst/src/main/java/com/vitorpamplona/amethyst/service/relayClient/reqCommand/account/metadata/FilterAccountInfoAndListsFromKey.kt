@@ -1,0 +1,139 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.service.relayClient.reqCommand.account.metadata
+
+import com.vitorpamplona.amethyst.model.nip78AppSpecific.AppSpecificState.Companion.APP_SPECIFIC_DATA_D_TAG
+import com.vitorpamplona.quartz.experimental.nipA3.PaymentTargetsEvent
+import com.vitorpamplona.quartz.marmot.mip00KeyPackages.KeyPackageRelayListEvent
+import com.vitorpamplona.quartz.nip01Core.core.HexKey
+import com.vitorpamplona.quartz.nip01Core.metadata.MetadataEvent
+import com.vitorpamplona.quartz.nip01Core.relay.client.pool.RelayBasedFilter
+import com.vitorpamplona.quartz.nip01Core.relay.filters.Filter
+import com.vitorpamplona.quartz.nip01Core.relay.normalizer.NormalizedRelayUrl
+import com.vitorpamplona.quartz.nip02FollowList.ContactListEvent
+import com.vitorpamplona.quartz.nip17Dm.settings.ChatMessageRelayListEvent
+import com.vitorpamplona.quartz.nip37Drafts.privateOutbox.PrivateOutboxRelayListEvent
+import com.vitorpamplona.quartz.nip38UserStatus.StatusEvent
+import com.vitorpamplona.quartz.nip50Search.SearchRelayListEvent
+import com.vitorpamplona.quartz.nip51Lists.geohashList.GeohashListEvent
+import com.vitorpamplona.quartz.nip51Lists.hashtagList.HashtagListEvent
+import com.vitorpamplona.quartz.nip51Lists.interestSet.InterestSetEvent
+import com.vitorpamplona.quartz.nip51Lists.relayLists.BlockedRelayListEvent
+import com.vitorpamplona.quartz.nip51Lists.relayLists.BroadcastRelayListEvent
+import com.vitorpamplona.quartz.nip51Lists.relayLists.IndexerRelayListEvent
+import com.vitorpamplona.quartz.nip51Lists.relayLists.ProxyRelayListEvent
+import com.vitorpamplona.quartz.nip51Lists.relayLists.RelayFeedsListEvent
+import com.vitorpamplona.quartz.nip51Lists.relayLists.TrustedRelayListEvent
+import com.vitorpamplona.quartz.nip51Lists.simpleGroupList.SimpleGroupListEvent
+import com.vitorpamplona.quartz.nip53LiveActivities.nestsServers.NestsServersEvent
+import com.vitorpamplona.quartz.nip60Cashu.wallet.CashuWalletEvent
+import com.vitorpamplona.quartz.nip61Nutzaps.info.NutzapInfoEvent
+import com.vitorpamplona.quartz.nip65RelayList.AdvertisedRelayListEvent
+import com.vitorpamplona.quartz.nip78AppData.AppSpecificDataEvent
+import com.vitorpamplona.quartz.nip85TrustedAssertions.list.TrustProviderListEvent
+import com.vitorpamplona.quartz.nip96FileStorage.config.FileServersEvent
+import com.vitorpamplona.quartz.nipB7Blossom.BlossomServersEvent
+
+val AccountInfoAndListsFromKeyKinds =
+    listOf(
+        MetadataEvent.KIND,
+        ContactListEvent.KIND,
+        StatusEvent.KIND,
+        AdvertisedRelayListEvent.KIND,
+        ChatMessageRelayListEvent.KIND,
+        KeyPackageRelayListEvent.KIND,
+        SearchRelayListEvent.KIND,
+        FileServersEvent.KIND,
+        BlossomServersEvent.KIND,
+        NestsServersEvent.KIND,
+        PrivateOutboxRelayListEvent.KIND,
+    )
+
+val AccountInfoAndListsFromKeyKinds2 =
+    listOf(
+        BlockedRelayListEvent.KIND,
+        TrustedRelayListEvent.KIND,
+        BroadcastRelayListEvent.KIND,
+        IndexerRelayListEvent.KIND,
+        ProxyRelayListEvent.KIND,
+        HashtagListEvent.KIND,
+        GeohashListEvent.KIND,
+        TrustProviderListEvent.KIND,
+        PaymentTargetsEvent.KIND,
+        RelayFeedsListEvent.KIND,
+        InterestSetEvent.KIND,
+        // NIP-51 "simple groups" list (kind 10009): the user's joined NIP-29 groups + servers.
+        // Loaded up-front so "My Groups" and group memberships resolve immediately at login,
+        // without waiting for the groups screen to mount its own subscription.
+        SimpleGroupListEvent.KIND,
+        // NIP-60 Cashu wallet + NIP-61 nutzap info. Replaceables, always
+        // useful to have available — wallet event holds the user's P2PK key
+        // + mint list, nutzap info tells other clients which mints to lock
+        // proofs to when sending us nutzaps. Cross-loaded here so a fresh
+        // sign-in resolves the wallet before the wallet screen is opened.
+        CashuWalletEvent.KIND,
+        NutzapInfoEvent.KIND,
+    )
+
+val AmethystMetadataKinds = listOf(AppSpecificDataEvent.KIND)
+val AmethystMetadataTagMapFilter = mapOf("d" to listOf(APP_SPECIFIC_DATA_D_TAG))
+
+fun filterAccountInfoAndListsFromKey(
+    relay: NormalizedRelayUrl,
+    pubkey: HexKey,
+    since: Long?,
+): List<RelayBasedFilter> {
+    if (pubkey.isEmpty()) return emptyList()
+
+    return listOf(
+        RelayBasedFilter(
+            relay = relay,
+            filter =
+                Filter(
+                    kinds = AccountInfoAndListsFromKeyKinds,
+                    authors = listOf(pubkey),
+                    limit = 20,
+                    since = since,
+                ),
+        ),
+        RelayBasedFilter(
+            relay = relay,
+            filter =
+                Filter(
+                    kinds = AccountInfoAndListsFromKeyKinds2,
+                    authors = listOf(pubkey),
+                    limit = 80,
+                    since = since,
+                ),
+        ),
+        RelayBasedFilter(
+            relay = relay,
+            filter =
+                Filter(
+                    kinds = AmethystMetadataKinds,
+                    authors = listOf(pubkey),
+                    tags = AmethystMetadataTagMapFilter,
+                    limit = 1,
+                    since = since,
+                ),
+        ),
+    )
+}

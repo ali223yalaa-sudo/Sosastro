@@ -1,0 +1,303 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+@file:OptIn(UnstableApi::class)
+
+package com.vitorpamplona.amethyst.service.playback.playerPool
+
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.util.LruCache
+import androidx.annotation.OptIn
+import androidx.core.net.toUri
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DataSourceBitmapLoader
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaSession
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import com.vitorpamplona.amethyst.service.playback.composable.mediaitem.MediaItemCache
+import com.vitorpamplona.amethyst.ui.MainActivity
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
+
+class SessionListener(
+    val session: MediaSession,
+    val playerListener: Player.Listener,
+) {
+    fun removeListeners() {
+        session.player.removeListener(playerListener)
+    }
+}
+
+/**
+ * The goal for this class is to make sure all sessions and exoplayers are closed correctly.
+ */
+class MediaSessionPool(
+    val exoPlayerPool: ExoPlayerPool,
+    val dataSourceFactory: DataSource.Factory,
+    val appContext: Context,
+    val reset: (MediaSession, Boolean) -> Unit,
+) {
+    private val exceptionHandler =
+        CoroutineExceptionHandler { _, throwable ->
+            com.vitorpamplona.quartz.utils.Log
+                .e("MediaSessionPool", "Caught exception: ${throwable.message}", throwable)
+        }
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main + exceptionHandler)
+
+    val globalCallback = MediaSessionCallback(this, appContext)
+
+    // Last cleanup timestamp in nanos, guarded by CAS so concurrent releaseSession() calls
+    // can't all win the time check and each launch a redundant scope.launch sweep.
+    private val lastCleanupNs = AtomicLong(System.nanoTime())
+
+    // The bitmap loader is stateless w.r.t. the session; a fresh allocation per session was
+    // pure noise. ExoPlayer's DEFAULT_EXECUTOR_SERVICE is a process-wide singleton, the
+    // dataSourceFactory is owned by the pool, and the appContext is already retained.
+    // The init is in a separate function so the @OptIn lands on a real declaration —
+    // applying it to a `by lazy` property doesn't propagate into the lambda body.
+    private val sharedBitmapLoader by lazy { buildSharedBitmapLoader() }
+
+    @OptIn(UnstableApi::class)
+    private fun buildSharedBitmapLoader(): DataSourceBitmapLoader =
+        DataSourceBitmapLoader
+            .Builder(appContext)
+            .setExecutorService(DataSourceBitmapLoader.DEFAULT_EXECUTOR_SERVICE.get())
+            .setDataSourceFactory(dataSourceFactory)
+            // Cap decoded artwork to the platform's own metadata bitmap limit so the legacy
+            // MediaSession path never has to re-scale it. media3 would otherwise size-limit the
+            // bitmap using Resources.getSystem()'s config_mediaMetadataBitmapMaxSize, which on
+            // several OEM ROMs (e.g. LineageOS/peridot) is unresolvable and falls back to the full
+            // screen width. That over-sized bitmap then gets re-scaled by the framework inside
+            // android.media.session.MediaSession.setMetadata(), and some of those ROMs recycle the
+            // *source* bitmap during MediaMetadata.Builder.scaleBitmap(). media3's CacheBitmapLoader
+            // caches that now-recycled bitmap and hands it back on the next metadata update, which
+            // crashes with "cannot use a recycled source in createBitmap". Pre-sizing to the same
+            // limit the framework uses keeps build() from ever calling scaleBitmap().
+            .setMaximumOutputDimension(mediaMetadataBitmapMaxSize())
+            .build()
+
+    /**
+     * Mirrors how android.media.session.MediaSession derives its metadata bitmap ceiling: the
+     * framework dimension config_mediaMetadataBitmapMaxSize, resolved from the app context so it
+     * matches the value the platform compares against. Falls back to AOSP's 320dp default when the
+     * (hidden, framework-internal) resource can't be resolved by name.
+     */
+    private fun mediaMetadataBitmapMaxSize(): Int {
+        val resources = appContext.resources
+        val id = resources.getIdentifier("config_mediaMetadataBitmapMaxSize", "dimen", "android")
+        val resolved = if (id != 0) resources.getDimensionPixelSize(id) else 0
+        return if (resolved > 0) resolved else (DEFAULT_METADATA_BITMAP_DP * resources.displayMetrics.density).toInt()
+    }
+
+    // protects from LruCache killing playing sessions
+    private val playingMap = mutableMapOf<String, SessionListener>()
+
+    private val cache =
+        object : LruCache<String, SessionListener>(10) { // up to 10 videos in the screen at the same time
+            override fun entryRemoved(
+                evicted: Boolean,
+                key: String?,
+                oldValue: SessionListener?,
+                newValue: SessionListener?,
+            ) {
+                super.entryRemoved(evicted, key, oldValue, newValue)
+
+                if (!playingMap.contains(key)) {
+                    oldValue?.let { pair ->
+                        pair.removeListeners()
+                        exoPlayerPool.releasePlayerAsync(pair.session.player as ExoPlayer)
+                        pair.session.release()
+                    }
+                }
+            }
+        }
+
+    @OptIn(UnstableApi::class)
+    fun newSession(
+        id: String,
+        keepPlaying: Boolean,
+        context: Context,
+        // Best-effort affinity hint: when the pool still has a paused player carrying this
+        // exact mediaId (matches MediaItem.mediaId, which is the videoUri), the warm player
+        // is reused so the populated buffer survives. Null falls back to a cold acquire.
+        preferredMediaId: String?,
+    ): MediaSession {
+        val mediaSession =
+            MediaSession
+                .Builder(context, exoPlayerPool.acquirePlayer(context, preferredMediaId))
+                .apply {
+                    setBitmapLoader(sharedBitmapLoader)
+                    setId(id)
+                    setCallback(globalCallback)
+                }.build()
+
+        val listener = MediaSessionExoPlayerConnector(mediaSession, this)
+
+        mediaSession.player.addListener(listener)
+
+        reset(mediaSession, keepPlaying)
+
+        // Warm-pool fast path acquires a player that still holds its MediaItem, so the
+        // client side skips setMediaItem (see GetVideoController) and onAddMediaItems
+        // never fires for this fresh session — leaving the notification's tap target
+        // unset. Re-bind it from the player's current item so tapping the playback
+        // notification opens the originating nostr URI.
+        bindSessionActivity(mediaSession, mediaSession.player.currentMediaItem)
+
+        cache.put(mediaSession.id, SessionListener(mediaSession, listener))
+
+        return mediaSession
+    }
+
+    fun bindSessionActivity(
+        session: MediaSession,
+        mediaItem: MediaItem?,
+    ) {
+        val callbackUri = mediaItem?.mediaMetadata?.extras?.getString(MediaItemCache.EXTRA_CALLBACK_URI) ?: return
+        session.setSessionActivity(
+            PendingIntent.getActivity(
+                appContext,
+                0,
+                Intent(Intent.ACTION_VIEW, callbackUri.toUri(), appContext, MainActivity::class.java),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            ),
+        )
+    }
+
+    fun releaseSession(session: MediaSession) {
+        val listener = playingMap.get(session.id) ?: cache.get(session.id)
+        if (listener != null) {
+            session.player.removeListener(listener.playerListener)
+        }
+
+        playingMap.remove(session.id)
+        cache.remove(session.id)
+        session.release()
+        cleanupUnused()
+    }
+
+    fun cleanupUnused() {
+        val now = System.nanoTime()
+        val previous = lastCleanupNs.get()
+        if (now - previous < CLEANUP_INTERVAL_NS) return
+        // CAS so only one caller actually launches the sweep when many releases fire at once.
+        if (!lastCleanupNs.compareAndSet(previous, now)) return
+        scope.launch {
+            val snap = cache.snapshot()
+            snap.values.forEach {
+                if (it.session.connectedControllers.isEmpty()) {
+                    releaseSession(it.session)
+                }
+            }
+        }
+    }
+
+    fun destroy() {
+        scope.launch {
+            cache.evictAll()
+            playingMap.forEach {
+                it.value.removeListeners()
+                exoPlayerPool.releasePlayer(it.value.session.player as ExoPlayer)
+                it.value.session.release()
+            }
+            playingMap.clear()
+        }
+
+        exoPlayerPool.destroy()
+        scope.cancel()
+    }
+
+    fun getSession(
+        id: String,
+        keepPlaying: Boolean,
+        context: Context,
+        preferredMediaId: String? = null,
+    ): MediaSession {
+        val existingSession = playingMap.get(id) ?: cache.get(id)
+        if (existingSession != null) {
+            return existingSession.session
+        }
+
+        return newSession(id, keepPlaying, context, preferredMediaId)
+    }
+
+    fun playingContent() = playingMap.values
+
+    fun getSession(id: String) = cache.get(id)?.session
+
+    class MediaSessionCallback(
+        val pool: MediaSessionPool,
+        val appContext: Context,
+    ) : MediaSession.Callback {
+        @OptIn(UnstableApi::class)
+        override fun onAddMediaItems(
+            mediaSession: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            mediaItems: List<MediaItem>,
+        ): ListenableFuture<List<MediaItem>> {
+            // set up return call when clicking on the Notification bar
+            pool.bindSessionActivity(mediaSession, mediaItems.firstOrNull())
+
+            return Futures.immediateFuture(mediaItems)
+        }
+
+        override fun onDisconnected(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+        ) {
+            pool.releaseSession(session)
+        }
+    }
+
+    class MediaSessionExoPlayerConnector(
+        val mediaSession: MediaSession,
+        val pool: MediaSessionPool,
+    ) : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            if (isPlaying) {
+                pool.playingMap.put(mediaSession.id, SessionListener(mediaSession, this))
+            } else {
+                pool.cache.put(mediaSession.id, SessionListener(mediaSession, this))
+                pool.playingMap.remove(mediaSession.id)
+            }
+        }
+    }
+
+    companion object {
+        private val CLEANUP_INTERVAL_NS = TimeUnit.MINUTES.toNanos(1)
+
+        // AOSP default for config_mediaMetadataBitmapMaxSize, used when the framework resource
+        // can't be resolved by name on a given ROM.
+        private const val DEFAULT_METADATA_BITMAP_DP = 320
+    }
+}

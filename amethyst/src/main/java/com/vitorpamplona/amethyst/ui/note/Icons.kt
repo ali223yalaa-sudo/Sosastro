@@ -1,0 +1,444 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.ui.note
+
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import com.vitorpamplona.amethyst.R
+import com.vitorpamplona.amethyst.commons.hashtags.Amethyst
+import com.vitorpamplona.amethyst.commons.hashtags.Cashu
+import com.vitorpamplona.amethyst.commons.hashtags.CustomHashTagIcons
+import com.vitorpamplona.amethyst.commons.icons.Following
+import com.vitorpamplona.amethyst.commons.icons.Like
+import com.vitorpamplona.amethyst.commons.icons.Liked
+import com.vitorpamplona.amethyst.commons.icons.Reply
+import com.vitorpamplona.amethyst.commons.icons.Repost
+import com.vitorpamplona.amethyst.commons.icons.Reposted
+import com.vitorpamplona.amethyst.commons.icons.Search
+import com.vitorpamplona.amethyst.commons.icons.Zap
+import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
+import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
+import com.vitorpamplona.amethyst.ui.stringRes
+import com.vitorpamplona.amethyst.ui.theme.BitcoinOrange
+import com.vitorpamplona.amethyst.ui.theme.Size19Modifier
+import com.vitorpamplona.amethyst.ui.theme.Size20Modifier
+import com.vitorpamplona.amethyst.ui.theme.Size30Modifier
+import com.vitorpamplona.amethyst.ui.theme.grayText
+import com.vitorpamplona.amethyst.ui.theme.placeholderText
+import com.vitorpamplona.amethyst.ui.theme.subtleButton
+
+@Composable
+fun AmethystIcon(iconSize: Dp) {
+    Icon(
+        imageVector = CustomHashTagIcons.Amethyst,
+        contentDescription = stringRes(id = R.string.app_logo),
+        modifier = Modifier.size(iconSize),
+        tint = Color.Unspecified,
+    )
+}
+
+@Composable
+fun FollowingIcon(modifier: Modifier) {
+    Icon(
+        imageVector = Following,
+        contentDescription = stringRes(id = R.string.following),
+        modifier = modifier,
+        tint = Color.Unspecified,
+    )
+}
+
+@Composable
+fun ArrowBackIcon(tint: Color = MaterialTheme.colorScheme.grayText) {
+    Icon(
+        symbol = MaterialSymbols.AutoMirrored.ArrowBack,
+        contentDescription = stringRes(R.string.back),
+        tint = tint,
+    )
+}
+
+@Composable
+fun DownloadForOfflineIcon(
+    iconSize: Dp,
+    tint: Color = MaterialTheme.colorScheme.primary,
+) {
+    Icon(
+        symbol = MaterialSymbols.DownloadForOffline,
+        contentDescription = stringRes(id = R.string.accessibility_download_for_offline),
+        modifier = remember(iconSize) { Modifier.size(iconSize) },
+        tint = tint,
+    )
+}
+
+@Composable
+fun LikedIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+) {
+    Icon(
+        imageVector = Liked,
+        contentDescription = stringRes(id = R.string.like_description),
+        modifier = modifier,
+        tint = tint,
+    )
+}
+
+@Composable
+fun ChangeReactionIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+) {
+    Icon(
+        symbol = MaterialSymbols.AddReaction,
+        contentDescription = stringRes(id = R.string.change_reaction),
+        modifier = modifier,
+        tint = tint,
+    )
+}
+
+@Composable
+fun LikeIcon(
+    iconSizeModifier: Modifier,
+    grayTint: Color,
+) {
+    Icon(
+        imageVector = Like,
+        contentDescription = stringRes(id = R.string.like_description),
+        modifier = iconSizeModifier,
+        tint = grayTint,
+    )
+}
+
+@Composable
+fun RepostIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+) {
+    Icon(
+        imageVector = Repost,
+        contentDescription = stringRes(id = R.string.boost_or_quote_description),
+        modifier = modifier,
+        tint = tint,
+    )
+}
+
+@Composable
+fun RepostedIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+) {
+    Icon(
+        imageVector = Reposted,
+        contentDescription = stringRes(id = R.string.boost_or_quote_description),
+        modifier = modifier,
+        tint = tint,
+    )
+}
+
+@Composable
+fun LightningAddressIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+) {
+    Icon(
+        symbol = MaterialSymbols.Bolt,
+        contentDescription = stringRes(R.string.lightning_address),
+        tint = tint,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun ZappedIcon(iconSize: Dp) {
+    ZappedIcon(modifier = remember(iconSize) { Modifier.size(iconSize) })
+}
+
+@Composable
+fun ZappedIcon(modifier: Modifier) {
+    ZapIcon(modifier = modifier, BitcoinOrange)
+}
+
+@Preview
+@Composable
+fun ReactionRowIconPreview() {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        CommentIcon(Size20Modifier, Color.Unspecified)
+        RepostedIcon(Size20Modifier)
+        LikeIcon(Size20Modifier, Color.Unspecified)
+        OutlinedZapIcon(Size20Modifier)
+        ZapIcon(Size20Modifier)
+        ZappedIcon(Size20Modifier)
+        ShareIcon(Size20Modifier, Color.Unspecified)
+    }
+}
+
+@Composable
+fun ZapIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+    contentDescriptor: Int = R.string.zap_description,
+) {
+    Icon(
+        symbol = MaterialSymbols.Bolt,
+        contentDescription = stringRes(contentDescriptor),
+        tint = tint,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun OutlinedZapIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+    contentDescriptor: Int = R.string.zap_description,
+) {
+    Icon(
+        imageVector = Zap,
+        contentDescription = stringRes(contentDescriptor),
+        tint = tint,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun ShareIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+) {
+    Icon(
+        symbol = MaterialSymbols.Share,
+        modifier = modifier,
+        contentDescription = stringRes(R.string.share_or_save),
+        tint = tint,
+    )
+}
+
+@Composable
+fun CashuIcon(modifier: Modifier) {
+    Icon(
+        imageVector = CustomHashTagIcons.Cashu,
+        stringRes(R.string.cashu),
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun CopyIcon(modifier: Modifier) {
+    Icon(
+        symbol = MaterialSymbols.ContentCopy,
+        stringRes(id = R.string.copy_to_clipboard),
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun OpenInNewIcon(modifier: Modifier) {
+    Icon(
+        symbol = MaterialSymbols.AutoMirrored.OpenInNew,
+        stringRes(id = R.string.copy_to_clipboard),
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun ExpandLessIcon(
+    modifier: Modifier,
+    contentDescriptor: Int,
+) {
+    Icon(
+        symbol = MaterialSymbols.ExpandLess,
+        contentDescription = stringRes(id = contentDescriptor),
+        modifier = modifier,
+        tint = MaterialTheme.colorScheme.subtleButton,
+    )
+}
+
+@Composable
+fun ExpandMoreIcon(
+    modifier: Modifier,
+    contentDescriptor: Int,
+) {
+    Icon(
+        symbol = MaterialSymbols.ExpandMore,
+        contentDescription = stringRes(id = contentDescriptor),
+        modifier = modifier,
+        tint = MaterialTheme.colorScheme.subtleButton,
+    )
+}
+
+@Composable
+fun VoiceReplyIcon(
+    iconSizeModifier: Modifier,
+    tint: Color,
+) {
+    Icon(
+        symbol = MaterialSymbols.Mic,
+        contentDescription = stringRes(id = R.string.record_a_message),
+        tint = tint,
+        modifier = iconSizeModifier,
+    )
+}
+
+@Composable
+fun CommentIcon(
+    iconSizeModifier: Modifier,
+    tint: Color,
+) {
+    Icon(
+        imageVector = Reply,
+        contentDescription = stringRes(id = R.string.reply_description),
+        modifier = iconSizeModifier,
+        tint = tint,
+    )
+}
+
+@Composable
+fun CancelIcon() {
+    Icon(
+        symbol = MaterialSymbols.Cancel,
+        contentDescription = stringRes(id = R.string.cancel),
+        modifier = Size30Modifier,
+        tint = MaterialTheme.colorScheme.placeholderText,
+    )
+}
+
+@Composable
+fun CloseIcon() {
+    Icon(
+        symbol = MaterialSymbols.Close,
+        contentDescription = stringRes(id = R.string.cancel),
+        modifier = Size20Modifier,
+    )
+}
+
+@Composable
+fun SearchIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+) {
+    Icon(
+        imageVector = Search,
+        contentDescription = stringRes(id = R.string.search_button),
+        modifier = modifier,
+        tint = tint,
+    )
+}
+
+@Composable
+fun PlayIcon(
+    modifier: Modifier,
+    tint: Color,
+) {
+    Icon(
+        symbol = MaterialSymbols.PlayCircle,
+        contentDescription = stringRes(id = R.string.accessibility_play_username),
+        modifier = modifier,
+        tint = tint,
+    )
+}
+
+@Composable
+fun PinIcon(
+    modifier: Modifier,
+    tint: Color,
+) {
+    Icon(
+        symbol = MaterialSymbols.PushPin,
+        contentDescription = stringRes(id = R.string.accessibility_pushpin),
+        modifier = modifier,
+        tint = tint,
+    )
+}
+
+@Composable
+fun EnablePiP(
+    modifier: Modifier,
+    tint: Color,
+) {
+    Icon(
+        symbol = MaterialSymbols.AutoMirrored.OpenInNew,
+        contentDescription = stringRes(id = R.string.enter_picture_in_picture),
+        modifier = modifier,
+        tint = tint,
+    )
+}
+
+@Composable
+fun ClearTextIcon() {
+    Icon(
+        symbol = MaterialSymbols.Clear,
+        contentDescription = stringRes(R.string.clear),
+    )
+}
+
+@Composable
+fun LinkIcon(
+    modifier: Modifier,
+    tint: Color,
+) {
+    Icon(
+        symbol = MaterialSymbols.Link,
+        contentDescription = stringRes(R.string.website),
+        modifier = modifier,
+        tint = tint,
+    )
+}
+
+@Composable
+fun VerticalDotsIcon(
+    tint: Color? = null,
+    modifier: Modifier = Size19Modifier,
+) {
+    Icon(
+        symbol = MaterialSymbols.MoreVert,
+        contentDescription = stringRes(id = R.string.note_options),
+        modifier = modifier,
+        tint = tint ?: MaterialTheme.colorScheme.placeholderText,
+    )
+}
+
+@Composable
+fun OnchainZappedIcon(modifier: Modifier) {
+    Icon(
+        symbol = MaterialSymbols.CurrencyBitcoin,
+        contentDescription = stringRes(R.string.onchain_zap_description),
+        tint = BitcoinOrange,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun PendingClockBadge(modifier: Modifier) {
+    Icon(
+        symbol = MaterialSymbols.Schedule,
+        contentDescription = stringRes(R.string.onchain_zap_pending),
+        tint = BitcoinOrange,
+        modifier = modifier,
+    )
+}

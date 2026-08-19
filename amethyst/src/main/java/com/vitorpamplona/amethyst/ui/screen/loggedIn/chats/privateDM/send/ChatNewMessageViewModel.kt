@@ -1,0 +1,880 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.send
+
+import android.content.Context
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.vitorpamplona.amethyst.Amethyst
+import com.vitorpamplona.amethyst.commons.model.nip30CustomEmojis.EmojiPackState
+import com.vitorpamplona.amethyst.commons.ui.text.currentWord
+import com.vitorpamplona.amethyst.commons.ui.text.insertUrlAtCursor
+import com.vitorpamplona.amethyst.commons.ui.text.replaceCurrentWord
+import com.vitorpamplona.amethyst.model.Account
+import com.vitorpamplona.amethyst.model.AddressableNote
+import com.vitorpamplona.amethyst.model.LocalCache
+import com.vitorpamplona.amethyst.model.Note
+import com.vitorpamplona.amethyst.model.User
+import com.vitorpamplona.amethyst.service.location.LocationState
+import com.vitorpamplona.amethyst.service.uploads.SuspendableConfirmation
+import com.vitorpamplona.amethyst.ui.actions.NewMessageTagger
+import com.vitorpamplona.amethyst.ui.actions.uploads.SelectedMedia
+import com.vitorpamplona.amethyst.ui.note.creators.draftTags.DraftTagState
+import com.vitorpamplona.amethyst.ui.note.creators.emojiSuggestions.EmojiSuggestionState
+import com.vitorpamplona.amethyst.ui.note.creators.expiration.IExpiration
+import com.vitorpamplona.amethyst.ui.note.creators.location.ILocationGrabber
+import com.vitorpamplona.amethyst.ui.note.creators.messagefield.IMessageField
+import com.vitorpamplona.amethyst.ui.note.creators.previews.PreviewState
+import com.vitorpamplona.amethyst.ui.note.creators.userSuggestions.UserSuggestionState
+import com.vitorpamplona.amethyst.ui.note.creators.zapraiser.IZapRaiser
+import com.vitorpamplona.amethyst.ui.note.creators.zapsplits.IZapField
+import com.vitorpamplona.amethyst.ui.note.creators.zapsplits.SplitBuilder
+import com.vitorpamplona.amethyst.ui.note.creators.zapsplits.toZapSplitSetup
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.send.upload.ChatFileSender
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.send.upload.ChatFileUploader
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.send.upload.SuccessfulUploads
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.utils.ChatFileUploadState
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.home.UserSuggestionAnchor
+import com.vitorpamplona.quartz.nip01Core.core.AddressableEvent
+import com.vitorpamplona.quartz.nip01Core.tags.geohash.geohash
+import com.vitorpamplona.quartz.nip01Core.tags.geohash.getGeoHash
+import com.vitorpamplona.quartz.nip01Core.tags.hashtags.hashtags
+import com.vitorpamplona.quartz.nip01Core.tags.references.references
+import com.vitorpamplona.quartz.nip04Dm.messages.PrivateDmEvent
+import com.vitorpamplona.quartz.nip10Notes.content.findHashtags
+import com.vitorpamplona.quartz.nip10Notes.content.findNostrEventUris
+import com.vitorpamplona.quartz.nip10Notes.content.findURLs
+import com.vitorpamplona.quartz.nip14Subject.subject
+import com.vitorpamplona.quartz.nip17Dm.base.BaseDMGroupEvent
+import com.vitorpamplona.quartz.nip17Dm.base.ChatroomKey
+import com.vitorpamplona.quartz.nip17Dm.base.NIP17Group
+import com.vitorpamplona.quartz.nip17Dm.files.ChatMessageEncryptedFileHeaderEvent
+import com.vitorpamplona.quartz.nip17Dm.messages.ChatMessageEvent
+import com.vitorpamplona.quartz.nip17Dm.settings.ChatMessageRelayListEvent
+import com.vitorpamplona.quartz.nip18Reposts.quotes.quotes
+import com.vitorpamplona.quartz.nip19Bech32.toNpub
+import com.vitorpamplona.quartz.nip30CustomEmoji.CustomEmoji
+import com.vitorpamplona.quartz.nip30CustomEmoji.EmojiUrlTag
+import com.vitorpamplona.quartz.nip30CustomEmoji.emojis
+import com.vitorpamplona.quartz.nip36SensitiveContent.contentWarning
+import com.vitorpamplona.quartz.nip36SensitiveContent.contentWarningReason
+import com.vitorpamplona.quartz.nip36SensitiveContent.isSensitive
+import com.vitorpamplona.quartz.nip37Drafts.DraftWrapEvent
+import com.vitorpamplona.quartz.nip40Expiration.expiration
+import com.vitorpamplona.quartz.nip57Zaps.splits.ZapSplitSetup
+import com.vitorpamplona.quartz.nip57Zaps.splits.zapSplitSetup
+import com.vitorpamplona.quartz.nip57Zaps.splits.zapSplits
+import com.vitorpamplona.quartz.nip57Zaps.zapraiser.zapraiser
+import com.vitorpamplona.quartz.nip57Zaps.zapraiser.zapraiserAmount
+import com.vitorpamplona.quartz.nip92IMeta.imetas
+import com.vitorpamplona.quartz.utils.Hex
+import com.vitorpamplona.quartz.utils.Log
+import com.vitorpamplona.quartz.utils.TimeUtils
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.launch
+
+@Stable
+class ChatNewMessageViewModel :
+    ViewModel(),
+    ILocationGrabber,
+    IMessageField,
+    IZapField,
+    IZapRaiser,
+    IExpiration {
+    val draftTag = DraftTagState()
+
+    // Strong reference to the live cache note for the current draft tag (derived from the
+    // versions flow below), so LocalCache cannot weakly collect it before a deletion needs it.
+    var draftNote: AddressableNote? = null
+        private set
+
+    lateinit var accountViewModel: AccountViewModel
+    lateinit var account: Account
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            draftTag.versions.collectLatest {
+                // don't save the first
+                if (it > 0) {
+                    draftNote = account.getOrCreateDraftNote(draftTag.current)
+                    accountViewModel.launchSigner {
+                        sendDraftSync()
+                    }
+                }
+            }
+        }
+    }
+
+    val room = MutableStateFlow<ChatroomKey?>(null)
+
+    val roomUsers: StateFlow<List<User>> =
+        room
+            .mapNotNull {
+                it?.users?.mapNotNull { userHex -> LocalCache.checkGetOrCreateUser(userHex) } ?: emptyList()
+            }.flowOn(Dispatchers.IO)
+            .stateIn(
+                viewModelScope,
+                SharingStarted.Eagerly,
+                room.value?.users?.mapNotNull { userHex -> LocalCache.checkGetOrCreateUser(userHex) } ?: emptyList(),
+            )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val recipientsMissingDmRelays: StateFlow<ImmutableList<User>> =
+        roomUsers
+            .transformLatest {
+                val dmRelayListNoteFlows =
+                    it.map { user ->
+                        user.dmRelayListNote
+                            .flow()
+                            .metadata.stateFlow
+                    }
+
+                if (dmRelayListNoteFlows.isEmpty()) {
+                    emitAll(MutableStateFlow(persistentListOf()))
+                } else {
+                    val flow =
+                        combine(dmRelayListNoteFlows) { dmRelayListNotes ->
+                            dmRelayListNotes
+                                .mapNotNull { noteState ->
+                                    val noteEvent = noteState.note.event as? ChatMessageRelayListEvent
+                                    if (noteEvent == null || noteEvent.relays().isEmpty()) {
+                                        noteState.note.author
+                                    } else {
+                                        null
+                                    }
+                                }.toImmutableList()
+                        }
+                    emitAll(flow)
+                }
+            }.onStart {
+            }.onCompletion {
+            }.stateIn(
+                viewModelScope,
+                SharingStarted.Eagerly,
+                roomUsers.value
+                    .filter { user ->
+                        user.dmInboxRelays().isNullOrEmpty()
+                    }.toImmutableList(),
+            )
+
+    val replyTo = mutableStateOf<Note?>(null)
+
+    var uploadState by mutableStateOf<ChatFileUploadState?>(null)
+
+    // Stripping failure dialog
+    val strippingFailureConfirmation = SuspendableConfirmation()
+
+    val iMetaAttachments = IMetaAttachments()
+
+    var uploadsWaitingToBeSent by mutableStateOf<List<SuccessfulUploads>>(emptyList())
+
+    override val message = TextFieldState()
+
+    val urlPreviews = PreviewState()
+
+    val isUploadingImage: Boolean get() = uploadState?.isUploadingImage ?: false
+    val isUploadingFile: Boolean get() = uploadState?.isUploadingFile ?: false
+
+    var userSuggestions: UserSuggestionState? = null
+    var userSuggestionsMainMessage: UserSuggestionAnchor? = null
+
+    var emojiSuggestions: EmojiSuggestionState? = null
+
+    val toUsers = TextFieldState()
+    val subject = TextFieldState()
+
+    // Invoices
+    var canAddInvoice by mutableStateOf(false)
+    var wantsInvoice by mutableStateOf(false)
+
+    var wantsSecretEmoji by mutableStateOf(false)
+
+    // Forward Zap to
+    var wantsForwardZapTo by mutableStateOf(false)
+    override val forwardZapTo = mutableStateOf<SplitBuilder<User>>(SplitBuilder())
+    override val forwardZapToEditting = TextFieldState()
+
+    // NSFW, Sensitive
+    var wantsToMarkAsSensitive by mutableStateOf(false)
+    var contentWarningDescription by mutableStateOf("")
+
+    // Expiration Date (NIP-40)
+    var wantsExpirationDate by mutableStateOf(false)
+    override var expirationDate by mutableLongStateOf(TimeUtils.oneDayAhead())
+
+    // GeoHash
+    var wantsToAddGeoHash by mutableStateOf(false)
+    var location: StateFlow<LocationState.LocationResult>? = null
+
+    // ZapRaiser
+    var canAddZapRaiser by mutableStateOf(false)
+    var wantsZapraiser by mutableStateOf(false)
+    override var zapRaiserAmount = mutableStateOf<Long?>(null)
+
+    fun lnAddress(): String? = account.userProfile().lnAddress()
+
+    fun hasLnAddress(): Boolean = account.userProfile().lnAddress() != null
+
+    fun user(): User = account.userProfile()
+
+    fun init(accountVM: AccountViewModel) {
+        this.accountViewModel = accountVM
+        this.account = accountVM.account
+        this.canAddInvoice = hasLnAddress()
+        this.canAddZapRaiser = hasLnAddress()
+
+        this.userSuggestions?.reset()
+        this.userSuggestions =
+            UserSuggestionState(
+                accountVM.account,
+                accountVM.nip05ClientBuilder(),
+                priorityPubkeys = { room.value?.users ?: emptySet() },
+            )
+
+        this.emojiSuggestions?.reset()
+        this.emojiSuggestions = EmojiSuggestionState(accountVM.account)
+
+        this.uploadState =
+            ChatFileUploadState(
+                account.settings.defaultFileServer,
+                account.settings.stripLocationOnUpload,
+            )
+    }
+
+    fun load(room: ChatroomKey) {
+        this.room.tryEmit(room)
+        this.toUsers.setTextAndPlaceCursorAtEnd(
+            room.users.mapNotNull { runCatching { Hex.decode(it).toNpub() }.getOrNull() }.joinToString(", ") { "@$it" },
+        )
+    }
+
+    fun reply(replyNote: Note) {
+        replyTo.value = replyNote
+        draftTag.newVersion()
+    }
+
+    fun clearReply() {
+        replyTo.value = null
+        draftTag.newVersion()
+    }
+
+    fun quote(quote: Note) {
+        message.setTextAndPlaceCursorAtEnd(message.text.toString() + "\nnostr:${quote.toNEvent()}")
+        urlPreviews.update(message.text.toString())
+
+        // creates a split with that author.
+        val quotedAuthor = quote.author ?: return
+
+        if (quotedAuthor.pubkeyHex != accountViewModel.userProfile().pubkeyHex) {
+            if (forwardZapTo.value.items.none { it.key.pubkeyHex == quotedAuthor.pubkeyHex }) {
+                forwardZapTo.value.addItem(quotedAuthor)
+            }
+            if (forwardZapTo.value.items.none { it.key.pubkeyHex == accountViewModel.userProfile().pubkeyHex }) {
+                forwardZapTo.value.addItem(accountViewModel.userProfile())
+            }
+
+            val pos = forwardZapTo.value.items.indexOfFirst { it.key.pubkeyHex == quotedAuthor.pubkeyHex }
+            forwardZapTo.value.updatePercentage(pos, 0.9f)
+
+            wantsForwardZapTo = true
+        }
+    }
+
+    fun editFromDraft(draft: Note) {
+        val noteEvent = draft.event
+        val noteAuthor = draft.author
+
+        if (noteEvent is DraftWrapEvent && noteAuthor != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                accountViewModel.createTempDraftNote(noteEvent)?.let { innerNote ->
+                    val oldTag = (draft.event as? AddressableEvent)?.dTag()
+                    if (oldTag != null) {
+                        draftTag.set(oldTag)
+                        draftNote = account.getOrCreateDraftNote(oldTag)
+                    }
+                    loadFromDraft(innerNote)
+                }
+            }
+        }
+    }
+
+    fun loadExpiration(expirationDays: Int) {
+        this.wantsExpirationDate = true
+        this.expirationDate = TimeUtils.now() + expirationDays * 86400L
+    }
+
+    private fun loadFromDraft(draft: Note) {
+        val draftEvent = draft.event ?: return
+
+        val localForwardZapTo = draftEvent.tags.zapSplitSetup()
+        val totalWeight = localForwardZapTo.sumOf { it.weight }
+        forwardZapTo.value = SplitBuilder()
+        localForwardZapTo.forEach {
+            if (it is ZapSplitSetup) {
+                val user = LocalCache.getOrCreateUser(it.pubKeyHex)
+                forwardZapTo.value.addItem(user, (it.weight / totalWeight).toFloat())
+            }
+            // don't support editing old-style splits.
+        }
+        forwardZapToEditting.clearText()
+        wantsForwardZapTo = localForwardZapTo.isNotEmpty()
+
+        wantsToMarkAsSensitive = draftEvent.isSensitive()
+        contentWarningDescription = draftEvent.contentWarningReason() ?: ""
+
+        val draftExpiration = draftEvent.expiration()
+        wantsExpirationDate = draftExpiration != null
+        expirationDate = draftExpiration ?: TimeUtils.oneDayAhead()
+
+        val geohash = draftEvent.getGeoHash()
+        wantsToAddGeoHash = geohash != null
+
+        val zapraiser = draftEvent.zapraiserAmount()
+        wantsZapraiser = zapraiser != null
+        zapRaiserAmount.value = null
+        if (zapraiser != null) {
+            zapRaiserAmount.value = zapraiser
+        }
+
+        if (forwardZapTo.value.items.isNotEmpty()) {
+            wantsForwardZapTo = true
+        }
+
+        draftEvent.subject()?.let {
+            subject.setTextAndPlaceCursorAtEnd("")
+        }
+
+        if (draftEvent is NIP17Group) {
+            toUsers.setTextAndPlaceCursorAtEnd(
+                draftEvent.groupMembers().mapNotNull { runCatching { Hex.decode(it).toNpub() }.getOrNull() }.joinToString(", ") { "@$it" },
+            )
+
+            val replyId =
+                when (draftEvent) {
+                    is ChatMessageEvent -> draftEvent.replyTo().lastOrNull()
+                    is ChatMessageEncryptedFileHeaderEvent -> draftEvent.replyTo().lastOrNull()
+                    else -> null
+                }
+
+            if (replyId != null) {
+                replyTo.value = accountViewModel.checkGetOrCreateNote(replyId)
+            }
+        } else if (draftEvent is PrivateDmEvent) {
+            val recipientNPub = draftEvent.verifiedRecipientPubKey()?.let { Hex.decode(it).toNpub() }
+            toUsers.setTextAndPlaceCursorAtEnd("@$recipientNPub")
+
+            val replyId = draftEvent.replyTo()
+            if (replyId != null) {
+                replyTo.value = accountViewModel.checkGetOrCreateNote(replyId)
+            }
+        }
+
+        val draftText =
+            if (draftEvent is PrivateDmEvent) {
+                accountViewModel.account.privateDMDecryptionCache.cachedDM(draftEvent) ?: ""
+            } else {
+                draftEvent.content
+            }
+        message.setTextAndPlaceCursorAtEnd(draftText)
+        urlPreviews.update(message.text.toString())
+
+        iMetaAttachments.addAll(draftEvent.imetas())
+    }
+
+    suspend fun sendPostSync() {
+        val draftToDelete = draftNote
+        innerSendPost(null)
+        cancel()
+        accountViewModel.viewModelScope.launch(Dispatchers.IO) {
+            accountViewModel.account.deleteDraftIgnoreErrors(draftToDelete)
+        }
+    }
+
+    /** Sends a standalone emoji bubble; does not touch the text draft. */
+    suspend fun sendQuickEmoji(emoji: String) {
+        val room = room.value ?: return
+        if (emoji.isBlank() || !accountViewModel.isWriteable()) return
+        if (recipientsMissingDmRelays.value.isNotEmpty()) return
+        val template =
+            ChatMessageEvent.build(
+                emoji,
+                room.users.map { LocalCache.getOrCreateUser(it).toPTag() },
+            )
+        accountViewModel.account.sendNip17PrivateMessage(template)
+    }
+
+    suspend fun sendDraftSync() {
+        if (message.text.toString().isBlank()) {
+            account.deleteDraftIgnoreErrors(draftNote)
+        } else if (accountViewModel.settings.automaticallyCreateDrafts()) {
+            innerSendPost(draftTag.current)
+        }
+    }
+
+    fun pickedMedia(list: ImmutableList<SelectedMedia>) {
+        uploadState?.load(list)
+    }
+
+    override fun locationFlow(): StateFlow<LocationState.LocationResult> {
+        if (location == null) {
+            location = locationManager().geohashStateFlow
+        }
+
+        return location!!
+    }
+
+    fun uploadAndHold(
+        onError: (title: String, message: String) -> Unit,
+        context: Context,
+        onceUploaded: () -> Unit,
+    ) {
+        val uploadState = uploadState ?: return
+
+        accountViewModel.launchSigner {
+            ChatFileUploader(account).justUploadNIP17(
+                uploadState,
+                onError,
+                onEncryptedUploadError = { title, message ->
+                    encryptedUploadErrorTitle = title
+                    encryptedUploadErrorMessage = message
+                    pendingRetryMode = RetryMode.HOLD
+                },
+                context,
+                onStrippingFailed = strippingFailureConfirmation::awaitConfirmation,
+            ) {
+                uploadsWaitingToBeSent += it
+                draftTag.newVersion()
+                onceUploaded()
+            }
+        }
+    }
+
+    fun uploadAndSend(
+        onError: (title: String, message: String) -> Unit,
+        context: Context,
+        onceUploaded: () -> Unit,
+    ) {
+        val room = room.value ?: return
+        val uploadState = uploadState ?: return
+
+        accountViewModel.launchSigner {
+            ChatFileUploader(account).justUploadNIP17(
+                uploadState,
+                onError,
+                onEncryptedUploadError = { title, message ->
+                    encryptedUploadErrorTitle = title
+                    encryptedUploadErrorMessage = message
+                    pendingRetryMode = RetryMode.SEND
+                    pendingRetryOnError = onError
+                    pendingRetryContext = context
+                    pendingRetryOnceUploaded = onceUploaded
+                },
+                context,
+                onStrippingFailed = strippingFailureConfirmation::awaitConfirmation,
+            ) {
+                ChatFileSender(room, account).sendNIP17(it)
+                draftTag.newVersion()
+                onceUploaded()
+            }
+        }
+    }
+
+    // Encrypted upload error state for retry dialog
+    var encryptedUploadErrorTitle by mutableStateOf<String?>(null)
+    var encryptedUploadErrorMessage by mutableStateOf<String?>(null)
+    var pendingRetryMode by mutableStateOf<RetryMode?>(null)
+    var pendingRetryOnError by mutableStateOf<((String, String) -> Unit)?>(null)
+    var pendingRetryContext by mutableStateOf<Context?>(null)
+    var pendingRetryOnceUploaded by mutableStateOf<(() -> Unit)?>(null)
+
+    enum class RetryMode { HOLD, SEND }
+
+    fun dismissEncryptedUploadError() {
+        encryptedUploadErrorTitle = null
+        encryptedUploadErrorMessage = null
+        pendingRetryMode = null
+        pendingRetryOnError = null
+        pendingRetryContext = null
+        pendingRetryOnceUploaded = null
+    }
+
+    fun retryWithoutEncryption() {
+        val mode = pendingRetryMode ?: return
+        val onError = pendingRetryOnError
+        val context = pendingRetryContext
+        val onceUploaded = pendingRetryOnceUploaded
+        val room = room.value
+        val uploadState = uploadState
+
+        dismissEncryptedUploadError()
+
+        if (room == null || uploadState == null || context == null) return
+
+        uploadState.encryptFiles = false
+
+        accountViewModel.launchSigner {
+            when (mode) {
+                RetryMode.HOLD -> {
+                    ChatFileUploader(account).justUploadNIP17Unencrypted(
+                        uploadState,
+                        onError ?: accountViewModel.toastManager::toast,
+                        context,
+                        onStrippingFailed = strippingFailureConfirmation::awaitConfirmation,
+                    ) {
+                        uploadsWaitingToBeSent += it
+                        draftTag.newVersion()
+                        onceUploaded?.invoke()
+                    }
+                }
+
+                RetryMode.SEND -> {
+                    ChatFileUploader(account).justUploadNIP17Unencrypted(
+                        uploadState,
+                        onError ?: accountViewModel.toastManager::toast,
+                        context,
+                        onStrippingFailed = strippingFailureConfirmation::awaitConfirmation,
+                    ) {
+                        ChatFileSender(room, account).sendNIP17(it)
+                        draftTag.newVersion()
+                        onceUploaded?.invoke()
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun innerSendPost(draftTag: String?) {
+        val room = room.value ?: return
+
+        val messageText = message.text.toString()
+        val urls = findURLs(messageText)
+        val usedAttachments = iMetaAttachments.filterIsIn(urls.toSet())
+        val emojis = findEmoji(messageText, accountViewModel.account.emoji.myEmojis.value)
+        val geoHash = if (wantsToAddGeoHash) (location?.value as? LocationState.LocationResult.Success)?.geoHash?.toString() else null
+        val message = messageText
+
+        val contentWarningReason = if (wantsToMarkAsSensitive) contentWarningDescription else null
+        val localExpirationDate = if (wantsExpirationDate) expirationDate else null
+        val localZapRaiserAmount = if (wantsZapraiser) zapRaiserAmount.value else null
+        val zapReceiver = if (wantsForwardZapTo) forwardZapTo.value.toZapSplitSetup() else null
+
+        val replyHint = replyTo.value?.toEventHint<BaseDMGroupEvent>()
+
+        val template =
+            if (replyHint == null) {
+                ChatMessageEvent.build(message, room.users.map { LocalCache.getOrCreateUser(it).toPTag() }) {
+                    hashtags(findHashtags(message))
+                    references(findURLs(message))
+                    quotes(findNostrEventUris(message))
+
+                    geoHash?.let { geohash(it) }
+                    localZapRaiserAmount?.let { zapraiser(it) }
+                    zapReceiver?.let { zapSplits(it) }
+                    contentWarningReason?.let { contentWarning(it) }
+                    localExpirationDate?.let { expiration(it) }
+
+                    emojis(emojis)
+                    imetas(usedAttachments)
+                }
+            } else {
+                ChatMessageEvent.reply(message, replyHint) {
+                    hashtags(findHashtags(message))
+                    references(findURLs(message))
+                    quotes(findNostrEventUris(message))
+
+                    geoHash?.let { geohash(it) }
+                    localZapRaiserAmount?.let { zapraiser(it) }
+                    zapReceiver?.let { zapSplits(it) }
+                    contentWarningReason?.let { contentWarning(it) }
+                    localExpirationDate?.let { expiration(it) }
+
+                    emojis(emojis)
+                    imetas(usedAttachments)
+                }
+            }
+
+        if (draftTag != null) {
+            accountViewModel.account.createAndSendDraftIgnoreErrors(draftTag, template)
+        } else {
+            accountViewModel.account.sendNip17PrivateMessage(template)
+        }
+
+        if (draftTag == null) {
+            ChatFileSender(room, accountViewModel.account).sendNIP17(uploadsWaitingToBeSent)
+        }
+    }
+
+    fun findEmoji(
+        message: String,
+        myEmojiSet: List<EmojiPackState.EmojiMedia>?,
+    ): List<EmojiUrlTag> {
+        if (myEmojiSet == null) return emptyList()
+        return CustomEmoji.findAllEmojiCodes(message).mapNotNull { possibleEmoji ->
+            myEmojiSet.firstOrNull { it.code == possibleEmoji }?.let { EmojiUrlTag(it.code, it.link) }
+        }
+    }
+
+    fun cancel() {
+        draftTag.rotate()
+
+        message.setTextAndPlaceCursorAtEnd("")
+        subject.setTextAndPlaceCursorAtEnd("")
+
+        replyTo.value = null
+
+        wantsInvoice = false
+        wantsZapraiser = false
+        zapRaiserAmount.value = null
+
+        wantsForwardZapTo = false
+        wantsToMarkAsSensitive = false
+        contentWarningDescription = ""
+        wantsToAddGeoHash = false
+        wantsSecretEmoji = false
+
+        forwardZapTo.value = SplitBuilder()
+        forwardZapToEditting.clearText()
+
+        urlPreviews.reset()
+
+        userSuggestions?.reset()
+        userSuggestionsMainMessage = null
+
+        uploadsWaitingToBeSent = emptyList()
+        uploadState?.reset()
+
+        dismissEncryptedUploadError()
+
+        iMetaAttachments.reset()
+
+        emojiSuggestions?.reset()
+    }
+
+    fun addToMessage(it: String) {
+        message.setTextAndPlaceCursorAtEnd(message.text.toString() + " " + it)
+        onMessageChanged()
+    }
+
+    override fun onMessageChanged() {
+        urlPreviews.update(message.text.toString())
+
+        if (message.selection.collapsed) {
+            val lastWord = message.currentWord()
+            if (lastWord.startsWith("@")) {
+                userSuggestionsMainMessage = UserSuggestionAnchor.MAIN_MESSAGE
+                userSuggestions?.processCurrentWord(lastWord)
+            } else {
+                userSuggestionsMainMessage = null
+                userSuggestions?.reset()
+            }
+            emojiSuggestions?.processCurrentWord(lastWord)
+        }
+
+        draftTag.newVersion()
+    }
+
+    fun onToUsersChanged() {
+        if (toUsers.selection.collapsed) {
+            val lastWord = toUsers.currentWord()
+            userSuggestionsMainMessage = UserSuggestionAnchor.TO_USERS
+            userSuggestions?.processCurrentWord(lastWord)
+        }
+
+        // updateRoomFromUsersInput()
+
+        draftTag.newVersion()
+    }
+
+    fun updateRoomFromUsersInput() {
+        viewModelScope.launch(Dispatchers.IO) {
+            delay(300)
+            val toUsersTagger = NewMessageTagger(toUsers.text.toString(), null, null, accountViewModel)
+            toUsersTagger.run()
+
+            val users = toUsersTagger.pTags?.mapTo(mutableSetOf()) { it.pubkeyHex }
+            if (users.isNullOrEmpty()) {
+                room.emit(null)
+            } else {
+                if (users != room.value?.users) {
+                    room.emit(ChatroomKey(users))
+                }
+            }
+        }
+    }
+
+    fun onSubjectChanged() {
+        draftTag.newVersion()
+    }
+
+    override fun onForwardZapTextChanged() {
+        if (forwardZapToEditting.selection.collapsed) {
+            val lastWord = forwardZapToEditting.text.toString()
+            userSuggestionsMainMessage = UserSuggestionAnchor.FORWARD_ZAPS
+            userSuggestions?.processCurrentWord(lastWord)
+        }
+    }
+
+    fun autocompleteWithUser(item: User) {
+        userSuggestions?.let { userSuggestions ->
+            when (userSuggestionsMainMessage) {
+                UserSuggestionAnchor.MAIN_MESSAGE -> {
+                    val lastWord = message.currentWord()
+                    userSuggestions.replaceCurrentWord(message, lastWord, item)
+                    urlPreviews.update(message.text.toString())
+                }
+
+                UserSuggestionAnchor.FORWARD_ZAPS -> {
+                    forwardZapTo.value.addItem(item)
+                    forwardZapToEditting.clearText()
+                }
+
+                UserSuggestionAnchor.TO_USERS -> {
+                    val lastWord = toUsers.currentWord()
+                    userSuggestions.replaceCurrentWord(toUsers, lastWord, item)
+                    updateRoomFromUsersInput()
+                }
+
+                else -> {}
+            }
+
+            userSuggestionsMainMessage = null
+            userSuggestions.reset()
+        }
+
+        draftTag.newVersion()
+    }
+
+    fun autocompleteWithEmoji(item: EmojiPackState.EmojiMedia) {
+        val wordToInsert = ":${item.code}:"
+
+        message.replaceCurrentWord(wordToInsert)
+        urlPreviews.update(message.text.toString())
+
+        emojiSuggestions?.reset()
+
+        draftTag.newVersion()
+    }
+
+    fun autocompleteWithEmojiUrl(item: EmojiPackState.EmojiMedia) {
+        val wordToInsert = item.link + " "
+
+        viewModelScope.launch(Dispatchers.IO) {
+            iMetaAttachments.downloadAndPrepare(item.link) {
+                Amethyst.instance.roleBasedHttpClientBuilder.okHttpClientForImage(item.link)
+            }
+        }
+
+        message.replaceCurrentWord(wordToInsert)
+        urlPreviews.update(message.text.toString())
+
+        emojiSuggestions?.reset()
+
+        draftTag.newVersion()
+    }
+
+    fun canPost(): Boolean =
+        message.text.isNotBlank() &&
+            uploadState?.mediaUploadTracker?.isUploading != true &&
+            !wantsInvoice &&
+            (!wantsZapraiser || zapRaiserAmount.value != null) &&
+            (toUsers.text.isNotBlank()) &&
+            uploadState?.multiOrchestrator == null &&
+            recipientsMissingDmRelays.value.isEmpty()
+
+    fun insertAtCursor(newElement: String) {
+        message.insertUrlAtCursor(newElement)
+        urlPreviews.update(message.text.toString())
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d("Init") { "OnCleared: ${this.javaClass.simpleName}" }
+    }
+
+    // NIP-04 sending is deprecated. NIP-17 is always used.
+
+    override fun updateZapPercentage(
+        index: Int,
+        sliderValue: Float,
+    ) {
+        forwardZapTo.value.updatePercentage(index, sliderValue)
+
+        draftTag.newVersion()
+    }
+
+    override fun updateZapFromText() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val tagger = NewMessageTagger(message.text.toString(), emptyList(), emptyList(), accountViewModel)
+            tagger.run()
+            tagger.pTags?.forEach { taggedUser ->
+                if (!forwardZapTo.value.items.any { it.key == taggedUser }) {
+                    forwardZapTo.value.addItem(taggedUser)
+                }
+            }
+        }
+    }
+
+    override fun updateZapRaiserAmount(newAmount: Long?) {
+        zapRaiserAmount.value = newAmount
+        draftTag.newVersion()
+    }
+
+    fun toggleMarkAsSensitive() {
+        wantsToMarkAsSensitive = !wantsToMarkAsSensitive
+        draftTag.newVersion()
+    }
+
+    fun toggleExpirationDate() {
+        wantsExpirationDate = !wantsExpirationDate
+        if (wantsExpirationDate) {
+            expirationDate = TimeUtils.oneDayAhead()
+        }
+        draftTag.newVersion()
+    }
+
+    override fun locationManager(): LocationState = Amethyst.instance.locationManager
+}

@@ -1,0 +1,773 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.rooms
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.vitorpamplona.amethyst.R
+import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
+import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
+import com.vitorpamplona.amethyst.commons.model.emphChat.EphemeralChatChannel
+import com.vitorpamplona.amethyst.commons.model.marmotGroups.MarmotGroupChatroom
+import com.vitorpamplona.amethyst.commons.model.nip28PublicChats.PublicChatChannel
+import com.vitorpamplona.amethyst.commons.model.nip29RelayGroups.RelayGroupChannel
+import com.vitorpamplona.amethyst.model.LocalCache
+import com.vitorpamplona.amethyst.model.Note
+import com.vitorpamplona.amethyst.model.User
+import com.vitorpamplona.amethyst.model.chatMessageMarksRoomAsRead
+import com.vitorpamplona.amethyst.model.nip11RelayInfo.loadRelayInfo
+import com.vitorpamplona.amethyst.model.privateChatLastReadRoute
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.channel.observeChannel
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNoteHasEvent
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.user.UserFinderByParentFilterAssemblerSubscription
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.user.observeUserName
+import com.vitorpamplona.amethyst.ui.components.RobohashFallbackAsyncImage
+import com.vitorpamplona.amethyst.ui.layouts.ChatHeaderLayout
+import com.vitorpamplona.amethyst.ui.navigation.navs.INav
+import com.vitorpamplona.amethyst.ui.navigation.routes.Route
+import com.vitorpamplona.amethyst.ui.navigation.routes.routeFor
+import com.vitorpamplona.amethyst.ui.note.BlankNote
+import com.vitorpamplona.amethyst.ui.note.LoadDecryptedContentOrNull
+import com.vitorpamplona.amethyst.ui.note.LoadPublicChatChannel
+import com.vitorpamplona.amethyst.ui.note.NonClickableUserPictures
+import com.vitorpamplona.amethyst.ui.note.ObserveDraftEvent
+import com.vitorpamplona.amethyst.ui.note.elements.TimeAgoStyle
+import com.vitorpamplona.amethyst.ui.note.elements.ToggleableTimeAgoText
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.marmotGroup.marmotGroupLastReadRoute
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.header.RoomNameDisplay
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.publicChannels.ephemChat.LoadEphemeralChatChannel
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.rooms.dal.RelayGroupServerRoomNote
+import com.vitorpamplona.amethyst.ui.stringRes
+import com.vitorpamplona.amethyst.ui.theme.AccountPictureModifier
+import com.vitorpamplona.amethyst.ui.theme.Height4dpModifier
+import com.vitorpamplona.amethyst.ui.theme.Size15Modifier
+import com.vitorpamplona.amethyst.ui.theme.Size55dp
+import com.vitorpamplona.amethyst.ui.theme.StdHorzSpacer
+import com.vitorpamplona.amethyst.ui.theme.grayText
+import com.vitorpamplona.amethyst.ui.theme.newItemBubbleModifier
+import com.vitorpamplona.amethyst.ui.theme.placeholderText
+import com.vitorpamplona.quartz.experimental.ephemChat.chat.EphemeralChatEvent
+import com.vitorpamplona.quartz.nip01Core.relay.normalizer.displayUrl
+import com.vitorpamplona.quartz.nip17Dm.base.ChatroomKey
+import com.vitorpamplona.quartz.nip17Dm.base.ChatroomKeyable
+import com.vitorpamplona.quartz.nip28PublicChat.admin.ChannelCreateEvent
+import com.vitorpamplona.quartz.nip28PublicChat.admin.ChannelMetadataEvent
+import com.vitorpamplona.quartz.nip28PublicChat.message.ChannelMessageEvent
+import com.vitorpamplona.quartz.nip29RelayGroups.GroupId
+import com.vitorpamplona.quartz.nip29RelayGroups.groupId
+import com.vitorpamplona.quartz.nip29RelayGroups.isGroupScoped
+import com.vitorpamplona.quartz.nip37Drafts.DraftWrapEvent
+
+@Composable
+fun ChatroomHeaderCompose(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    // Some Messages rows have no event: a per-relay grouped row (RelayGroupServerRoomNote), or a
+    // joined Marmot/NIP-29 group with no messages yet (an event-less placeholder carrying its channel
+    // as a gatherer). Render these directly instead of waiting for an event that never arrives, which
+    // would blank the row.
+    val rendersWithoutEvent =
+        baseNote is RelayGroupServerRoomNote ||
+            (
+                baseNote.event == null &&
+                    baseNote.inGatherers?.any { it is MarmotGroupChatroom || it is RelayGroupChannel } == true
+            )
+
+    if (baseNote.event != null || rendersWithoutEvent) {
+        ChatroomComposeChannelOrUser(baseNote, accountViewModel, nav)
+    } else {
+        val hasEvent by observeNoteHasEvent(baseNote, accountViewModel)
+        if (hasEvent) {
+            ChatroomComposeChannelOrUser(baseNote, accountViewModel, nav)
+        } else {
+            UserFinderByParentFilterAssemblerSubscription(baseNote, accountViewModel)
+            BlankNote()
+        }
+    }
+}
+
+@Composable
+fun ChatroomComposeChannelOrUser(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    val baseNoteEvent = baseNote.event
+    if (baseNoteEvent is DraftWrapEvent) {
+        ObserveDraftEvent(baseNote, accountViewModel) { innerNote ->
+            ChatroomEntry(innerNote, accountViewModel, nav, isDraft = true)
+        }
+    } else {
+        ChatroomEntry(baseNote, accountViewModel, nav)
+    }
+}
+
+@Composable
+private fun ChatroomEntry(
+    lastMessage: Note,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+    isDraft: Boolean = false,
+) {
+    if (lastMessage is RelayGroupServerRoomNote) {
+        RelayGroupServerRoomCompose(lastMessage, accountViewModel, nav)
+        return
+    }
+
+    val marmotGroup = lastMessage.inGatherers?.firstNotNullOfOrNull { it as? MarmotGroupChatroom }
+    if (marmotGroup != null) {
+        MarmotGroupRoomCompose(lastMessage, marmotGroup, accountViewModel, nav)
+        return
+    }
+
+    val relayGroup = lastMessage.inGatherers?.firstNotNullOfOrNull { it as? RelayGroupChannel }
+    if (relayGroup != null) {
+        RelayGroupRoomCompose(lastMessage, relayGroup, accountViewModel, nav)
+        return
+    }
+
+    // A NIP-29 group message whose channel gatherer didn't attach (e.g. loaded before its channel
+    // existed, or via a path that skips attach) has no case in the when() below and would blank out.
+    // Resolve the group from its `h` tag + provenance relay and render the group row anyway.
+    val groupScopedEvent = lastMessage.event?.takeIf { it.isGroupScoped() }
+    if (groupScopedEvent != null) {
+        val gid = groupScopedEvent.groupId()
+        val hostRelay = lastMessage.relays.firstOrNull()
+        if (gid != null && hostRelay != null) {
+            RelayGroupRoomCompose(
+                lastMessage,
+                LocalCache.getOrCreateRelayGroupChannel(GroupId(gid, hostRelay)),
+                accountViewModel,
+                nav,
+            )
+            return
+        }
+    }
+
+    val baseNoteEvent = lastMessage.event
+    when (baseNoteEvent) {
+        // ChannelMessageEvent and ChannelMetadataEvent both expose channelId() via
+        // IsInPublicChatChannel and render identically here. Matched explicitly (rather
+        // than on the IsInPublicChatChannel interface) so the channel-admin events
+        // ChannelHideMessageEvent/ChannelMuteUserEvent keep falling through to `else`.
+        is ChannelMessageEvent, is ChannelMetadataEvent -> {
+            baseNoteEvent.channelId()?.let {
+                LoadPublicChatChannel(it, accountViewModel) { channel ->
+                    ChannelRoomCompose(lastMessage, channel, accountViewModel, nav)
+                }
+            }
+        }
+
+        is ChannelCreateEvent -> {
+            LoadPublicChatChannel(baseNoteEvent.id, accountViewModel) { channel ->
+                ChannelRoomCompose(lastMessage, channel, accountViewModel, nav)
+            }
+        }
+
+        is ChatroomKeyable -> {
+            val room = baseNoteEvent.chatroomKey(accountViewModel.userProfile().pubkeyHex)
+            UserRoomCompose(room, lastMessage, isDraft, accountViewModel, nav)
+        }
+
+        is EphemeralChatEvent -> {
+            baseNoteEvent.roomId()?.let {
+                LoadEphemeralChatChannel(it, accountViewModel) { channel ->
+                    ChannelRoomCompose(lastMessage, channel, accountViewModel, nav)
+                }
+            }
+        }
+
+        else -> {
+            UserFinderByParentFilterAssemblerSubscription(lastMessage, accountViewModel)
+            BlankNote()
+        }
+    }
+}
+
+@Composable
+private fun ChannelRoomCompose(
+    lastMessage: Note,
+    channel: PublicChatChannel,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    val authorName by observeUserName(lastMessage.author!!, accountViewModel)
+    val channelState by observeChannel(channel, accountViewModel)
+
+    val channel = channelState?.channel as? PublicChatChannel ?: return
+
+    val channelPicture = channel.profilePicture()
+    val channelName = channel.toBestDisplayName()
+
+    val noteEvent = lastMessage.event
+
+    val description =
+        if (noteEvent is ChannelCreateEvent) {
+            stringRes(R.string.channel_created)
+        } else if (noteEvent is ChannelMetadataEvent) {
+            "${stringRes(R.string.channel_information_changed_to)} "
+        } else {
+            noteEvent?.content?.take(200)
+        }
+
+    val lastReadTime by accountViewModel.account.loadLastReadFlow("Channel/${channel.idHex}").collectAsStateWithLifecycle()
+
+    var menuOpen by remember { mutableStateOf(false) }
+    // Kept as a State (no `by`) so `.value` is read only inside the title and menu-text
+    // slots, confining mute-toggle invalidations to those scopes.
+    val mutedChats = accountViewModel.mutedPublicChatsFlow().collectAsStateWithLifecycle()
+    val isMuted = channel.idHex in mutedChats.value
+
+    ChannelName(
+        channelIdHex = channel.idHex,
+        channelPicture = channelPicture,
+        channelTitle = { modifier ->
+            ChannelTitleWithLabelInfo(
+                channelName,
+                R.string.public_chat,
+                modifier,
+                isMuted = isMuted,
+            )
+        },
+        channelLastTime = lastMessage.createdAt(),
+        channelLastContent = "$authorName: $description",
+        hasNewMessages = !isMuted && (noteEvent?.createdAt ?: Long.MIN_VALUE) > lastReadTime,
+        loadProfilePicture = accountViewModel.settings.showProfilePictures(),
+        loadRobohash = accountViewModel.settings.isNotPerformanceMode(),
+        autoPlayGif =
+            accountViewModel.settings.autoPlayVideosFlow
+                .collectAsStateWithLifecycle()
+                .value,
+        onClick = { nav.nav(routeFor(channel)) },
+        onLongClick = { menuOpen = true },
+    )
+
+    DropdownMenu(
+        expanded = menuOpen,
+        onDismissRequest = { menuOpen = false },
+    ) {
+        DropdownMenuItem(
+            text = {
+                Text(
+                    stringRes(
+                        if (channel.idHex in mutedChats.value) {
+                            R.string.unmute_notifications
+                        } else {
+                            R.string.mute_notifications
+                        },
+                    ),
+                )
+            },
+            onClick = {
+                accountViewModel.toggleMutedPublicChat(channel.idHex)
+                menuOpen = false
+            },
+        )
+    }
+}
+
+@Composable
+private fun ChannelRoomCompose(
+    lastMessage: Note,
+    channel: EphemeralChatChannel,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    val authorName by observeUserName(lastMessage.author!!, accountViewModel)
+    val channelState by observeChannel(channel, accountViewModel)
+
+    val channel = channelState?.channel as? EphemeralChatChannel ?: return
+
+    val relayInfo by loadRelayInfo(channel.roomId.relayUrl)
+
+    val noteEvent = lastMessage.event
+    val description = noteEvent?.content?.take(200)
+
+    val lastReadTime by accountViewModel.account.loadLastReadFlow("Channel/${channel.roomId.toKey()}").collectAsStateWithLifecycle()
+
+    ChannelName(
+        channelIdHex = channel.roomId.toKey(),
+        channelPicture = relayInfo.icon,
+        channelTitle = { modifier -> ChannelTitleWithLabelInfo(channel.toBestDisplayName(), R.string.ephemeral_relay_chat, modifier) },
+        channelLastTime = lastMessage.createdAt(),
+        channelLastContent = "$authorName: $description",
+        hasNewMessages = (noteEvent?.createdAt ?: Long.MIN_VALUE) > lastReadTime,
+        loadProfilePicture = accountViewModel.settings.showProfilePictures(),
+        loadRobohash = accountViewModel.settings.isNotPerformanceMode(),
+        autoPlayGif =
+            accountViewModel.settings.autoPlayVideosFlow
+                .collectAsStateWithLifecycle()
+                .value,
+        onClick = { nav.nav(routeFor(channel)) },
+    )
+}
+
+@Composable
+private fun MarmotGroupRoomCompose(
+    lastMessage: Note,
+    chatroom: MarmotGroupChatroom,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    val displayName by chatroom.displayName.collectAsStateWithLifecycle()
+
+    val author = lastMessage.author
+    val noteEvent = lastMessage.event
+    val groupName = displayName?.takeIf { it.isNotBlank() } ?: "Group ${chatroom.nostrGroupId.take(8)}"
+
+    val lastContent =
+        if (author != null && noteEvent != null) {
+            val authorName by observeUserName(author, accountViewModel)
+            "$authorName: ${noteEvent.content.take(200)}"
+        } else {
+            stringRes(R.string.marmot_group_no_messages_yet)
+        }
+
+    val lastReadTime by accountViewModel.account.loadLastReadFlow(marmotGroupLastReadRoute(chatroom.nostrGroupId)).collectAsStateWithLifecycle()
+
+    ChannelName(
+        channelIdHex = chatroom.nostrGroupId,
+        channelPicture = null,
+        channelTitle = { modifier -> ChannelTitleWithLabelInfo(groupName, R.string.marmot_group, modifier) },
+        channelLastTime = lastMessage.createdAt(),
+        channelLastContent = lastContent,
+        hasNewMessages = (lastMessage.createdAt() ?: Long.MIN_VALUE) > lastReadTime,
+        loadProfilePicture = accountViewModel.settings.showProfilePictures(),
+        loadRobohash = accountViewModel.settings.isNotPerformanceMode(),
+        autoPlayGif =
+            accountViewModel.settings.autoPlayVideosFlow
+                .collectAsStateWithLifecycle()
+                .value,
+        onClick = { nav.nav(Route.MarmotGroupChat(chatroom.nostrGroupId)) },
+    )
+}
+
+@Composable
+private fun RelayGroupRoomCompose(
+    lastMessage: Note,
+    baseChannel: RelayGroupChannel,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    val channelState by observeChannel(baseChannel, accountViewModel)
+    val channel = channelState?.channel as? RelayGroupChannel ?: baseChannel
+
+    val author = lastMessage.author
+    val noteEvent = lastMessage.event
+    val lastContent =
+        if (author != null && noteEvent != null) {
+            val authorName by observeUserName(author, accountViewModel)
+            "$authorName: ${noteEvent.content.take(200)}"
+        } else {
+            // Event-less placeholder row for a just-joined group with no messages yet — say so
+            // explicitly (like Marmot groups) instead of an empty second line.
+            stringRes(R.string.relay_group_no_messages_yet)
+        }
+
+    ChannelName(
+        channelIdHex = channel.groupId.id,
+        channelPicture = channel.profilePicture(),
+        channelTitle = { modifier ->
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
+                Text(
+                    text = channel.toBestDisplayName(),
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                Spacer(Modifier.width(6.dp))
+                RelayNameChip(
+                    label = channel.groupId.relayUrl.displayUrl(),
+                    onClick = { nav.nav(Route.RelayGroupServer(channel.groupId.relayUrl.url)) },
+                )
+            }
+        },
+        channelLastTime = lastMessage.createdAt(),
+        channelLastContent = lastContent,
+        hasNewMessages = false,
+        loadProfilePicture = accountViewModel.settings.showProfilePictures(),
+        loadRobohash = accountViewModel.settings.isNotPerformanceMode(),
+        autoPlayGif =
+            accountViewModel.settings.autoPlayVideosFlow
+                .collectAsStateWithLifecycle()
+                .value,
+        onClick = { nav.nav(Route.RelayGroup(channel.groupId.id, channel.groupId.relayUrl.url)) },
+    )
+}
+
+@Composable
+private fun RelayGroupServerRoomCompose(
+    row: RelayGroupServerRoomNote,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    val relay = row.relay
+    val relayInfo by loadRelayInfo(relay)
+    val host = relay.displayUrl()
+    val name = relayInfo.name?.takeIf { it.isNotBlank() } ?: host
+
+    val author = row.newestMessage?.author
+    val noteEvent = row.newestMessage?.event
+    val lastContent =
+        if (author != null && noteEvent != null) {
+            val authorName by observeUserName(author, accountViewModel)
+            "$authorName: ${noteEvent.content.take(200)}"
+        } else {
+            stringRes(R.string.relay_group_no_messages_yet)
+        }
+
+    ChannelName(
+        channelIdHex = relay.url,
+        channelPicture = relayInfo.icon,
+        channelTitle = { modifier -> ChannelTitleWithLabelInfo(name, R.string.relay_group_server_label, modifier) },
+        channelLastTime = row.newestMessage?.createdAt(),
+        channelLastContent = lastContent,
+        hasNewMessages = false,
+        loadProfilePicture = accountViewModel.settings.showProfilePictures(),
+        loadRobohash = accountViewModel.settings.isNotPerformanceMode(),
+        autoPlayGif =
+            accountViewModel.settings.autoPlayVideosFlow
+                .collectAsStateWithLifecycle()
+                .value,
+        onClick = { nav.nav(Route.RelayGroupServer(relay.url)) },
+    )
+}
+
+/** A small tappable chip naming the relay a channel is hosted on. */
+@Composable
+private fun RelayNameChip(
+    label: String,
+    onClick: () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(6.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        modifier = Modifier.clickable(onClick = onClick),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+        ) {
+            Icon(
+                symbol = MaterialSymbols.Dns,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.size(11.dp),
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChannelTitleWithLabelInfo(
+    channelName: String,
+    label: Int,
+    modifier: Modifier,
+    isMuted: Boolean = false,
+) {
+    val label = stringRes(id = label)
+    val placeHolderColor = MaterialTheme.colorScheme.placeholderText
+    val channelNameAndBoostInfo =
+        remember(channelName) {
+            buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        fontWeight = FontWeight.Bold,
+                    ),
+                ) {
+                    append(channelName)
+                }
+
+                withStyle(
+                    SpanStyle(
+                        color = placeHolderColor,
+                        fontWeight = FontWeight.Normal,
+                    ),
+                ) {
+                    append(" $label")
+                }
+            }
+        }
+
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
+        Text(
+            text = channelNameAndBoostInfo,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f, fill = false),
+            style = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (isMuted) {
+            Spacer(modifier = StdHorzSpacer)
+            Icon(
+                symbol = MaterialSymbols.NotificationsOff,
+                contentDescription = stringRes(R.string.muted_chat_content_description),
+                modifier = Size15Modifier,
+                tint = MaterialTheme.colorScheme.placeholderText,
+            )
+        }
+    }
+}
+
+@Composable
+private fun UserRoomCompose(
+    room: ChatroomKey,
+    lastMessage: Note,
+    isDraft: Boolean,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    var popupExpanded by remember { mutableStateOf(false) }
+    // Kept as a State (no `by`) so `.value` is only read inside the firstRow and
+    // menu-text slots, confining pin-toggle invalidations to those scopes.
+    val pinnedRooms = accountViewModel.pinnedChatroomsFlow().collectAsStateWithLifecycle()
+
+    ChatHeaderLayout(
+        channelPicture = {
+            NonClickableUserPictures(
+                room = room,
+                accountViewModel = accountViewModel,
+                size = Size55dp,
+            )
+        },
+        firstRow = {
+            RoomNameDisplay(room, Modifier.weight(1f), accountViewModel)
+            if (room in pinnedRooms.value) {
+                Icon(
+                    symbol = MaterialSymbols.PushPin,
+                    contentDescription = stringRes(R.string.pinned_to_top),
+                    modifier = Size15Modifier,
+                    tint = MaterialTheme.colorScheme.placeholderText,
+                )
+                Spacer(modifier = StdHorzSpacer)
+            }
+            TimeAgo(lastMessage.createdAt())
+        },
+        secondRow = {
+            LoadDecryptedContentOrNull(lastMessage, accountViewModel) { content ->
+                if (content != null) {
+                    Text(
+                        content,
+                        color = MaterialTheme.colorScheme.grayText,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
+                        modifier = Modifier.weight(1f),
+                    )
+                } else {
+                    Text(
+                        stringRes(R.string.referenced_event_not_found),
+                        color = MaterialTheme.colorScheme.grayText,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+
+            // A sent message I authored counts as read (#1286, #1287); an unsent draft still needs my attention.
+            val newestEvent = lastMessage.event
+            val countsAsRead =
+                !isDraft &&
+                    newestEvent != null &&
+                    chatMessageMarksRoomAsRead(newestEvent, room, accountViewModel.account.signer.pubKey)
+
+            val lastReadTime by accountViewModel.account.loadLastReadFlow(privateChatLastReadRoute(room)).collectAsStateWithLifecycle()
+            if (!countsAsRead && (lastMessage.createdAt() ?: Long.MIN_VALUE) > lastReadTime) {
+                Spacer(modifier = Height4dpModifier)
+                NewItemsBubble()
+            }
+        },
+        onClick = { nav.nav(Route.Room(room)) },
+        onLongClick = { popupExpanded = true },
+    )
+
+    DropdownMenu(
+        expanded = popupExpanded,
+        onDismissRequest = { popupExpanded = false },
+    ) {
+        DropdownMenuItem(
+            text = {
+                Text(stringRes(if (room in pinnedRooms.value) R.string.unpin_conversation else R.string.pin_conversation))
+            },
+            onClick = {
+                accountViewModel.toggleChatroomPin(room)
+                popupExpanded = false
+            },
+        )
+    }
+}
+
+@Composable
+fun LoadUser(
+    baseUserHex: String,
+    accountViewModel: AccountViewModel,
+    content: @Composable (User?) -> Unit,
+) {
+    var user by
+        remember(baseUserHex) { mutableStateOf(accountViewModel.getUserIfExists(baseUserHex)) }
+
+    if (user == null) {
+        LaunchedEffect(key1 = baseUserHex) {
+            user = accountViewModel.checkGetOrCreateUser(baseUserHex)
+        }
+    }
+
+    content(user)
+}
+
+@Composable
+fun ChannelName(
+    channelIdHex: String,
+    channelPicture: String?,
+    channelTitle: @Composable (Modifier) -> Unit,
+    channelLastTime: Long?,
+    channelLastContent: String?,
+    hasNewMessages: Boolean,
+    loadProfilePicture: Boolean,
+    loadRobohash: Boolean,
+    autoPlayGif: Boolean,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
+) {
+    ChannelName(
+        channelPicture = {
+            RobohashFallbackAsyncImage(
+                robot = channelIdHex,
+                model = channelPicture,
+                contentDescription = stringRes(R.string.channel_image),
+                modifier = AccountPictureModifier,
+                loadProfilePicture = loadProfilePicture,
+                loadRobohash = loadRobohash,
+                autoPlayGif = autoPlayGif,
+            )
+        },
+        channelTitle,
+        channelLastTime,
+        channelLastContent,
+        hasNewMessages,
+        onClick,
+        onLongClick,
+    )
+}
+
+@Composable
+fun ChannelName(
+    channelPicture: @Composable () -> Unit,
+    channelTitle: @Composable (Modifier) -> Unit,
+    channelLastTime: Long?,
+    channelLastContent: String?,
+    hasNewMessages: Boolean,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
+) {
+    ChatHeaderLayout(
+        channelPicture = channelPicture,
+        firstRow = {
+            channelTitle(Modifier.weight(1f))
+            TimeAgo(channelLastTime)
+        },
+        secondRow = {
+            if (channelLastContent != null) {
+                Text(
+                    channelLastContent,
+                    color = MaterialTheme.colorScheme.grayText,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
+                    modifier = Modifier.weight(1f),
+                )
+            } else {
+                Text(
+                    stringRes(R.string.referenced_event_not_found),
+                    color = MaterialTheme.colorScheme.grayText,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+
+            if (hasNewMessages) {
+                Spacer(modifier = Height4dpModifier)
+                NewItemsBubble()
+            }
+        },
+        onClick = onClick,
+        onLongClick = onLongClick,
+    )
+}
+
+@Composable
+private fun TimeAgo(channelLastTime: Long?) {
+    if (channelLastTime == null) return
+    ToggleableTimeAgoText(
+        timestamp = channelLastTime,
+        style = TimeAgoStyle.Dotted,
+        color = MaterialTheme.colorScheme.grayText,
+    )
+}
+
+@Composable
+fun NewItemsBubble() {
+    Box(MaterialTheme.colorScheme.newItemBubbleModifier)
+}

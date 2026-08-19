@@ -1,0 +1,276 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.model.accountsCache
+
+import android.content.ContentResolver
+import com.vitorpamplona.amethyst.LocalPreferences
+import com.vitorpamplona.amethyst.commons.service.pow.PoWPublishQueue
+import com.vitorpamplona.amethyst.model.Account
+import com.vitorpamplona.amethyst.model.AccountSettings
+import com.vitorpamplona.amethyst.model.LocalCache
+import com.vitorpamplona.amethyst.model.marmot.AndroidKeyPackageBundleStore
+import com.vitorpamplona.amethyst.model.marmot.AndroidMarmotMessageStore
+import com.vitorpamplona.amethyst.model.marmot.AndroidMlsGroupStateStore
+import com.vitorpamplona.amethyst.model.marmot.InMemoryMlsGroupStateStore
+import com.vitorpamplona.amethyst.service.location.LocationState
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.nwc.NWCPaymentFilterAssembler
+import com.vitorpamplona.quartz.nip01Core.core.HexKey
+import com.vitorpamplona.quartz.nip01Core.core.toHexKey
+import com.vitorpamplona.quartz.nip01Core.relay.client.INostrClient
+import com.vitorpamplona.quartz.nip01Core.signers.NostrSigner
+import com.vitorpamplona.quartz.nip01Core.signers.NostrSignerInternal
+import com.vitorpamplona.quartz.nip03Timestamp.OtsResolver
+import com.vitorpamplona.quartz.nip55AndroidSigner.client.NostrSignerExternal
+import com.vitorpamplona.quartz.nip89AppHandlers.clientTag.NostrSignerWithClientTag
+import com.vitorpamplona.quartz.utils.Log
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
+import java.io.File
+
+class AccountCacheState(
+    val geolocationFlow: () -> StateFlow<LocationState.LocationResult>,
+    val nwcFilterAssembler: () -> NWCPaymentFilterAssembler,
+    val cashuWalletFilterAssembler: () -> com.vitorpamplona.amethyst.commons.relayClient.assemblers.CashuWalletFilterAssembler,
+    val cashuMintDirectoryFilterAssembler: () -> com.vitorpamplona.amethyst.commons.relayClient.assemblers.CashuMintDirectoryFilterAssembler,
+    val okHttpClientForMoney: (String) -> okhttp3.OkHttpClient,
+    val contentResolverFn: () -> ContentResolver,
+    val otsResolverBuilder: () -> OtsResolver,
+    val cache: LocalCache,
+    val client: INostrClient,
+    val rootFilesDir: () -> File = { File("") },
+    val powQueue: () -> PoWPublishQueue? = { null },
+) {
+    val accounts = MutableStateFlow<Map<HexKey, Account>>(emptyMap())
+
+    fun removeAccount(pubkey: HexKey) {
+        accounts.update { existingAccounts ->
+            val oldValue = existingAccounts[pubkey]
+            oldValue?.scope?.cancel()
+            // Unregisters the tracker's persistent listener from the shared
+            // client; without this every removed account leaks a listener.
+            oldValue?.chatDeliveryTracker?.destroy()
+            existingAccounts.minus(pubkey)
+        }
+    }
+
+    /**
+     * Loads every saved account that can sign (has a private key or an external signer)
+     * into the cache. Safe to call repeatedly — [loadAccount] is idempotent, so already
+     * loaded accounts are returned as-is. Used by the always-on notification service so
+     * GiftWraps addressed to non-active accounts still get unwrapped and notified.
+     */
+    suspend fun loadAllWritableAccounts(localPreferences: LocalPreferences) {
+        localPreferences.allSavedAccounts().forEach { savedAccount ->
+            if (!savedAccount.hasPrivKey && !savedAccount.loggedInWithExternalSigner) return@forEach
+            try {
+                val accountSettings = localPreferences.loadAccountConfigFromEncryptedStorage(savedAccount.npub) ?: return@forEach
+                loadAccount(accountSettings)
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                Log.w("AccountCacheState", "Failed to preload account ${savedAccount.npub}: ${e.message}", e)
+            }
+        }
+    }
+
+    /**
+     * Cancels and removes every cached account whose pubkey is not in [keepPubkeys].
+     * Used to release accounts that were preloaded for background notification handling
+     * when the always-on service is turned off, while preserving the active account.
+     */
+    fun retainOnly(keepPubkeys: Set<HexKey>) {
+        accounts.update { existingAccounts ->
+            val toRemove = existingAccounts.filterKeys { it !in keepPubkeys }
+            if (toRemove.isEmpty()) {
+                existingAccounts
+            } else {
+                toRemove.values.forEach {
+                    it.scope.cancel()
+                    it.chatDeliveryTracker.destroy()
+                }
+                existingAccounts.minus(toRemove.keys)
+            }
+        }
+    }
+
+    /** The on-disk root that [loadAccount] creates a per-account directory under. */
+    private fun accountsRootDir() = File(rootFilesDir(), "accounts")
+
+    /**
+     * Deletes the on-disk per-account directory (the MLS/Marmot stores created in
+     * [loadAccount]). Call only on permanent account deletion — [removeAccount] just
+     * drops the in-memory copy and leaves these files behind.
+     */
+    fun deleteAccountFiles(pubkey: HexKey) {
+        val dir = File(accountsRootDir(), pubkey)
+        if (dir.exists() && !dir.deleteRecursively()) {
+            Log.w("AccountCacheState", "Failed to delete account directory ${dir.absolutePath}")
+        }
+    }
+
+    /**
+     * Removes per-account directories left behind by accounts that are no longer saved
+     * (e.g. deleted before [deleteAccountFiles] existed). Keeps only [keepPubkeys]. Safe to
+     * run alongside [loadAccount]: it only loads saved accounts, whose pubkeys are kept.
+     */
+    fun pruneOrphanAccountDirs(keepPubkeys: Set<HexKey>) {
+        val children = accountsRootDir().listFiles() ?: return
+        children.forEach { child ->
+            if (child.isDirectory && child.name !in keepPubkeys) {
+                if (child.deleteRecursively()) {
+                    Log.d("AccountCacheState") { "Pruned orphan account dir ${child.name.take(8)}…" }
+                } else {
+                    Log.w("AccountCacheState", "Failed to prune orphan account dir ${child.absolutePath}")
+                }
+            }
+        }
+    }
+
+    fun loadAccount(accountSettings: AccountSettings): Account =
+        loadAccount(
+            signer =
+                if (accountSettings.keyPair.privKey != null) {
+                    NostrSignerInternal(accountSettings.keyPair)
+                } else {
+                    when (val packageName = accountSettings.externalSignerPackageName) {
+                        null -> {
+                            NostrSignerInternal(accountSettings.keyPair)
+                        }
+
+                        else -> {
+                            NostrSignerExternal(
+                                pubKey = accountSettings.keyPair.pubKey.toHexKey(),
+                                packageName = packageName,
+                                contentResolver = contentResolverFn(),
+                            )
+                        }
+                    }
+                },
+            accountSettings = accountSettings,
+        )
+
+    fun loadAccount(
+        signer: NostrSigner,
+        accountSettings: AccountSettings,
+    ): Account {
+        val cached = accounts.value[signer.pubKey]
+        if (cached != null) return cached
+
+        val signerWithClientTag =
+            NostrSignerWithClientTag(
+                inner = signer,
+                clientName = CLIENT_TAG_NAME,
+                disabled = { !accountSettings.syncedSettings.security.addClientTag.value },
+            )
+
+        val accountDir = File(rootFilesDir(), "accounts/${signer.pubKey}").apply { mkdirs() }
+
+        val mlsStore =
+            try {
+                Log.d("AccountCacheState") {
+                    "Initializing AndroidMlsGroupStateStore for ${signer.pubKey.take(8)}… at ${accountDir.absolutePath}"
+                }
+                AndroidMlsGroupStateStore(accountDir)
+            } catch (e: Exception) {
+                Log.e(
+                    "AccountCacheState",
+                    "Failed to initialize AndroidMlsGroupStateStore, falling back to in-memory store (Marmot groups will NOT persist across restarts)",
+                    e,
+                )
+                InMemoryMlsGroupStateStore()
+            }
+        Log.d("AccountCacheState") {
+            "Account ${signer.pubKey.take(8)}… using Marmot store: ${mlsStore::class.simpleName}"
+        }
+
+        val marmotMessageStore =
+            try {
+                AndroidMarmotMessageStore(accountDir)
+            } catch (e: Exception) {
+                Log.e(
+                    "AccountCacheState",
+                    "Failed to initialize AndroidMarmotMessageStore (Marmot messages will NOT persist across restarts)",
+                    e,
+                )
+                null
+            }
+
+        val marmotKeyPackageStore =
+            try {
+                AndroidKeyPackageBundleStore(accountDir)
+            } catch (e: Exception) {
+                Log.e(
+                    "AccountCacheState",
+                    "Failed to initialize AndroidKeyPackageBundleStore (Marmot KeyPackages will NOT persist across restarts)",
+                    e,
+                )
+                null
+            }
+
+        return Account(
+            settings = accountSettings,
+            signer = signerWithClientTag,
+            geolocationFlow = geolocationFlow,
+            nwcFilterAssembler = nwcFilterAssembler,
+            cashuWalletFilterAssembler = cashuWalletFilterAssembler,
+            cashuMintDirectoryFilterAssembler = cashuMintDirectoryFilterAssembler,
+            okHttpClientForMoney = okHttpClientForMoney,
+            otsResolverBuilder = otsResolverBuilder,
+            cache = cache,
+            client = client,
+            scope =
+                CoroutineScope(
+                    Dispatchers.IO +
+                        SupervisorJob() +
+                        CoroutineExceptionHandler { _, throwable ->
+                            Log.e("AccountCacheState", "Account ${signer.pubKey} caught exception: ${throwable.message}", throwable)
+                        },
+                ),
+            mlsGroupStateStore = mlsStore,
+            marmotMessageStore = marmotMessageStore,
+            marmotKeyPackageStore = marmotKeyPackageStore,
+            powQueue = powQueue,
+        ).also { newAccount ->
+            accounts.update { existingAccounts ->
+                existingAccounts.plus(Pair(signer.pubKey, newAccount))
+            }
+        }
+    }
+
+    fun clear() {
+        accounts.update { existingAccounts ->
+            existingAccounts.forEach {
+                it.value.scope.cancel()
+                it.value.chatDeliveryTracker.destroy()
+            }
+            emptyMap()
+        }
+    }
+
+    companion object {
+        const val CLIENT_TAG_NAME = "Amethyst"
+    }
+}

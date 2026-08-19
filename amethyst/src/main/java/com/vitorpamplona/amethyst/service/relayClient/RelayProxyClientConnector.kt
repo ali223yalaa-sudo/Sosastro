@@ -1,0 +1,133 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.service.relayClient
+
+import com.vitorpamplona.amethyst.model.torState.TorRelayEvaluation
+import com.vitorpamplona.amethyst.service.connectivity.ConnectivityStatus
+import com.vitorpamplona.amethyst.ui.tor.TorServiceStatus
+import com.vitorpamplona.quartz.nip01Core.relay.client.INostrClient
+import com.vitorpamplona.quartz.utils.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
+import okhttp3.OkHttpClient
+
+class RelayProxyClientConnector(
+    val torEvaluator: StateFlow<TorRelayEvaluation>,
+    val torConnection: StateFlow<OkHttpClient>,
+    val clearConnection: StateFlow<OkHttpClient>,
+    val connectivityStatus: StateFlow<ConnectivityStatus>,
+    val torStatus: StateFlow<TorServiceStatus>,
+    val client: INostrClient,
+    val scope: CoroutineScope,
+) {
+    data class RelayServiceInfra(
+        val evaluator: TorRelayEvaluation,
+        val torConnection: OkHttpClient,
+        val clearConnection: OkHttpClient,
+        val connectivity: ConnectivityStatus,
+        val torStatus: TorServiceStatus,
+    )
+
+    // The OkHttp clients in use the last time we forced a reconnect. These are only
+    // rebuilt when something connection-relevant changes (Tor's SOCKS port appears,
+    // wifi<->cellular switch), so comparing them tells us whether a wakeup is a real
+    // transport change or just noise (Tor bootstrap status churn, connectivity blips).
+    private var lastTorConnection: OkHttpClient? = null
+    private var lastClearConnection: OkHttpClient? = null
+
+    @OptIn(FlowPreview::class)
+    val relayServices =
+        combine(
+            torEvaluator,
+            torConnection,
+            clearConnection,
+            connectivityStatus,
+            torStatus,
+        ) { torSettings, torConnection, clearConnection, connectivity, torStatus ->
+            RelayServiceInfra(torSettings, torConnection, clearConnection, connectivity, torStatus)
+        }.debounce(100)
+            .onEach {
+                when {
+                    it.connectivity is ConnectivityStatus.StartingService -> {
+                        // ignore
+                    }
+
+                    it.connectivity is ConnectivityStatus.Off -> {
+                        Log.d("ManageRelayServices") { "Connectivity Off: Pausing Relay Services ${it.connectivity}" }
+                        if (client.isActive()) {
+                            client.disconnect()
+                        }
+                        if (it.torStatus is TorServiceStatus.Active) {
+                            Log.d("ManageRelayServices", "Connectivity off, Tor idle")
+                        }
+                    }
+
+                    it.connectivity is ConnectivityStatus.Active && !client.isActive() -> {
+                        Log.d("ManageRelayServices", "Connectivity On: Resuming Relay Services")
+
+                        if (it.torStatus is TorServiceStatus.Active) {
+                            Log.d("ManageRelayServices", "Connectivity resumed, Tor active")
+                        }
+
+                        // only calls this if the client is not active. Otherwise goes to the else below
+                        client.connect()
+                    }
+
+                    else -> {
+                        // Only skip the per-relay exponential backoff when the actual HTTP
+                        // transport changed. Otherwise (e.g. Tor still bootstrapping, the SOCKS
+                        // port not yet listening) honor each relay's backoff so we don't
+                        // reconnect-fail-reconnect on every unrelated infrastructure event.
+                        val transportChanged =
+                            it.torConnection !== lastTorConnection || it.clearConnection !== lastClearConnection
+                        lastTorConnection = it.torConnection
+                        lastClearConnection = it.clearConnection
+
+                        Log.d("ManageRelayServices") { "Relay Services have changed, reconnecting relays that need to (transportChanged=$transportChanged)" }
+                        client.reconnect(
+                            onlyIfChanged = true,
+                            ignoreRetryDelays = transportChanged,
+                        )
+                    }
+                }
+            }.onStart {
+                Log.d("ManageRelayServices", "Resuming Relay Services")
+                client.connect()
+            }.onCompletion {
+                Log.d("ManageRelayServices", "Pausing Relay Services")
+                client.disconnect()
+            }.flowOn(Dispatchers.IO)
+            .stateIn(
+                scope,
+                SharingStarted.WhileSubscribed(30000),
+                null,
+            )
+}

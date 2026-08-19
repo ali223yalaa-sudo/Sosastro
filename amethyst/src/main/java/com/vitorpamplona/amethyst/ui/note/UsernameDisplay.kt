@@ -1,0 +1,219 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.ui.note
+
+import android.content.Context
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.vitorpamplona.amethyst.commons.model.ImmutableListOfLists
+import com.vitorpamplona.amethyst.model.Note
+import com.vitorpamplona.amethyst.model.User
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNote
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.user.observeUserInfo
+import com.vitorpamplona.amethyst.service.tts.TextToSpeechHelper
+import com.vitorpamplona.amethyst.ui.actions.CrossfadeIfEnabled
+import com.vitorpamplona.amethyst.ui.components.CreateTextWithEmoji
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
+import com.vitorpamplona.amethyst.ui.theme.StdButtonSizeModifier
+import com.vitorpamplona.amethyst.ui.theme.placeholderText
+import com.vitorpamplona.quartz.utils.Log
+
+@Composable
+fun NoteUsernameDisplay(
+    baseNote: Note,
+    weight: Modifier = Modifier,
+    textColor: Color = Color.Unspecified,
+    accountViewModel: AccountViewModel,
+) {
+    WatchAuthor(baseNote, accountViewModel) {
+        UsernameDisplay(it, weight, textColor = textColor, accountViewModel = accountViewModel)
+    }
+}
+
+@Composable
+fun WatchAuthor(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    inner: @Composable (User) -> Unit,
+) {
+    val noteAuthor = baseNote.author
+    if (noteAuthor != null) {
+        inner(noteAuthor)
+    } else {
+        val authorState by observeNote(baseNote, accountViewModel)
+        authorState.note.author?.let {
+            inner(it)
+        }
+    }
+}
+
+@Composable
+fun WatchAuthorWithBlank(
+    baseNote: Note,
+    modifier: Modifier = Modifier,
+    accountViewModel: AccountViewModel,
+    inner: @Composable (User?) -> Unit,
+) {
+    val noteAuthor = baseNote.author
+    if (noteAuthor != null) {
+        inner(noteAuthor)
+    } else {
+        val authorState by observeNote(baseNote, accountViewModel)
+        CrossfadeIfEnabled(targetState = authorState.note.author, modifier = modifier, label = "WatchAuthorWithBlank", accountViewModel = accountViewModel) { newAuthor ->
+            inner(newAuthor)
+        }
+    }
+}
+
+@Composable
+fun UsernameDisplay(
+    baseUser: User,
+    weight: Modifier = Modifier,
+    fontWeight: FontWeight = FontWeight.Bold,
+    textColor: Color = Color.Unspecified,
+    textAlign: TextAlign? = null,
+    accountViewModel: AccountViewModel,
+) {
+    val userMetadata by observeUserInfo(baseUser, accountViewModel)
+
+    CrossfadeIfEnabled(targetState = userMetadata, modifier = weight, label = "UsernameDisplay", accountViewModel = accountViewModel) {
+        val name = it?.info?.bestName()
+        if (name != null) {
+            UserDisplay(name, it.tags, weight, fontWeight, textColor, textAlign)
+        } else {
+            NPubDisplay(baseUser, weight, fontWeight, textColor, textAlign)
+        }
+    }
+}
+
+@Composable
+private fun NPubDisplay(
+    user: User,
+    modifier: Modifier,
+    fontWeight: FontWeight = FontWeight.Bold,
+    textColor: Color = Color.Unspecified,
+    textAlign: TextAlign? = null,
+) {
+    Text(
+        text = remember { user.pubkeyDisplayHex() },
+        fontWeight = fontWeight,
+        modifier = modifier,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        color = textColor,
+        textAlign = textAlign,
+    )
+}
+
+@Composable
+private fun UserDisplay(
+    bestDisplayName: String,
+    tags: ImmutableListOfLists<String>?,
+    modifier: Modifier,
+    fontWeight: FontWeight = FontWeight.Bold,
+    textColor: Color = Color.Unspecified,
+    textAlign: TextAlign? = null,
+) {
+    CreateTextWithEmoji(
+        text = bestDisplayName,
+        tags = tags,
+        fontWeight = fontWeight,
+        textAlign = textAlign,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+        color = textColor,
+    )
+}
+
+@Composable
+fun DrawPlayName(
+    name: String,
+    playbackId: String = name,
+    active: Boolean = true,
+    tint: Color = Color.Unspecified,
+    compact: Boolean = false,
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val view = LocalView.current
+    val iconTint = if (tint == Color.Unspecified) MaterialTheme.colorScheme.placeholderText else tint
+
+    DisposableEffect(playbackId, active) {
+        if (!active) {
+            TextToSpeechHelper.stopSpeaking(playbackId)
+        }
+        onDispose { TextToSpeechHelper.stopSpeaking(playbackId) }
+    }
+
+    PlayIcon(
+        modifier =
+            (if (compact) Modifier.size(16.dp) else StdButtonSizeModifier)
+                .clickable(role = Role.Button, onClick = { speak(name, playbackId, context, lifecycleOwner) })
+                .onGloballyPositioned { coords ->
+                    if (!active) return@onGloballyPositioned
+                    val bounds = coords.boundsInWindow()
+                    val hidden =
+                        !coords.isAttached ||
+                            bounds.height <= 1f ||
+                            bounds.bottom <= 8f ||
+                            bounds.top >= view.height - 8f
+                    if (hidden) {
+                        TextToSpeechHelper.stopSpeaking(playbackId)
+                    }
+                },
+        tint = iconTint,
+    )
+}
+
+private fun speak(
+    message: String,
+    playbackId: String,
+    context: Context,
+    owner: LifecycleOwner,
+) {
+    TextToSpeechHelper
+        .getInstance(context)
+        .registerLifecycle(owner)
+        .speak(message, playbackId)
+        .highlight()
+        .onDone { Log.d("TextToSpeak", "speak: done") }
+        .onError { Log.d("TextToSpeak") { "speak error: $it" } }
+}

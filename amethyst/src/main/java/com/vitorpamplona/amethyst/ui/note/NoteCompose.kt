@@ -1,0 +1,2232 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+@file:Suppress("DEPRECATION")
+
+package com.vitorpamplona.amethyst.ui.note
+
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.vitorpamplona.amethyst.R
+import com.vitorpamplona.amethyst.commons.defaults.SHOW_RECOMMENDATION_BADGE
+import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
+import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
+import com.vitorpamplona.amethyst.commons.model.nip28PublicChats.PublicChatChannel
+import com.vitorpamplona.amethyst.commons.ui.components.GenericLoadable
+import com.vitorpamplona.amethyst.commons.ui.feeds.ServedFeedOrder
+import com.vitorpamplona.amethyst.commons.ui.state.produceCachedStateAsync
+import com.vitorpamplona.amethyst.model.AddressableNote
+import com.vitorpamplona.amethyst.model.LocalCache
+import com.vitorpamplona.amethyst.model.Note
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.channel.observeChannelPicture
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeCommunityApprovalNeedStatus
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNoteEvent
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNoteModifications
+import com.vitorpamplona.amethyst.ui.components.ClickableBox
+import com.vitorpamplona.amethyst.ui.components.RobohashFallbackAsyncImage
+import com.vitorpamplona.amethyst.ui.feeds.LocalFeedListIsScrolling
+import com.vitorpamplona.amethyst.ui.layouts.GenericRepostLayout
+import com.vitorpamplona.amethyst.ui.layouts.NoteComposeLayout
+import com.vitorpamplona.amethyst.ui.navigation.navs.INav
+import com.vitorpamplona.amethyst.ui.navigation.routes.routeEditDraftTo
+import com.vitorpamplona.amethyst.ui.navigation.routes.routeFor
+import com.vitorpamplona.amethyst.ui.note.creators.zapsplits.DisplayZapSplits
+import com.vitorpamplona.amethyst.ui.note.elements.BoostedMark
+import com.vitorpamplona.amethyst.ui.note.elements.DisplayEditStatus
+import com.vitorpamplona.amethyst.ui.note.elements.DisplayFollowingCommunityInPost
+import com.vitorpamplona.amethyst.ui.note.elements.DisplayFollowingHashtagsInPost
+import com.vitorpamplona.amethyst.ui.note.elements.DisplayLocation
+import com.vitorpamplona.amethyst.ui.note.elements.DisplayOts
+import com.vitorpamplona.amethyst.ui.note.elements.DisplayPoW
+import com.vitorpamplona.amethyst.ui.note.elements.DisplayReward
+import com.vitorpamplona.amethyst.ui.note.elements.MoreOptionsButton
+import com.vitorpamplona.amethyst.ui.note.elements.RecommendationMark
+import com.vitorpamplona.amethyst.ui.note.elements.Reward
+import com.vitorpamplona.amethyst.ui.note.elements.ShowForkInformation
+import com.vitorpamplona.amethyst.ui.note.elements.StaleRelayHint
+import com.vitorpamplona.amethyst.ui.note.elements.TimeAgo
+import com.vitorpamplona.amethyst.ui.note.types.BadgeDisplay
+import com.vitorpamplona.amethyst.ui.note.types.DisplayBlockedRelayList
+import com.vitorpamplona.amethyst.ui.note.types.DisplayBroadcastRelayList
+import com.vitorpamplona.amethyst.ui.note.types.DisplayContactList
+import com.vitorpamplona.amethyst.ui.note.types.DisplayDMRelayList
+import com.vitorpamplona.amethyst.ui.note.types.DisplayFollowList
+import com.vitorpamplona.amethyst.ui.note.types.DisplayIndexerRelayList
+import com.vitorpamplona.amethyst.ui.note.types.DisplayNIP65RelayList
+import com.vitorpamplona.amethyst.ui.note.types.DisplayPeopleList
+import com.vitorpamplona.amethyst.ui.note.types.DisplayProxyRelayList
+import com.vitorpamplona.amethyst.ui.note.types.DisplayRelayFeedsList
+import com.vitorpamplona.amethyst.ui.note.types.DisplayRelaySet
+import com.vitorpamplona.amethyst.ui.note.types.DisplaySearchRelayList
+import com.vitorpamplona.amethyst.ui.note.types.DisplayTrustedRelayList
+import com.vitorpamplona.amethyst.ui.note.types.EditState
+import com.vitorpamplona.amethyst.ui.note.types.EmptyState
+import com.vitorpamplona.amethyst.ui.note.types.FileHeaderDisplay
+import com.vitorpamplona.amethyst.ui.note.types.FileStorageHeaderDisplay
+import com.vitorpamplona.amethyst.ui.note.types.PictureDisplay
+import com.vitorpamplona.amethyst.ui.note.types.RenderAppDefinition
+import com.vitorpamplona.amethyst.ui.note.types.RenderAppRecommendation
+import com.vitorpamplona.amethyst.ui.note.types.RenderAttestation
+import com.vitorpamplona.amethyst.ui.note.types.RenderAttestationRequest
+import com.vitorpamplona.amethyst.ui.note.types.RenderAttestorProficiency
+import com.vitorpamplona.amethyst.ui.note.types.RenderAttestorRecommendation
+import com.vitorpamplona.amethyst.ui.note.types.RenderAudioHeader
+import com.vitorpamplona.amethyst.ui.note.types.RenderAudioTrack
+import com.vitorpamplona.amethyst.ui.note.types.RenderBadgeAward
+import com.vitorpamplona.amethyst.ui.note.types.RenderBirdDetection
+import com.vitorpamplona.amethyst.ui.note.types.RenderBirdex
+import com.vitorpamplona.amethyst.ui.note.types.RenderCalendarCollectionEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderCalendarDateSlotEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderCalendarRSVPEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderCalendarTimeSlotEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderCashuMint
+import com.vitorpamplona.amethyst.ui.note.types.RenderChannelMessage
+import com.vitorpamplona.amethyst.ui.note.types.RenderChat
+import com.vitorpamplona.amethyst.ui.note.types.RenderChatMessage
+import com.vitorpamplona.amethyst.ui.note.types.RenderChatMessageEncryptedFile
+import com.vitorpamplona.amethyst.ui.note.types.RenderChessGame
+import com.vitorpamplona.amethyst.ui.note.types.RenderClassifieds
+import com.vitorpamplona.amethyst.ui.note.types.RenderCodeSnippetEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderCommunity
+import com.vitorpamplona.amethyst.ui.note.types.RenderEmojiPack
+import com.vitorpamplona.amethyst.ui.note.types.RenderFedimint
+import com.vitorpamplona.amethyst.ui.note.types.RenderFhirResource
+import com.vitorpamplona.amethyst.ui.note.types.RenderFundraiser
+import com.vitorpamplona.amethyst.ui.note.types.RenderGitIssueEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderGitPatchEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderGitPullRequestEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderGitPullRequestUpdateEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderGitRepositoryEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderGoal
+import com.vitorpamplona.amethyst.ui.note.types.RenderHighlight
+import com.vitorpamplona.amethyst.ui.note.types.RenderInteractiveStory
+import com.vitorpamplona.amethyst.ui.note.types.RenderLiveActivityChatMessage
+import com.vitorpamplona.amethyst.ui.note.types.RenderLiveActivityEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderLiveChessChallenge
+import com.vitorpamplona.amethyst.ui.note.types.RenderLiveChessGameEnd
+import com.vitorpamplona.amethyst.ui.note.types.RenderLnZap
+import com.vitorpamplona.amethyst.ui.note.types.RenderLongFormContent
+import com.vitorpamplona.amethyst.ui.note.types.RenderMeetingRoomEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderMeetingSpaceEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderMintRecommendation
+import com.vitorpamplona.amethyst.ui.note.types.RenderMusicPlaylist
+import com.vitorpamplona.amethyst.ui.note.types.RenderMusicTrack
+import com.vitorpamplona.amethyst.ui.note.types.RenderNIP90ContentDiscoveryResponse
+import com.vitorpamplona.amethyst.ui.note.types.RenderNIP90Status
+import com.vitorpamplona.amethyst.ui.note.types.RenderNamedNappletEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderNamedSiteEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderNipContent
+import com.vitorpamplona.amethyst.ui.note.types.RenderNutzap
+import com.vitorpamplona.amethyst.ui.note.types.RenderOnchainZap
+import com.vitorpamplona.amethyst.ui.note.types.RenderPinListEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderPodcastEpisode
+import com.vitorpamplona.amethyst.ui.note.types.RenderPodcastMetadata
+import com.vitorpamplona.amethyst.ui.note.types.RenderPoll
+import com.vitorpamplona.amethyst.ui.note.types.RenderPostApproval
+import com.vitorpamplona.amethyst.ui.note.types.RenderPrivateMessage
+import com.vitorpamplona.amethyst.ui.note.types.RenderPs1Save
+import com.vitorpamplona.amethyst.ui.note.types.RenderPublicMessage
+import com.vitorpamplona.amethyst.ui.note.types.RenderReaction
+import com.vitorpamplona.amethyst.ui.note.types.RenderRelayAddMember
+import com.vitorpamplona.amethyst.ui.note.types.RenderRelayDiscovery
+import com.vitorpamplona.amethyst.ui.note.types.RenderRelayJoinRequest
+import com.vitorpamplona.amethyst.ui.note.types.RenderRelayLeaveRequest
+import com.vitorpamplona.amethyst.ui.note.types.RenderRelayMembershipList
+import com.vitorpamplona.amethyst.ui.note.types.RenderRelayRemoveMember
+import com.vitorpamplona.amethyst.ui.note.types.RenderReport
+import com.vitorpamplona.amethyst.ui.note.types.RenderRoadEventConfirmation
+import com.vitorpamplona.amethyst.ui.note.types.RenderRoadEventReport
+import com.vitorpamplona.amethyst.ui.note.types.RenderRootNappletEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderRootSiteEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderSoftwareApplication
+import com.vitorpamplona.amethyst.ui.note.types.RenderSoftwareAsset
+import com.vitorpamplona.amethyst.ui.note.types.RenderSoftwareRelease
+import com.vitorpamplona.amethyst.ui.note.types.RenderTextEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderTextModificationEvent
+import com.vitorpamplona.amethyst.ui.note.types.RenderThread
+import com.vitorpamplona.amethyst.ui.note.types.RenderTorrent
+import com.vitorpamplona.amethyst.ui.note.types.RenderTorrentComment
+import com.vitorpamplona.amethyst.ui.note.types.RenderVoiceTrack
+import com.vitorpamplona.amethyst.ui.note.types.RenderWikiContent
+import com.vitorpamplona.amethyst.ui.note.types.RenderZapPoll
+import com.vitorpamplona.amethyst.ui.note.types.ReplyRenderType
+import com.vitorpamplona.amethyst.ui.note.types.VideoDisplay
+import com.vitorpamplona.amethyst.ui.note.types.observeZapSender
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.feed.types.RenderChatClip
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.publicChannels.nip28PublicChat.RenderPublicChatChannelHeader
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.podcasts.PodcastTrailerListItem
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.workouts.ExerciseTemplateDisplay
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.workouts.WorkoutDisplay
+import com.vitorpamplona.amethyst.ui.stringRes
+import com.vitorpamplona.amethyst.ui.theme.DoubleVertSpacer
+import com.vitorpamplona.amethyst.ui.theme.Font12SP
+import com.vitorpamplona.amethyst.ui.theme.HalfDoubleVertSpacer
+import com.vitorpamplona.amethyst.ui.theme.HalfPadding
+import com.vitorpamplona.amethyst.ui.theme.HalfStartPadding
+import com.vitorpamplona.amethyst.ui.theme.Height4dpModifier
+import com.vitorpamplona.amethyst.ui.theme.ReactionRowHeight
+import com.vitorpamplona.amethyst.ui.theme.ReactionRowHeightWithPadding
+import com.vitorpamplona.amethyst.ui.theme.Size10dp
+import com.vitorpamplona.amethyst.ui.theme.Size25dp
+import com.vitorpamplona.amethyst.ui.theme.Size30dp
+import com.vitorpamplona.amethyst.ui.theme.Size34dp
+import com.vitorpamplona.amethyst.ui.theme.Size35dp
+import com.vitorpamplona.amethyst.ui.theme.Size55Modifier
+import com.vitorpamplona.amethyst.ui.theme.Size55dp
+import com.vitorpamplona.amethyst.ui.theme.StdHorzSpacer
+import com.vitorpamplona.amethyst.ui.theme.UserNameMaxRowHeight
+import com.vitorpamplona.amethyst.ui.theme.UserNameRowHeight
+import com.vitorpamplona.amethyst.ui.theme.channelNotePictureModifier
+import com.vitorpamplona.amethyst.ui.theme.grayText
+import com.vitorpamplona.amethyst.ui.theme.newItemBackgroundColor
+import com.vitorpamplona.amethyst.ui.theme.placeholderText
+import com.vitorpamplona.amethyst.ui.theme.replyModifier
+import com.vitorpamplona.quartz.experimental.agora.FundraiserEvent
+import com.vitorpamplona.quartz.experimental.attestations.attestation.AttestationEvent
+import com.vitorpamplona.quartz.experimental.attestations.proficiency.AttestorProficiencyEvent
+import com.vitorpamplona.quartz.experimental.attestations.recommendation.AttestorRecommendationEvent
+import com.vitorpamplona.quartz.experimental.attestations.request.AttestationRequestEvent
+import com.vitorpamplona.quartz.experimental.audio.header.AudioHeaderEvent
+import com.vitorpamplona.quartz.experimental.audio.track.AudioTrackEvent
+import com.vitorpamplona.quartz.experimental.birdstar.BirdDetectionEvent
+import com.vitorpamplona.quartz.experimental.birdstar.BirdexEvent
+import com.vitorpamplona.quartz.experimental.bounties.bountyBaseReward
+import com.vitorpamplona.quartz.experimental.edits.TextNoteModificationEvent
+import com.vitorpamplona.quartz.experimental.fitness.workout.ExerciseTemplateEvent
+import com.vitorpamplona.quartz.experimental.fitness.workout.WorkoutRecordEvent
+import com.vitorpamplona.quartz.experimental.forks.IForkableEvent
+import com.vitorpamplona.quartz.experimental.interactiveStories.InteractiveStoryBaseEvent
+import com.vitorpamplona.quartz.experimental.medical.FhirResourceEvent
+import com.vitorpamplona.quartz.experimental.music.playlist.MusicPlaylistEvent
+import com.vitorpamplona.quartz.experimental.music.track.MusicTrackEvent
+import com.vitorpamplona.quartz.experimental.nip82SoftwareApps.application.SoftwareApplicationEvent
+import com.vitorpamplona.quartz.experimental.nip82SoftwareApps.asset.SoftwareAssetEvent
+import com.vitorpamplona.quartz.experimental.nip82SoftwareApps.release.isNip82SoftwareRelease
+import com.vitorpamplona.quartz.experimental.nip95.header.FileStorageHeaderEvent
+import com.vitorpamplona.quartz.experimental.nipsOnNostr.NipTextEvent
+import com.vitorpamplona.quartz.experimental.ps1saves.Ps1SaveEvent
+import com.vitorpamplona.quartz.experimental.roadstr.confirmation.RoadEventConfirmationEvent
+import com.vitorpamplona.quartz.experimental.roadstr.report.RoadEventReportEvent
+import com.vitorpamplona.quartz.experimental.zapPolls.ZapPollEvent
+import com.vitorpamplona.quartz.nip01Core.core.HexKey
+import com.vitorpamplona.quartz.nip01Core.tags.geohash.geoHashOrScope
+import com.vitorpamplona.quartz.nip02FollowList.ContactListEvent
+import com.vitorpamplona.quartz.nip04Dm.messages.PrivateDmEvent
+import com.vitorpamplona.quartz.nip10Notes.BaseThreadedEvent
+import com.vitorpamplona.quartz.nip10Notes.TextNoteEvent
+import com.vitorpamplona.quartz.nip13Pow.strongPoWOrNull
+import com.vitorpamplona.quartz.nip17Dm.files.ChatMessageEncryptedFileHeaderEvent
+import com.vitorpamplona.quartz.nip17Dm.messages.ChatMessageEvent
+import com.vitorpamplona.quartz.nip17Dm.settings.ChatMessageRelayListEvent
+import com.vitorpamplona.quartz.nip18Reposts.GenericRepostEvent
+import com.vitorpamplona.quartz.nip18Reposts.RepostEvent
+import com.vitorpamplona.quartz.nip23LongContent.LongTextNoteEvent
+import com.vitorpamplona.quartz.nip25Reactions.ReactionEvent
+import com.vitorpamplona.quartz.nip28PublicChat.admin.ChannelCreateEvent
+import com.vitorpamplona.quartz.nip28PublicChat.admin.ChannelMetadataEvent
+import com.vitorpamplona.quartz.nip28PublicChat.message.ChannelMessageEvent
+import com.vitorpamplona.quartz.nip30CustomEmoji.pack.EmojiPackEvent
+import com.vitorpamplona.quartz.nip34Git.issue.GitIssueEvent
+import com.vitorpamplona.quartz.nip34Git.patch.GitPatchEvent
+import com.vitorpamplona.quartz.nip34Git.pr.GitPullRequestEvent
+import com.vitorpamplona.quartz.nip34Git.pr.GitPullRequestUpdateEvent
+import com.vitorpamplona.quartz.nip34Git.repository.GitRepositoryEvent
+import com.vitorpamplona.quartz.nip35Torrents.TorrentCommentEvent
+import com.vitorpamplona.quartz.nip35Torrents.TorrentEvent
+import com.vitorpamplona.quartz.nip37Drafts.DraftWrapEvent
+import com.vitorpamplona.quartz.nip40Expiration.expiration
+import com.vitorpamplona.quartz.nip43RelayMembers.addMember.RelayAddMemberEvent
+import com.vitorpamplona.quartz.nip43RelayMembers.joinRequest.RelayJoinRequestEvent
+import com.vitorpamplona.quartz.nip43RelayMembers.leaveRequest.RelayLeaveRequestEvent
+import com.vitorpamplona.quartz.nip43RelayMembers.list.RelayMembershipListEvent
+import com.vitorpamplona.quartz.nip43RelayMembers.removeMember.RelayRemoveMemberEvent
+import com.vitorpamplona.quartz.nip50Search.SearchRelayListEvent
+import com.vitorpamplona.quartz.nip51Lists.PinListEvent
+import com.vitorpamplona.quartz.nip51Lists.followList.FollowListEvent
+import com.vitorpamplona.quartz.nip51Lists.peopleList.PeopleListEvent
+import com.vitorpamplona.quartz.nip51Lists.relayLists.BlockedRelayListEvent
+import com.vitorpamplona.quartz.nip51Lists.relayLists.BroadcastRelayListEvent
+import com.vitorpamplona.quartz.nip51Lists.relayLists.IndexerRelayListEvent
+import com.vitorpamplona.quartz.nip51Lists.relayLists.ProxyRelayListEvent
+import com.vitorpamplona.quartz.nip51Lists.relayLists.RelayFeedsListEvent
+import com.vitorpamplona.quartz.nip51Lists.relayLists.TrustedRelayListEvent
+import com.vitorpamplona.quartz.nip51Lists.relaySets.RelaySetEvent
+import com.vitorpamplona.quartz.nip51Lists.releaseArtifactSet.ReleaseArtifactSetEvent
+import com.vitorpamplona.quartz.nip52Calendar.appt.day.CalendarDateSlotEvent
+import com.vitorpamplona.quartz.nip52Calendar.appt.time.CalendarTimeSlotEvent
+import com.vitorpamplona.quartz.nip52Calendar.calendar.CalendarEvent
+import com.vitorpamplona.quartz.nip52Calendar.rsvp.CalendarRSVPEvent
+import com.vitorpamplona.quartz.nip53LiveActivities.chat.LiveActivitiesChatMessageEvent
+import com.vitorpamplona.quartz.nip53LiveActivities.clip.LiveActivitiesClipEvent
+import com.vitorpamplona.quartz.nip53LiveActivities.meetingSpaces.MeetingRoomEvent
+import com.vitorpamplona.quartz.nip53LiveActivities.meetingSpaces.MeetingSpaceEvent
+import com.vitorpamplona.quartz.nip53LiveActivities.streaming.LiveActivitiesEvent
+import com.vitorpamplona.quartz.nip54Wiki.WikiNoteEvent
+import com.vitorpamplona.quartz.nip56Reports.ReportEvent
+import com.vitorpamplona.quartz.nip57Zaps.LnZapEvent
+import com.vitorpamplona.quartz.nip57Zaps.splits.hasZapSplitSetupBesidesAuthor
+import com.vitorpamplona.quartz.nip58Badges.award.BadgeAwardEvent
+import com.vitorpamplona.quartz.nip58Badges.definition.BadgeDefinitionEvent
+import com.vitorpamplona.quartz.nip5aStaticWebsites.NamedSiteEvent
+import com.vitorpamplona.quartz.nip5aStaticWebsites.RootSiteEvent
+import com.vitorpamplona.quartz.nip5dNapplets.NamedNappletEvent
+import com.vitorpamplona.quartz.nip5dNapplets.RootNappletEvent
+import com.vitorpamplona.quartz.nip61Nutzaps.nutzap.NutzapEvent
+import com.vitorpamplona.quartz.nip64Chess.challenge.offer.LiveChessGameChallengeEvent
+import com.vitorpamplona.quartz.nip64Chess.end.LiveChessGameEndEvent
+import com.vitorpamplona.quartz.nip64Chess.game.ChessGameEvent
+import com.vitorpamplona.quartz.nip65RelayList.AdvertisedRelayListEvent
+import com.vitorpamplona.quartz.nip66RelayMonitor.discovery.RelayDiscoveryEvent
+import com.vitorpamplona.quartz.nip68Picture.PictureEvent
+import com.vitorpamplona.quartz.nip71Video.VideoHorizontalEvent
+import com.vitorpamplona.quartz.nip71Video.VideoNormalEvent
+import com.vitorpamplona.quartz.nip71Video.VideoShortEvent
+import com.vitorpamplona.quartz.nip71Video.VideoVerticalEvent
+import com.vitorpamplona.quartz.nip72ModCommunities.approval.CommunityPostApprovalEvent
+import com.vitorpamplona.quartz.nip72ModCommunities.communityAddress
+import com.vitorpamplona.quartz.nip72ModCommunities.definition.CommunityDefinitionEvent
+import com.vitorpamplona.quartz.nip72ModCommunities.isACommunityPost
+import com.vitorpamplona.quartz.nip75ZapGoals.GoalEvent
+import com.vitorpamplona.quartz.nip78AppData.AppSpecificDataEvent
+import com.vitorpamplona.quartz.nip7DThreads.ThreadEvent
+import com.vitorpamplona.quartz.nip84Highlights.HighlightEvent
+import com.vitorpamplona.quartz.nip87Ecash.cashu.CashuMintEvent
+import com.vitorpamplona.quartz.nip87Ecash.fedimint.FedimintEvent
+import com.vitorpamplona.quartz.nip87Ecash.recommendation.MintRecommendationEvent
+import com.vitorpamplona.quartz.nip88Polls.poll.PollEvent
+import com.vitorpamplona.quartz.nip89AppHandlers.definition.AppDefinitionEvent
+import com.vitorpamplona.quartz.nip89AppHandlers.recommendation.AppRecommendationEvent
+import com.vitorpamplona.quartz.nip90Dvms.contentDiscoveryResponse.NIP90ContentDiscoveryResponseEvent
+import com.vitorpamplona.quartz.nip90Dvms.status.NIP90StatusEvent
+import com.vitorpamplona.quartz.nip94FileMetadata.FileHeaderEvent
+import com.vitorpamplona.quartz.nip99Classifieds.ClassifiedsEvent
+import com.vitorpamplona.quartz.nipA0VoiceMessages.BaseVoiceEvent
+import com.vitorpamplona.quartz.nipA4PublicMessages.PublicMessageEvent
+import com.vitorpamplona.quartz.nipBCOnchainZaps.zap.OnchainZapEvent
+import com.vitorpamplona.quartz.nipC0CodeSnippets.CodeSnippetEvent
+import com.vitorpamplona.quartz.nipC7Chats.ChatEvent
+import com.vitorpamplona.quartz.nipF4Podcasts.episode.PodcastEpisodeEvent
+import com.vitorpamplona.quartz.nipF4Podcasts.metadata.PodcastMetadataEvent
+import com.vitorpamplona.quartz.nipXXPodcasting20.episode.Podcasting20EpisodeEvent
+import com.vitorpamplona.quartz.nipXXPodcasting20.metadata.Podcasting20PodcastMetadata
+import com.vitorpamplona.quartz.nipXXPodcasting20.trailer.Podcasting20TrailerEvent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+
+@Composable
+fun NoteCompose(
+    baseNote: Note,
+    modifier: Modifier = Modifier,
+    routeForLastRead: String? = null,
+    isBoostedNote: Boolean = false,
+    isQuotedNote: Boolean = false,
+    unPackReply: ReplyRenderType = ReplyRenderType.FULL,
+    makeItShort: Boolean = false,
+    isHiddenFeed: Boolean = false,
+    isPinned: Boolean = false,
+    quotesLeft: Int,
+    /** Home posts tab: header above + full-width content (Instagram-style). */
+    instagramFeedLayout: Boolean = false,
+    parentBackgroundColor: MutableState<Color>? = null,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+    onClick: (() -> Unit)? = null,
+    moreOptions: (@Composable () -> Unit)? = null,
+) {
+    WatchNoteEvent(
+        baseNote = baseNote,
+        accountViewModel = accountViewModel,
+        nav,
+        modifier,
+    ) {
+        CheckHiddenFeedWatchBlockAndReport(
+            note = baseNote,
+            modifier = modifier,
+            ignoreAllBlocksAndReports = isHiddenFeed,
+            showHiddenWarning = isQuotedNote || isBoostedNote,
+            accountViewModel = accountViewModel,
+            nav = nav,
+        ) { canPreview ->
+            AcceptableNote(
+                baseNote = baseNote,
+                modifier = modifier,
+                routeForLastRead = routeForLastRead,
+                isBoostedNote = isBoostedNote,
+                isQuotedNote = isQuotedNote,
+                unPackReply = unPackReply,
+                makeItShort = makeItShort,
+                canPreview = canPreview,
+                isPinned = isPinned,
+                quotesLeft = quotesLeft,
+                instagramFeedLayout = instagramFeedLayout,
+                parentBackgroundColor = parentBackgroundColor,
+                accountViewModel = accountViewModel,
+                nav = nav,
+                onClick = onClick,
+                moreOptions = moreOptions,
+            )
+        }
+    }
+}
+
+@Composable
+fun AcceptableNote(
+    baseNote: Note,
+    modifier: Modifier = Modifier,
+    routeForLastRead: String? = null,
+    isBoostedNote: Boolean = false,
+    isQuotedNote: Boolean = false,
+    unPackReply: ReplyRenderType = ReplyRenderType.FULL,
+    makeItShort: Boolean = false,
+    canPreview: Boolean = true,
+    isPinned: Boolean = false,
+    quotesLeft: Int,
+    instagramFeedLayout: Boolean = false,
+    parentBackgroundColor: MutableState<Color>? = null,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+    onClick: (() -> Unit)? = null,
+    moreOptions: (@Composable () -> Unit)?,
+) {
+    if (isQuotedNote || isBoostedNote) {
+        val noteEvent = baseNote.event
+        when (noteEvent) {
+            is ChannelCreateEvent -> {
+                RenderPublicChatChannelHeader(
+                    channelId = noteEvent.id,
+                    sendToChannel = true,
+                    accountViewModel = accountViewModel,
+                    nav = nav,
+                )
+            }
+
+            is ChannelMetadataEvent -> {
+                noteEvent.channelId()?.let {
+                    RenderPublicChatChannelHeader(
+                        channelId = it,
+                        sendToChannel = true,
+                        accountViewModel = accountViewModel,
+                        nav = nav,
+                    )
+                }
+            }
+
+            is CommunityDefinitionEvent -> {
+                (baseNote as? AddressableNote)?.let {
+                    RenderCommunity(
+                        baseNote = it,
+                        accountViewModel = accountViewModel,
+                        nav = nav,
+                    )
+                }
+            }
+
+            else -> {
+                LongPressToQuickAction(baseNote = baseNote, accountViewModel = accountViewModel, nav) { showPopup ->
+                    CheckNewAndRenderNote(
+                        baseNote = baseNote,
+                        modifier = modifier,
+                        routeForLastRead = routeForLastRead,
+                        isBoostedNote = isBoostedNote,
+                        isQuotedNote = isQuotedNote,
+                        unPackReply = unPackReply,
+                        makeItShort = makeItShort,
+                        canPreview = canPreview,
+                        quotesLeft = quotesLeft,
+                        isPinned = isPinned,
+                        instagramFeedLayout = instagramFeedLayout,
+                        parentBackgroundColor = parentBackgroundColor,
+                        accountViewModel = accountViewModel,
+                        showPopup = showPopup,
+                        nav = nav,
+                        onClick = onClick,
+                        moreOptions = moreOptions,
+                    )
+                }
+            }
+        }
+    } else {
+        when (val noteEvent = baseNote.event) {
+            is ChannelCreateEvent -> {
+                RenderPublicChatChannelHeader(
+                    channelId = noteEvent.id,
+                    sendToChannel = true,
+                    accountViewModel = accountViewModel,
+                    nav = nav,
+                )
+            }
+
+            is ChannelMetadataEvent -> {
+                noteEvent.channelId()?.let {
+                    RenderPublicChatChannelHeader(
+                        channelId = it,
+                        sendToChannel = true,
+                        accountViewModel = accountViewModel,
+                        nav = nav,
+                    )
+                }
+            }
+
+            is CommunityDefinitionEvent -> {
+                (baseNote as? AddressableNote)?.let {
+                    RenderCommunity(
+                        baseNote = it,
+                        accountViewModel = accountViewModel,
+                        nav = nav,
+                    )
+                }
+            }
+
+            else -> {
+                LongPressToQuickAction(baseNote, accountViewModel, nav) { showPopup ->
+                    CheckNewAndRenderNote(
+                        baseNote = baseNote,
+                        modifier = modifier,
+                        routeForLastRead = routeForLastRead,
+                        isBoostedNote = isBoostedNote,
+                        isQuotedNote = isQuotedNote,
+                        unPackReply = unPackReply,
+                        makeItShort = makeItShort,
+                        canPreview = canPreview,
+                        isPinned = isPinned,
+                        quotesLeft = quotesLeft,
+                        instagramFeedLayout = instagramFeedLayout,
+                        parentBackgroundColor = parentBackgroundColor,
+                        accountViewModel = accountViewModel,
+                        showPopup = showPopup,
+                        nav = nav,
+                        onClick = onClick,
+                        moreOptions = moreOptions,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun calculateBackgroundColor(
+    createdAt: Long?,
+    routeForLastRead: String? = null,
+    parentBackgroundColor: MutableState<Color>? = null,
+    accountViewModel: AccountViewModel,
+    dismissNotificationId: HexKey? = null,
+): MutableState<Color> {
+    val defaultBackgroundColor = MaterialTheme.colorScheme.background
+    val newItemColor = MaterialTheme.colorScheme.newItemBackgroundColor
+
+    // Inner notes (reposts) pass routeForLastRead = null with the parent's bgColor state;
+    // share it directly so the inner highlight fades in lockstep with the outer.
+    if (routeForLastRead == null && parentBackgroundColor != null) {
+        return parentBackgroundColor
+    }
+
+    val isNew =
+        remember(createdAt, routeForLastRead) {
+            routeForLastRead != null && accountViewModel.loadAndMarkAsRead(routeForLastRead, createdAt, dismissNotificationId)
+        }
+
+    val bgColor =
+        remember(createdAt) {
+            mutableStateOf(
+                if (isNew) {
+                    newItemColor.compositeOver(parentBackgroundColor?.value ?: defaultBackgroundColor)
+                } else {
+                    parentBackgroundColor?.value ?: Color.Transparent
+                },
+            )
+        }
+
+    if (isNew) {
+        LaunchedEffect(createdAt) {
+            delay(5000)
+            bgColor.value = parentBackgroundColor?.value ?: Color.Transparent
+        }
+    }
+
+    return bgColor
+}
+
+@Composable
+private fun CheckNewAndRenderNote(
+    baseNote: Note,
+    modifier: Modifier = Modifier,
+    routeForLastRead: String? = null,
+    isBoostedNote: Boolean = false,
+    isQuotedNote: Boolean = false,
+    unPackReply: ReplyRenderType = ReplyRenderType.FULL,
+    makeItShort: Boolean = false,
+    canPreview: Boolean = true,
+    isPinned: Boolean = false,
+    quotesLeft: Int,
+    instagramFeedLayout: Boolean = false,
+    parentBackgroundColor: MutableState<Color>? = null,
+    accountViewModel: AccountViewModel,
+    showPopup: () -> Unit,
+    nav: INav,
+    onClick: (() -> Unit)? = null,
+    moreOptions: (@Composable () -> Unit)? = null,
+) {
+    val backgroundColor =
+        calculateBackgroundColor(
+            baseNote.createdAt(),
+            routeForLastRead,
+            parentBackgroundColor,
+            accountViewModel,
+            dismissNotificationId = baseNote.idHex,
+        )
+
+    InnerNoteWithReactions(
+        baseNote = baseNote,
+        backgroundColor = backgroundColor,
+        clickModifier = clickableNoteModifier(baseNote, modifier, accountViewModel, showPopup, nav, onClick),
+        isBoostedNote = isBoostedNote,
+        isQuotedNote = isQuotedNote,
+        unPackReply = unPackReply,
+        makeItShort = makeItShort,
+        canPreview = canPreview,
+        isPinned = isPinned,
+        quotesLeft = quotesLeft,
+        instagramFeedLayout = instagramFeedLayout,
+        accountViewModel = accountViewModel,
+        nav = nav,
+        moreOptions = moreOptions,
+    )
+}
+
+/**
+ * Creates a [Modifier] with [combinedClickable] for note navigation (click to open,
+ * long-press for quick action popup). Remembered by [baseNote] and [modifier] to avoid
+ * recreating the click handler on every recomposition.
+ *
+ * Used directly on [NoteComposeLayout]'s modifier in [InnerNoteWithReactions] to avoid
+ * a wrapping Column node. For callers that need a wrapping container, use [ClickableNote].
+ */
+@Composable
+@OptIn(ExperimentalFoundationApi::class)
+fun clickableNoteModifier(
+    baseNote: Note,
+    modifier: Modifier,
+    accountViewModel: AccountViewModel,
+    showPopup: () -> Unit,
+    nav: INav,
+    onClick: (() -> Unit)? = null,
+): Modifier =
+    remember(baseNote, modifier, onClick) {
+        modifier
+            .combinedClickable(
+                onClick = {
+                    if (onClick != null) {
+                        onClick()
+                    } else {
+                        val redirectToNote =
+                            if (baseNote.event is RepostEvent || baseNote.event is GenericRepostEvent) {
+                                baseNote.replyTo?.lastOrNull() ?: baseNote
+                            } else {
+                                baseNote
+                            }
+
+                        nav.nav {
+                            if (redirectToNote.event is DraftWrapEvent) {
+                                withContext(Dispatchers.IO) {
+                                    routeEditDraftTo(redirectToNote, accountViewModel.account)
+                                }
+                            } else {
+                                routeFor(redirectToNote, accountViewModel.account)
+                            }
+                        }
+                    }
+                },
+                onLongClick = showPopup,
+            )
+    }
+
+/**
+ * Wraps [content] in a Column with click handling and animated background.
+ *
+ * Kept for callers outside NoteCompose (e.g. ChannelCardCompose) that need a
+ * container for non-NoteComposeLayout content. For NoteCompose itself,
+ * [InnerNoteWithReactions] applies [clickableNoteModifier] directly on the
+ * [NoteComposeLayout] modifier to eliminate this Column wrapper node.
+ */
+@Composable
+fun ClickableNote(
+    baseNote: Note,
+    modifier: Modifier,
+    backgroundColor: MutableState<Color>,
+    accountViewModel: AccountViewModel,
+    showPopup: () -> Unit,
+    nav: INav,
+    content: @Composable () -> Unit,
+) {
+    Column(
+        modifier =
+            clickableNoteModifier(baseNote, modifier, accountViewModel, showPopup, nav)
+                .background(backgroundColor.value),
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun InnerNoteWithReactions(
+    baseNote: Note,
+    backgroundColor: MutableState<Color>,
+    clickModifier: Modifier = Modifier,
+    isBoostedNote: Boolean,
+    isQuotedNote: Boolean,
+    unPackReply: ReplyRenderType,
+    makeItShort: Boolean,
+    canPreview: Boolean,
+    isPinned: Boolean,
+    quotesLeft: Int,
+    instagramFeedLayout: Boolean = false,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+    moreOptions: (@Composable () -> Unit)? = null,
+) {
+    val notBoostedNorQuote = !isBoostedNote && !isQuotedNote
+    val useInstagramLayout = instagramFeedLayout && notBoostedNorQuote
+    val editState = observeEdits(baseNote = baseNote, accountViewModel = accountViewModel)
+    val isNotRepost = baseNote.event !is RepostEvent && baseNote.event !is GenericRepostEvent
+    val showSecondRow = isNotRepost && notBoostedNorQuote && accountViewModel.settings.isCompleteUIMode()
+
+    NoteComposeLayout(
+        modifier =
+            clickModifier
+                .drawBehind { drawRect(backgroundColor.value) }
+                .fillMaxWidth(),
+        // Instagram home posts: no side gutters so images/links/audio/video span the screen.
+        addPadding = !isBoostedNote && !useInstagramLayout,
+        showAuthorColumn = notBoostedNorQuote && !useInstagramLayout,
+        showSecondRow = showSecondRow,
+        showContentSpacer = isNotRepost,
+        authorPicture = {
+            if (notBoostedNorQuote && !useInstagramLayout) {
+                Box(modifier = Size55Modifier, contentAlignment = Alignment.BottomEnd) {
+                    RenderAuthorImages(baseNote, nav, accountViewModel)
+                }
+            }
+        },
+        relayBadges = {
+            if (notBoostedNorQuote && !useInstagramLayout) {
+                BadgeBox(baseNote, accountViewModel, nav)
+            }
+        },
+        firstRow = {
+            val headerModifier =
+                if (useInstagramLayout) {
+                    Modifier.padding(start = 12.dp, end = 12.dp, top = 10.dp)
+                } else {
+                    Modifier
+                }
+            Box(modifier = headerModifier.fillMaxWidth()) {
+                FirstUserInfoRow(
+                    baseNote = baseNote,
+                    showAuthorPicture = isQuotedNote || useInstagramLayout,
+                    authorPictureSize = if (useInstagramLayout) Size35dp else Size25dp,
+                    isPinned = isPinned,
+                    editState = editState,
+                    accountViewModel = accountViewModel,
+                    nav = nav,
+                    moreOptions = moreOptions,
+                )
+            }
+        },
+        secondRow = {
+            if (showSecondRow) {
+                val rowModifier =
+                    if (useInstagramLayout) {
+                        Modifier.padding(horizontal = 12.dp)
+                    } else {
+                        Modifier
+                    }
+                Box(modifier = rowModifier.fillMaxWidth()) {
+                    SecondUserInfoRow(
+                        baseNote,
+                        editState,
+                        accountViewModel,
+                        nav,
+                    )
+                }
+            }
+        },
+        noteContent = {
+            RenderNoteRow(
+                baseNote = baseNote,
+                backgroundColor = backgroundColor,
+                makeItShort = makeItShort,
+                canPreview = canPreview,
+                editState = editState,
+                quotesLeft = quotesLeft,
+                unPackReply = unPackReply,
+                accountViewModel = accountViewModel,
+                nav = nav,
+                isBoostedNote = isBoostedNote,
+            )
+
+            if (!makeItShort) {
+                val noteEvent = baseNote.event
+                val zapSplits = remember(noteEvent) { noteEvent?.hasZapSplitSetupBesidesAuthor() ?: false }
+                if (zapSplits && noteEvent != null) {
+                    Spacer(modifier = HalfDoubleVertSpacer)
+                    DisplayZapSplits(noteEvent, false, accountViewModel, nav)
+                }
+            }
+
+            RenderApprovalIfNeeded(baseNote, accountViewModel, nav)
+        },
+        reactionsRow = {
+            if (isNotRepost && baseNote.event !is DraftWrapEvent) {
+                if (makeItShort) {
+                    Spacer(modifier = DoubleVertSpacer)
+                } else if (useInstagramLayout) {
+                    // Keep reactions visible while scrolling on Home posts.
+                    ReactionsRow(
+                        baseNote = baseNote,
+                        showReactionDetail = notBoostedNorQuote,
+                        addPadding = !isBoostedNote,
+                        editState = editState,
+                        accountViewModel = accountViewModel,
+                        nav = nav,
+                        instagramStyle = true,
+                    )
+                } else {
+                    val isFeedScrolling by LocalFeedListIsScrolling.current
+                    if (isFeedScrolling) {
+                        Spacer(
+                            modifier =
+                                if (!isBoostedNote) {
+                                    ReactionRowHeightWithPadding
+                                } else {
+                                    ReactionRowHeight
+                                },
+                        )
+                    } else {
+                        ReactionsRow(
+                            baseNote = baseNote,
+                            showReactionDetail = notBoostedNorQuote,
+                            addPadding = !isBoostedNote,
+                            editState = editState,
+                            accountViewModel = accountViewModel,
+                            nav = nav,
+                        )
+                    }
+                }
+            } else if (baseNote.event is DraftWrapEvent) {
+                Spacer(modifier = DoubleVertSpacer)
+            }
+        },
+    )
+}
+
+@Composable
+private fun RenderApprovalIfNeeded(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    if (baseNote.isNewThread()) {
+        val communityAddress =
+            remember(baseNote) {
+                baseNote.event?.communityAddress()
+            }
+        communityAddress?.let {
+            LoadAddressableNote(it, accountViewModel) { community ->
+                if (community != null) {
+                    val showApproveButton by observeCommunityApprovalNeedStatus(baseNote, community, accountViewModel)
+                    if (showApproveButton == true) {
+                        RenderApproveButton(baseNote, community, accountViewModel)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RenderApproveButton(
+    post: Note,
+    community: AddressableNote,
+    accountViewModel: AccountViewModel,
+) {
+    OutlinedButton(
+        modifier = Modifier.fillMaxWidth().defaultMinSize(minWidth = Size10dp, minHeight = Size30dp),
+        contentPadding = PaddingValues(0.dp),
+        onClick = {
+            accountViewModel.approveCommunityPost(post, community)
+        },
+    ) {
+        Text(stringRes(R.string.approve))
+    }
+}
+
+@Composable
+fun NoteBody(
+    baseNote: Note,
+    showAuthorPicture: Boolean = false,
+    unPackReply: ReplyRenderType = ReplyRenderType.FULL,
+    makeItShort: Boolean = false,
+    canPreview: Boolean = true,
+    showSecondRow: Boolean,
+    isPinned: Boolean = false,
+    quotesLeft: Int,
+    backgroundColor: MutableState<Color>,
+    editState: State<GenericLoadable<EditState>>,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+    moreOptions: (@Composable () -> Unit)? = null,
+) {
+    FirstUserInfoRow(
+        baseNote = baseNote,
+        showAuthorPicture = showAuthorPicture,
+        isPinned = isPinned,
+        editState = editState,
+        accountViewModel = accountViewModel,
+        nav = nav,
+        moreOptions = moreOptions,
+    )
+
+    if (showSecondRow) {
+        SecondUserInfoRow(
+            baseNote,
+            editState,
+            accountViewModel,
+            nav,
+        )
+    }
+
+    if (baseNote.event !is RepostEvent && baseNote.event !is GenericRepostEvent) {
+        Spacer(modifier = Height4dpModifier)
+    }
+
+    RenderNoteRow(
+        baseNote = baseNote,
+        backgroundColor = backgroundColor,
+        makeItShort = makeItShort,
+        canPreview = canPreview,
+        editState = editState,
+        quotesLeft = quotesLeft,
+        unPackReply = unPackReply,
+        accountViewModel = accountViewModel,
+        nav = nav,
+    )
+
+    if (!makeItShort) {
+        val noteEvent = baseNote.event
+        val zapSplits = remember(noteEvent) { noteEvent?.hasZapSplitSetupBesidesAuthor() ?: false }
+        if (zapSplits && noteEvent != null) {
+            Spacer(modifier = HalfDoubleVertSpacer)
+            DisplayZapSplits(noteEvent, false, accountViewModel, nav)
+        }
+        StaleRelayHint(baseNote)
+    }
+}
+
+@Composable
+private fun RenderNoteRow(
+    baseNote: Note,
+    backgroundColor: MutableState<Color>,
+    makeItShort: Boolean,
+    canPreview: Boolean,
+    quotesLeft: Int,
+    unPackReply: ReplyRenderType,
+    editState: State<GenericLoadable<EditState>>,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+    isBoostedNote: Boolean = false,
+) {
+    when (val noteEvent = baseNote.event) {
+        is AppDefinitionEvent -> {
+            RenderAppDefinition(baseNote, accountViewModel, nav)
+        }
+
+        is AppRecommendationEvent -> {
+            RenderAppRecommendation(baseNote, accountViewModel, nav)
+        }
+
+        is SoftwareApplicationEvent -> {
+            RenderSoftwareApplication(baseNote, accountViewModel, nav)
+        }
+
+        is SoftwareAssetEvent -> {
+            RenderSoftwareAsset(baseNote, accountViewModel, nav)
+        }
+
+        is ReleaseArtifactSetEvent -> {
+            // kind 30063 is used by both NIP-51 (ReleaseArtifactSet) and NIP-82 (SoftwareRelease).
+            // The EventFactory always materializes the NIP-51 class; dispatch to NIP-82 when the
+            // tag signature matches.
+            if (noteEvent.isNip82SoftwareRelease()) {
+                RenderSoftwareRelease(baseNote, accountViewModel, nav)
+            }
+        }
+
+        is AttestationEvent -> {
+            RenderAttestation(baseNote, quotesLeft, backgroundColor, accountViewModel, nav)
+        }
+
+        is AttestationRequestEvent -> {
+            RenderAttestationRequest(baseNote, quotesLeft, backgroundColor, accountViewModel, nav)
+        }
+
+        is AttestorRecommendationEvent -> {
+            RenderAttestorRecommendation(baseNote, quotesLeft, backgroundColor, accountViewModel, nav)
+        }
+
+        is AttestorProficiencyEvent -> {
+            RenderAttestorProficiency(baseNote, quotesLeft, backgroundColor, accountViewModel, nav)
+        }
+
+        is AudioTrackEvent -> {
+            RenderAudioTrack(baseNote, ContentScale.FillWidth, accountViewModel, nav)
+        }
+
+        is AudioHeaderEvent -> {
+            RenderAudioHeader(baseNote, ContentScale.FillWidth, accountViewModel, nav)
+        }
+
+        is MusicTrackEvent -> {
+            RenderMusicTrack(baseNote, makeItShort, canPreview, backgroundColor, accountViewModel, nav)
+        }
+
+        is MusicPlaylistEvent -> {
+            RenderMusicPlaylist(baseNote, makeItShort, canPreview, backgroundColor, accountViewModel, nav)
+        }
+
+        is PodcastEpisodeEvent -> {
+            RenderPodcastEpisode(baseNote, makeItShort, canPreview, backgroundColor, accountViewModel, nav)
+        }
+
+        is Podcasting20EpisodeEvent -> {
+            RenderPodcastEpisode(baseNote, makeItShort, canPreview, backgroundColor, accountViewModel, nav)
+        }
+
+        is Podcasting20TrailerEvent -> {
+            PodcastTrailerListItem(baseNote, accountViewModel, nav)
+        }
+
+        is PodcastMetadataEvent -> {
+            RenderPodcastMetadata(baseNote, makeItShort, canPreview, backgroundColor, accountViewModel, nav)
+        }
+
+        is AppSpecificDataEvent -> {
+            // kind:30078 is overloaded; only the Podcasting-2.0 show-metadata variant renders as a
+            // podcast card. Anything else (e.g. a client's own settings) keeps the text fallback.
+            if (noteEvent.dTag() == Podcasting20PodcastMetadata.PODCAST_METADATA_D_TAG) {
+                RenderPodcastMetadata(baseNote, makeItShort, canPreview, backgroundColor, accountViewModel, nav)
+            } else {
+                RenderTextEvent(
+                    baseNote,
+                    makeItShort,
+                    canPreview,
+                    quotesLeft,
+                    unPackReply,
+                    backgroundColor,
+                    editState,
+                    accountViewModel,
+                    nav,
+                    isBoostedNote = isBoostedNote,
+                )
+            }
+        }
+
+        is DraftWrapEvent -> {
+            RenderDraft(baseNote, quotesLeft, unPackReply, backgroundColor, accountViewModel, nav)
+        }
+
+        is ReactionEvent -> {
+            RenderReaction(baseNote, quotesLeft, backgroundColor, accountViewModel, nav)
+        }
+
+        is RepostEvent -> {
+            RenderRepost(baseNote, quotesLeft, backgroundColor, accountViewModel, nav)
+        }
+
+        is GenericRepostEvent -> {
+            RenderRepost(baseNote, quotesLeft, backgroundColor, accountViewModel, nav)
+        }
+
+        is ReportEvent -> {
+            RenderReport(baseNote, quotesLeft, backgroundColor, accountViewModel, nav)
+        }
+
+        is LongTextNoteEvent -> {
+            RenderLongFormContent(baseNote, accountViewModel, nav)
+        }
+
+        is ThreadEvent -> {
+            RenderThread(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                unPackReply,
+                backgroundColor,
+                editState,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is CodeSnippetEvent -> {
+            RenderCodeSnippetEvent(baseNote)
+        }
+
+        is WikiNoteEvent -> {
+            RenderWikiContent(baseNote, accountViewModel, nav)
+        }
+
+        is NipTextEvent -> {
+            RenderNipContent(baseNote, accountViewModel, nav)
+        }
+
+        is BadgeAwardEvent -> {
+            RenderBadgeAward(baseNote, backgroundColor, accountViewModel, nav)
+        }
+
+        is BadgeDefinitionEvent -> {
+            BadgeDisplay(baseNote = baseNote, accountViewModel = accountViewModel, nav = nav)
+        }
+
+        is LnZapEvent -> {
+            RenderLnZap(baseNote, quotesLeft, backgroundColor, accountViewModel, nav)
+        }
+
+        is NutzapEvent -> {
+            RenderNutzap(baseNote, quotesLeft, backgroundColor, accountViewModel, nav)
+        }
+
+        is OnchainZapEvent -> {
+            RenderOnchainZap(baseNote, quotesLeft, backgroundColor, accountViewModel, nav)
+        }
+
+        is LiveActivitiesClipEvent -> {
+            RenderChatClip(baseNote, accountViewModel, nav)
+        }
+
+        is FhirResourceEvent -> {
+            RenderFhirResource(baseNote, accountViewModel, nav)
+        }
+
+        is PeopleListEvent -> {
+            DisplayPeopleList(baseNote, backgroundColor, accountViewModel, nav)
+        }
+
+        is FollowListEvent -> {
+            DisplayFollowList(baseNote, true, accountViewModel, nav)
+        }
+
+        is ContactListEvent -> {
+            DisplayContactList(baseNote, accountViewModel, nav)
+        }
+
+        is RelaySetEvent -> {
+            DisplayRelaySet(baseNote, backgroundColor, accountViewModel, nav)
+        }
+
+        is ChatMessageRelayListEvent -> {
+            DisplayDMRelayList(baseNote, backgroundColor, accountViewModel, nav)
+        }
+
+        is AdvertisedRelayListEvent -> {
+            DisplayNIP65RelayList(baseNote, backgroundColor, accountViewModel, nav)
+        }
+
+        is SearchRelayListEvent -> {
+            DisplaySearchRelayList(baseNote, backgroundColor, accountViewModel, nav)
+        }
+
+        is BlockedRelayListEvent -> {
+            DisplayBlockedRelayList(baseNote, backgroundColor, accountViewModel, nav)
+        }
+
+        is TrustedRelayListEvent -> {
+            DisplayTrustedRelayList(baseNote, backgroundColor, accountViewModel, nav)
+        }
+
+        is RelayFeedsListEvent -> {
+            DisplayRelayFeedsList(baseNote, backgroundColor, accountViewModel, nav)
+        }
+
+        is IndexerRelayListEvent -> {
+            DisplayIndexerRelayList(baseNote, backgroundColor, accountViewModel, nav)
+        }
+
+        is ProxyRelayListEvent -> {
+            DisplayProxyRelayList(baseNote, backgroundColor, accountViewModel, nav)
+        }
+
+        is BroadcastRelayListEvent -> {
+            DisplayBroadcastRelayList(baseNote, backgroundColor, accountViewModel, nav)
+        }
+
+        is RelayDiscoveryEvent -> {
+            RenderRelayDiscovery(baseNote, accountViewModel, nav)
+        }
+
+        is RelayMembershipListEvent -> {
+            RenderRelayMembershipList(baseNote, accountViewModel, nav)
+        }
+
+        is RelayAddMemberEvent -> {
+            RenderRelayAddMember(baseNote, accountViewModel, nav)
+        }
+
+        is RelayRemoveMemberEvent -> {
+            RenderRelayRemoveMember(baseNote, accountViewModel, nav)
+        }
+
+        is RelayJoinRequestEvent -> {
+            RenderRelayJoinRequest(baseNote, accountViewModel, nav)
+        }
+
+        is RelayLeaveRequestEvent -> {
+            RenderRelayLeaveRequest(baseNote, accountViewModel, nav)
+        }
+
+        is PinListEvent -> {
+            RenderPinListEvent(baseNote, backgroundColor, accountViewModel, nav)
+        }
+
+        is EmojiPackEvent -> {
+            RenderEmojiPack(baseNote, true, backgroundColor, accountViewModel)
+        }
+
+        is LiveActivitiesEvent -> {
+            RenderLiveActivityEvent(baseNote, accountViewModel, nav)
+        }
+
+        is MeetingSpaceEvent -> {
+            RenderMeetingSpaceEvent(baseNote, accountViewModel, nav)
+        }
+
+        is MeetingRoomEvent -> {
+            RenderMeetingRoomEvent(baseNote, accountViewModel, nav)
+        }
+
+        is com.vitorpamplona.quartz.nip53LiveActivities.presence.MeetingRoomPresenceEvent -> {
+            com.vitorpamplona.amethyst.ui.note.types
+                .RenderMeetingRoomPresence(baseNote, accountViewModel, nav)
+        }
+
+        is GitRepositoryEvent -> {
+            RenderGitRepositoryEvent(baseNote, accountViewModel, nav)
+        }
+
+        is RootSiteEvent -> {
+            RenderRootSiteEvent(baseNote, accountViewModel, nav)
+        }
+
+        is NamedSiteEvent -> {
+            RenderNamedSiteEvent(baseNote, accountViewModel, nav)
+        }
+
+        is RootNappletEvent -> {
+            RenderRootNappletEvent(baseNote, accountViewModel, nav)
+        }
+
+        is NamedNappletEvent -> {
+            RenderNamedNappletEvent(baseNote, accountViewModel, nav)
+        }
+
+        is GitPatchEvent -> {
+            RenderGitPatchEvent(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is GitIssueEvent -> {
+            RenderGitIssueEvent(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is GitPullRequestEvent -> {
+            RenderGitPullRequestEvent(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is GitPullRequestUpdateEvent -> {
+            RenderGitPullRequestUpdateEvent(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is PrivateDmEvent -> {
+            RenderPrivateMessage(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is ChatMessageEvent -> {
+            RenderChatMessage(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                editState,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is ChatMessageEncryptedFileHeaderEvent -> {
+            RenderChatMessageEncryptedFile(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                editState,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is ChessGameEvent -> {
+            RenderChessGame(
+                baseNote,
+                backgroundColor,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is LiveChessGameChallengeEvent -> {
+            RenderLiveChessChallenge(
+                baseNote,
+                backgroundColor,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is LiveChessGameEndEvent -> {
+            RenderLiveChessGameEnd(
+                baseNote,
+                backgroundColor,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is CashuMintEvent -> {
+            RenderCashuMint(noteEvent)
+        }
+
+        is FedimintEvent -> {
+            RenderFedimint(noteEvent)
+        }
+
+        is MintRecommendationEvent -> {
+            RenderMintRecommendation(noteEvent)
+        }
+
+        is ClassifiedsEvent -> {
+            RenderClassifieds(
+                noteEvent,
+                baseNote,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is CalendarTimeSlotEvent -> {
+            RenderCalendarTimeSlotEvent(baseNote, accountViewModel, nav)
+        }
+
+        is CalendarDateSlotEvent -> {
+            RenderCalendarDateSlotEvent(baseNote, accountViewModel, nav)
+        }
+
+        is CalendarEvent -> {
+            RenderCalendarCollectionEvent(baseNote, accountViewModel, nav)
+        }
+
+        is CalendarRSVPEvent -> {
+            RenderCalendarRSVPEvent(baseNote, accountViewModel, nav)
+        }
+
+        is GoalEvent -> {
+            RenderGoal(baseNote, accountViewModel, nav)
+        }
+
+        is FundraiserEvent -> {
+            RenderFundraiser(baseNote, makeItShort, accountViewModel, nav)
+        }
+
+        is BirdexEvent -> {
+            RenderBirdex(baseNote)
+        }
+
+        is BirdDetectionEvent -> {
+            RenderBirdDetection(baseNote)
+        }
+
+        is Ps1SaveEvent -> {
+            RenderPs1Save(baseNote)
+        }
+
+        is RoadEventReportEvent -> {
+            RenderRoadEventReport(baseNote)
+        }
+
+        is RoadEventConfirmationEvent -> {
+            RenderRoadEventConfirmation(baseNote)
+        }
+
+        is HighlightEvent -> {
+            RenderHighlight(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is NIP90ContentDiscoveryResponseEvent -> {
+            RenderNIP90ContentDiscoveryResponse(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is NIP90StatusEvent -> {
+            RenderNIP90Status(
+                baseNote,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is ZapPollEvent -> {
+            RenderZapPoll(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                unPackReply,
+                backgroundColor,
+                accountViewModel,
+                nav,
+                isBoostedNote = isBoostedNote,
+            )
+        }
+
+        is ChatEvent -> {
+            RenderChat(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                accountViewModel,
+                nav,
+                isBoostedNote = isBoostedNote,
+            )
+        }
+
+        is PollEvent -> {
+            RenderPoll(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                accountViewModel,
+                nav,
+                isBoostedNote = isBoostedNote,
+            )
+        }
+
+        is FileHeaderEvent -> {
+            FileHeaderDisplay(baseNote, true, ContentScale.FillWidth, accountViewModel)
+        }
+
+        is VideoHorizontalEvent -> {
+            VideoDisplay(baseNote, makeItShort, canPreview, backgroundColor, ContentScale.FillWidth, accountViewModel, nav)
+        }
+
+        is VideoVerticalEvent -> {
+            VideoDisplay(baseNote, makeItShort, canPreview, backgroundColor, ContentScale.FillWidth, accountViewModel, nav)
+        }
+
+        is VideoNormalEvent -> {
+            VideoDisplay(baseNote, makeItShort, canPreview, backgroundColor, ContentScale.FillWidth, accountViewModel, nav)
+        }
+
+        is VideoShortEvent -> {
+            VideoDisplay(baseNote, makeItShort, canPreview, backgroundColor, ContentScale.FillWidth, accountViewModel, nav)
+        }
+
+        is PictureEvent -> {
+            PictureDisplay(baseNote, true, ContentScale.FillWidth, PaddingValues(vertical = 5.dp), backgroundColor, accountViewModel, nav)
+        }
+
+        is WorkoutRecordEvent -> {
+            WorkoutDisplay(baseNote, backgroundColor, canPreview, quotesLeft, accountViewModel, nav)
+        }
+
+        is ExerciseTemplateEvent -> {
+            ExerciseTemplateDisplay(baseNote, backgroundColor, canPreview, quotesLeft, accountViewModel, nav)
+        }
+
+        is BaseVoiceEvent -> {
+            RenderVoiceTrack(baseNote, accountViewModel, nav)
+        }
+
+        is FileStorageHeaderEvent -> {
+            FileStorageHeaderDisplay(baseNote, true, ContentScale.FillWidth, accountViewModel)
+        }
+
+        is CommunityPostApprovalEvent -> {
+            RenderPostApproval(
+                baseNote,
+                quotesLeft,
+                backgroundColor,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is TextNoteModificationEvent -> {
+            RenderTextModificationEvent(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is ChannelMessageEvent -> {
+            RenderChannelMessage(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                editState,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is LiveActivitiesChatMessageEvent -> {
+            RenderLiveActivityChatMessage(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                editState,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is TorrentEvent -> {
+            RenderTorrent(
+                baseNote,
+                backgroundColor,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is TorrentCommentEvent -> {
+            RenderTorrentComment(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                unPackReply,
+                backgroundColor,
+                editState,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is InteractiveStoryBaseEvent -> {
+            RenderInteractiveStory(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                accountViewModel,
+                nav,
+            )
+        }
+
+        is PublicMessageEvent -> {
+            RenderPublicMessage(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                backgroundColor,
+                accountViewModel,
+                nav,
+                isBoostedNote = isBoostedNote,
+            )
+        }
+
+        else -> {
+            RenderTextEvent(
+                baseNote,
+                makeItShort,
+                canPreview,
+                quotesLeft,
+                unPackReply,
+                backgroundColor,
+                editState,
+                accountViewModel,
+                nav,
+                isBoostedNote = isBoostedNote,
+            )
+        }
+    }
+}
+
+@Composable
+fun ObserveDraftEvent(
+    note: Note,
+    accountViewModel: AccountViewModel,
+    render: @Composable (Note) -> Unit,
+) {
+    val noteEvent by observeNoteEvent<DraftWrapEvent>(note, accountViewModel)
+
+    noteEvent?.let {
+        val innerNote by produceCachedStateAsync(cache = accountViewModel.draftNoteCache, key = it)
+
+        innerNote?.let {
+            render(it)
+        }
+    }
+}
+
+@Composable
+fun RenderDraft(
+    note: Note,
+    quotesLeft: Int,
+    unPackReply: ReplyRenderType,
+    backgroundColor: MutableState<Color>,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    ObserveDraftEvent(note, accountViewModel) {
+        val edits = remember { mutableStateOf(GenericLoadable.Empty<EditState>()) }
+
+        RenderNoteRow(
+            baseNote = it,
+            backgroundColor = backgroundColor,
+            makeItShort = false,
+            canPreview = true,
+            editState = edits,
+            quotesLeft = quotesLeft,
+            unPackReply = unPackReply,
+            accountViewModel = accountViewModel,
+            nav = nav,
+        )
+
+        val zapSplits = remember(it.event) { it.event?.hasZapSplitSetupBesidesAuthor() }
+        if (zapSplits == true) {
+            Spacer(modifier = HalfDoubleVertSpacer)
+            DisplayZapSplits(it.event!!, false, accountViewModel, nav)
+        }
+    }
+}
+
+@Composable
+fun RenderRepost(
+    note: Note,
+    quotesLeft: Int,
+    backgroundColor: MutableState<Color>,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    note.replyTo?.lastOrNull { it.event !is CommunityDefinitionEvent }?.let {
+        NoteCompose(
+            it,
+            modifier = Modifier,
+            isBoostedNote = true,
+            unPackReply = ReplyRenderType.NONE,
+            quotesLeft = quotesLeft - 1,
+            parentBackgroundColor = backgroundColor,
+            accountViewModel = accountViewModel,
+            nav = nav,
+        )
+    }
+}
+
+@Composable
+fun getGradient(backgroundColor: MutableState<Color>): Brush {
+    val solid =
+        if (backgroundColor.value.alpha == 0f) {
+            MaterialTheme.colorScheme.background
+        } else {
+            backgroundColor.value.copy(alpha = 1f)
+        }
+    return Brush.verticalGradient(
+        colors =
+            listOf(
+                solid.copy(alpha = 0f),
+                solid,
+            ),
+    )
+}
+
+@Composable
+fun ReplyNoteComposition(
+    replyingDirectlyTo: Note,
+    backgroundColor: MutableState<Color>,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    NoteCompose(
+        baseNote = replyingDirectlyTo,
+        modifier = MaterialTheme.colorScheme.replyModifier,
+        isQuotedNote = true,
+        unPackReply = ReplyRenderType.NONE,
+        makeItShort = true,
+        quotesLeft = 0,
+        parentBackgroundColor = backgroundColor,
+        accountViewModel = accountViewModel,
+        nav = nav,
+    )
+}
+
+@Composable
+fun SecondUserInfoRow(
+    note: Note,
+    editState: State<GenericLoadable<EditState>>,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    val noteEvent = note.event ?: return
+    val noteAuthor = note.author ?: return
+
+    Row(
+        verticalAlignment = CenterVertically,
+        modifier = UserNameMaxRowHeight,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            if (noteEvent is IForkableEvent && noteEvent.isAFork()) {
+                ShowForkInformation(noteEvent, Modifier, accountViewModel, nav)
+            } else {
+                ObserveDisplayNip05Status(noteAuthor, accountViewModel, nav)
+            }
+        }
+
+        val geo = remember(noteEvent) { noteEvent.geoHashOrScope() }
+        if (geo != null) {
+            Spacer(StdHorzSpacer)
+            DisplayLocation(geo, accountViewModel, nav)
+        }
+
+        val baseReward = remember(noteEvent) { noteEvent.bountyBaseReward()?.let { Reward(it) } }
+        if (baseReward != null) {
+            Spacer(StdHorzSpacer)
+            DisplayReward(baseReward, note, accountViewModel, nav)
+        }
+
+        val pow = remember(noteEvent) { noteEvent.strongPoWOrNull() }
+        if (pow != null) {
+            Spacer(StdHorzSpacer)
+            DisplayPoW(pow)
+        }
+
+        DisplayOtsIfInOriginal(note, editState, accountViewModel)
+    }
+}
+
+@Composable
+fun DisplayExpiration(expirationDate: Long) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            symbol = MaterialSymbols.Timer,
+            contentDescription = stringRes(R.string.expiration_date_label),
+            modifier = Modifier.padding(start = 5.dp).size(15.dp),
+            tint = MaterialTheme.colorScheme.placeholderText,
+        )
+        val context = LocalContext.current
+        Text(
+            text = timeAheadNoDot(expirationDate, context),
+            color = MaterialTheme.colorScheme.placeholderText,
+            maxLines = 1,
+            modifier = Modifier.padding(start = 3.dp),
+        )
+    }
+}
+
+@Composable
+fun DisplayOtsIfInOriginal(
+    note: Note,
+    editState: State<GenericLoadable<EditState>>,
+    accountViewModel: AccountViewModel,
+) {
+    val editNote = (editState.value as? GenericLoadable.Loaded<EditState>)?.loaded?.modificationToShow?.value
+
+    if (editNote == null) {
+        DisplayOts(note = note, accountViewModel = accountViewModel)
+    } else {
+        DisplayOts(note = editNote, accountViewModel = accountViewModel)
+    }
+}
+
+@Composable
+fun DisplayDraft() {
+    Text(
+        "Draft",
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.placeholderText,
+        maxLines = 1,
+        modifier = HalfStartPadding,
+    )
+}
+
+@Composable
+fun DisplayDraftChat() {
+    Text(
+        "Draft",
+        color = MaterialTheme.colorScheme.placeholderText,
+        modifier = Modifier,
+        fontWeight = FontWeight.Bold,
+        fontSize = Font12SP,
+        maxLines = 1,
+    )
+}
+
+@Composable
+fun FirstUserInfoRow(
+    baseNote: Note,
+    showAuthorPicture: Boolean,
+    authorPictureSize: Dp = Size25dp,
+    isPinned: Boolean,
+    editState: State<GenericLoadable<EditState>>,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+    moreOptions: (@Composable () -> Unit)? = null,
+) {
+    Row(verticalAlignment = CenterVertically, modifier = UserNameRowHeight) {
+        val isRepost = baseNote.event is RepostEvent || baseNote.event is GenericRepostEvent
+        val isDraft = baseNote.isDraft()
+        val textColor = if (isRepost) MaterialTheme.colorScheme.grayText else Color.Unspecified
+
+        // Zap receipts are signed by the recipient's lightning provider; show the
+        // sender from the embedded zap request instead of the service key.
+        val zapSender =
+            if (baseNote.event is LnZapEvent) {
+                observeZapSender(baseNote, accountViewModel).value
+            } else {
+                null
+            }
+
+        if (zapSender != null) {
+            if (showAuthorPicture) {
+                UserPicture(zapSender, authorPictureSize, accountViewModel = accountViewModel, nav = nav)
+                Spacer(HalfPadding)
+            }
+            UsernameDisplay(zapSender, Modifier.weight(1f), textColor = textColor, accountViewModel = accountViewModel)
+        } else if (showAuthorPicture) {
+            NoteAuthorPicture(baseNote, authorPictureSize, accountViewModel = accountViewModel, nav = nav)
+            Spacer(HalfPadding)
+            NoteUsernameDisplay(baseNote, Modifier.weight(1f), textColor = textColor, accountViewModel = accountViewModel)
+        } else {
+            NoteUsernameDisplay(baseNote, Modifier.weight(1f), textColor = textColor, accountViewModel = accountViewModel)
+        }
+
+        // Temporary: Astro algo-served notes show a recommendation badge next to the author name.
+        if (SHOW_RECOMMENDATION_BADGE && ServedFeedOrder.contains(baseNote.idHex)) {
+            RecommendationMark()
+        }
+
+        if (isDraft) {
+            ObserveDraftEvent(baseNote, accountViewModel) { draftNote ->
+                val isCommunityPost =
+                    remember(draftNote) {
+                        draftNote.event?.isACommunityPost() == true
+                    }
+
+                if (isCommunityPost) {
+                    DisplayFollowingCommunityInPost(draftNote, accountViewModel, nav)
+                } else {
+                    DisplayFollowingHashtagsInPost(draftNote, accountViewModel, nav)
+                }
+            }
+        } else {
+            val isCommunityPost =
+                remember(baseNote) {
+                    baseNote.event?.isACommunityPost() == true
+                }
+
+            if (isCommunityPost) {
+                DisplayFollowingCommunityInPost(baseNote, accountViewModel, nav)
+            } else {
+                DisplayFollowingHashtagsInPost(baseNote, accountViewModel, nav)
+            }
+        }
+
+        if (isRepost) {
+            BoostedMark()
+        }
+
+        CheckAndDisplayEditStatus(editState)
+
+        if (isDraft) {
+            DisplayDraft()
+        }
+
+        if (baseNote.isPrivateRumor()) {
+            PrivateRumorMark()
+        }
+
+        if (isPinned) {
+            PinnedMark()
+        }
+
+        Expiration(baseNote)
+
+        JumpToParentReplyButton(baseNote, accountViewModel, nav)
+
+        TimeAgo(baseNote)
+
+        if (moreOptions == null) {
+            MoreOptionsButton(baseNote, editState, accountViewModel, nav)
+        } else {
+            moreOptions()
+        }
+    }
+}
+
+@Composable
+fun PinnedMark() {
+    Icon(
+        symbol = MaterialSymbols.PushPin,
+        contentDescription = stringRes(R.string.pinned_notes),
+        modifier = Modifier.padding(start = 5.dp).size(16.dp),
+        tint = MaterialTheme.colorScheme.placeholderText,
+    )
+}
+
+@Composable
+fun PrivateRumorMark() {
+    Icon(
+        symbol = MaterialSymbols.Lock,
+        contentDescription = stringRes(R.string.private_rumor_mark),
+        modifier = Modifier.padding(start = 5.dp).size(16.dp),
+        tint = MaterialTheme.colorScheme.placeholderText,
+    )
+}
+
+@Composable
+fun JumpToParentReplyButton(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    if (!accountViewModel.settings.isCompleteUIMode()) return
+    if (baseNote.event !is BaseThreadedEvent) return
+
+    val parentNote =
+        remember(baseNote) {
+            val noteEvent = baseNote.event as? BaseThreadedEvent ?: return@remember null
+            val direct =
+                noteEvent
+                    .replyingToAddressOrEvent()
+                    ?.let { accountViewModel.getNoteIfExists(it) }
+                    ?.takeIf { it.event !is CommunityDefinitionEvent && LocalCache.getAnyChannel(it) == null }
+            val resolved = direct ?: baseNote.replyTo?.lastOrNull { it.event !is CommunityDefinitionEvent }
+            resolved?.takeIf { LocalCache.getAnyChannel(it) == null }
+        } ?: return
+
+    ClickableBox(
+        modifier = Modifier.padding(start = 5.dp).size(20.dp),
+        onClick = {
+            nav.nav { routeFor(parentNote, accountViewModel.account) }
+        },
+    ) {
+        Icon(
+            symbol = MaterialSymbols.KeyboardArrowUp,
+            contentDescription = stringRes(R.string.jump_to_parent_reply),
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.placeholderText,
+        )
+    }
+}
+
+@Composable
+fun Expiration(note: Note) {
+    val event = note.event
+    if (event != null) {
+        val expires = remember(event) { event.expiration() }
+        if (expires != null) {
+            DisplayExpiration(expires)
+        }
+    }
+}
+
+@Composable
+fun CheckAndDisplayEditStatus(editState: State<GenericLoadable<EditState>>) {
+    if (editState.value is GenericLoadable.Loaded) {
+        (editState.value as? GenericLoadable.Loaded<EditState>)?.loaded?.let {
+            DisplayEditStatus(it)
+        }
+    }
+}
+
+@Composable
+fun observeEdits(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+): State<GenericLoadable<EditState>> {
+    if (baseNote.event !is TextNoteEvent) {
+        return EmptyState
+    }
+
+    val editState =
+        remember(baseNote.idHex) {
+            val cached = accountViewModel.cachedModificationEventsForNote(baseNote)
+            mutableStateOf(
+                if (cached != null) {
+                    if (cached.isEmpty()) {
+                        GenericLoadable.Empty()
+                    } else {
+                        val state = EditState()
+                        state.updateModifications(cached)
+                        GenericLoadable.Loaded(state)
+                    }
+                } else {
+                    GenericLoadable.Loading()
+                },
+            )
+        }
+
+    // Upstream resolves on IO and `distinctUntilChanged`s, so this LaunchedEffect only
+    // fires when the actual modification list changes — no more recomputing + reassigning
+    // editState on every unrelated emission of the edits flow.
+    val modifications by observeNoteModifications(baseNote, accountViewModel)
+
+    LaunchedEffect(modifications) {
+        val mods = modifications ?: return@LaunchedEffect
+        if (mods.isEmpty()) {
+            if (editState.value !is GenericLoadable.Empty) {
+                editState.value = GenericLoadable.Empty()
+            }
+        } else {
+            val current = editState.value
+            if (current is GenericLoadable.Loaded) {
+                current.loaded.updateModifications(mods)
+            } else {
+                val state = EditState()
+                state.updateModifications(mods)
+                editState.value = GenericLoadable.Loaded(state)
+            }
+        }
+    }
+
+    return editState
+}
+
+@Composable
+fun BadgeBox(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    if (accountViewModel.settings.isCompleteUIMode()) {
+        if (baseNote.event is RepostEvent || baseNote.event is GenericRepostEvent) {
+            baseNote.replyTo?.lastOrNull()?.let { RelayBadges(it, accountViewModel, nav) }
+        } else {
+            RelayBadges(baseNote, accountViewModel, nav)
+        }
+    }
+}
+
+@Composable
+fun RenderAuthorImages(
+    baseNote: Note,
+    nav: INav,
+    accountViewModel: AccountViewModel,
+) {
+    val noteEvent = baseNote.event
+    if (noteEvent is RepostEvent || noteEvent is GenericRepostEvent) {
+        val baseRepost = baseNote.replyTo?.lastOrNull()
+        if (baseRepost != null) {
+            RepostNoteAuthorPicture(baseNote, baseRepost, accountViewModel, nav)
+        } else {
+            NoteAuthorPicture(baseNote, Size55dp, accountViewModel = accountViewModel, nav = nav)
+        }
+    } else if (noteEvent is LnZapEvent) {
+        // Zap receipts are signed by the recipient's lightning provider; show the
+        // sender from the embedded zap request instead of the service key, matching
+        // how the thread's master note resolves the author.
+        val zapSender = observeZapSender(baseNote, accountViewModel).value
+        if (zapSender != null) {
+            UserPicture(zapSender, Size55dp, accountViewModel = accountViewModel, nav = nav)
+        } else {
+            NoteAuthorPicture(baseNote, Size55dp, accountViewModel = accountViewModel, nav = nav)
+        }
+    } else {
+        NoteAuthorPicture(baseNote, Size55dp, accountViewModel = accountViewModel, nav = nav)
+    }
+
+    if (noteEvent is ChannelMessageEvent) {
+        val baseChannelHex = noteEvent.channelId()
+        if (baseChannelHex != null) {
+            LoadPublicChatChannel(baseChannelHex, accountViewModel) { channel ->
+                ChannelNotePicture(
+                    channel,
+                    accountViewModel,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChannelNotePicture(
+    baseChannel: PublicChatChannel,
+    accountViewModel: AccountViewModel,
+) {
+    val model by observeChannelPicture(baseChannel, accountViewModel)
+
+    RobohashFallbackAsyncImage(
+        robot = baseChannel.idHex,
+        model = model,
+        contentDescription = stringRes(R.string.group_picture),
+        modifier = MaterialTheme.colorScheme.channelNotePictureModifier,
+        loadProfilePicture = accountViewModel.settings.showProfilePictures(),
+        loadRobohash = accountViewModel.settings.isNotPerformanceMode(),
+        autoPlayGif =
+            accountViewModel.settings.autoPlayVideosFlow
+                .collectAsStateWithLifecycle()
+                .value,
+    )
+}
+
+@Composable
+private fun RepostNoteAuthorPicture(
+    baseNote: Note,
+    baseRepost: Note,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    GenericRepostLayout(
+        baseAuthorPicture = {
+            NoteAuthorPicture(
+                baseNote = baseNote,
+                size = Size34dp,
+                accountViewModel = accountViewModel,
+                nav = nav,
+            )
+        },
+        repostAuthorPicture = {
+            NoteAuthorPicture(
+                baseNote = baseRepost,
+                size = Size34dp,
+                accountViewModel = accountViewModel,
+                nav = nav,
+            )
+        },
+    )
+}

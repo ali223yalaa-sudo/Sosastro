@@ -1,0 +1,257 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.ui.navigation.bottombars
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.BottomAppBarDefaults.windowInsets
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.vitorpamplona.amethyst.commons.browser.OmniboxInput
+import com.vitorpamplona.amethyst.commons.favorites.FavoriteApp
+import com.vitorpamplona.amethyst.commons.favorites.FavoriteAppIcon
+import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
+import com.vitorpamplona.amethyst.favorites.BrowserIconRegistry
+import com.vitorpamplona.amethyst.favorites.FavoriteAppsRegistry
+import com.vitorpamplona.amethyst.favorites.rememberNappletIconModel
+import com.vitorpamplona.amethyst.ui.navigation.navs.INav
+import com.vitorpamplona.amethyst.ui.navigation.routes.Route
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
+import com.vitorpamplona.amethyst.ui.stringRes
+import com.vitorpamplona.amethyst.ui.theme.DividerThickness
+import com.vitorpamplona.amethyst.ui.theme.HorzPadding
+import com.vitorpamplona.amethyst.ui.theme.Size0dp
+import com.vitorpamplona.amethyst.ui.theme.Size10Modifier
+import com.vitorpamplona.amethyst.ui.theme.Size25Modifier
+import com.vitorpamplona.amethyst.ui.theme.Size27Modifier
+import com.vitorpamplona.amethyst.ui.theme.onSurface65
+
+/** Content height of the [AppBottomBar] (the 50.dp Column inside [RenderBottomMenu]),
+ * exclusive of the system navigation-bar inset. Used by FAB callers that want to
+ * reserve the same vertical space when the bar hides itself on canPop entries. */
+val AppBottomBarHeight = 50.dp
+
+@Composable
+fun AppBottomBar(
+    selectedRoute: Route?,
+    nav: INav,
+    accountViewModel: AccountViewModel,
+    onClick: (Route) -> Unit,
+) {
+    // Hide the bar on entries that aren't a tab root (drawer or in-app
+    // pushes). Mirrors the back-arrow rule in canPop().
+    if (nav.canPop()) return
+
+    val items by accountViewModel.settings.uiSettingsFlow.bottomBarItems
+        .collectAsStateWithLifecycle()
+    if (items.isEmpty()) {
+        Spacer(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(windowInsets)
+                    .consumeWindowInsets(windowInsets),
+        )
+        return
+    }
+
+    // Favorite entries in the unified list resolve to a live favorite for their icon/label and to an
+    // embedded-tab route. Both kinds embed in-process (WebApp → browser surface, NostrApp → napplet
+    // surface), so such a tab swaps in place rather than launching an activity from the bottom row.
+    val favorites by FavoriteAppsRegistry.favorites.collectAsStateWithLifecycle()
+
+    val isKeyboardState by keyboardAsState()
+    if (isKeyboardState == KeyboardState.Closed) {
+        RenderBottomMenu(items, favorites, selectedRoute, accountViewModel, onClick)
+    }
+}
+
+@Composable
+private fun RenderBottomMenu(
+    items: List<BottomBarEntry>,
+    favorites: List<FavoriteApp>,
+    selectedRoute: Route?,
+    accountViewModel: AccountViewModel,
+    nav: (Route) -> Unit,
+) {
+    // Index favorites by id so resolving each Favorite entry is a map lookup, not a per-entry scan.
+    val favoritesById = remember(favorites) { favorites.associateBy { it.id } }
+
+    // Captured favicons, so a pinned web favorite shows the site's icon instead of the generic globe.
+    val iconKeys by BrowserIconRegistry.keys.collectAsStateWithLifecycle()
+
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
+                .windowInsetsPadding(windowInsets)
+                .consumeWindowInsets(windowInsets)
+                .height(AppBottomBarHeight),
+    ) {
+        HorizontalDivider(
+            thickness = DividerThickness,
+        )
+        NavigationBar(
+            modifier = HorzPadding,
+            containerColor = MaterialTheme.colorScheme.background,
+            tonalElevation = Size0dp,
+        ) {
+            // Render in the user's saved order, built-ins and favorites interleaved.
+            items.forEach { entry ->
+                when (entry) {
+                    is BottomBarEntry.BuiltIn -> {
+                        val def = NavBarCatalog[entry.item] ?: return@forEach
+                        val destination = remember(def, accountViewModel) { def.resolveRoute(accountViewModel) }
+                        HasNewItemsIcon(destination == selectedRoute, def, destination, accountViewModel, nav)
+                    }
+                    is BottomBarEntry.Favorite -> {
+                        val fav = favoritesById[entry.favoriteId] ?: return@forEach
+                        val destination =
+                            when (fav) {
+                                is FavoriteApp.WebApp -> Route.WebApp(fav.url)
+                                is FavoriteApp.NostrApp -> Route.NostrApp(fav.coordinate)
+                            }
+                        // A web favorite uses its captured favicon; an nsite/napplet uses the verified
+                        // icon blob bundled in its own content (the iframe sandbox rules out live capture).
+                        val iconModel =
+                            when (fav) {
+                                is FavoriteApp.WebApp ->
+                                    remember(fav, iconKeys) {
+                                        OmniboxInput.hostOf(fav.url)?.let(BrowserIconRegistry::iconModelFor)
+                                    }
+                                is FavoriteApp.NostrApp -> rememberNappletIconModel(fav.coordinate)
+                            }
+                        FavoriteNavItem(destination == selectedRoute, fav, iconModel, destination, nav)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RowScope.FavoriteNavItem(
+    selected: Boolean,
+    fav: FavoriteApp,
+    iconModel: Any?,
+    destination: Route,
+    nav: (Route) -> Unit,
+) {
+    NavigationBarItem(
+        alwaysShowLabel = false,
+        icon = {
+            Box(Size27Modifier, contentAlignment = Alignment.Center) {
+                // A web favorite's captured favicon (else the globe); an nsite/napplet's manifest icon (else
+                // the grid glyph).
+                FavoriteAppIcon(
+                    app = fav,
+                    tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface65,
+                    modifier = Size25Modifier,
+                    iconModel = iconModel,
+                )
+            }
+        },
+        // No label — favorite tabs match the built-in items, which show icon only.
+        selected = selected,
+        onClick = { nav(destination) },
+    )
+}
+
+@Composable
+private fun RowScope.HasNewItemsIcon(
+    selected: Boolean,
+    def: NavBarItemDef,
+    destination: Route,
+    accountViewModel: AccountViewModel,
+    nav: (Route) -> Unit,
+) {
+    NavigationBarItem(
+        alwaysShowLabel = false,
+        icon = {
+            NotifiableIcon(
+                selected,
+                def,
+                destination,
+                accountViewModel,
+            )
+        },
+        selected = selected,
+        onClick = { nav(destination) },
+    )
+}
+
+@Composable
+private fun NotifiableIcon(
+    selected: Boolean,
+    def: NavBarItemDef,
+    destination: Route,
+    accountViewModel: AccountViewModel,
+) {
+    Box(Size27Modifier, contentAlignment = Alignment.Center) {
+        Icon(
+            symbol = def.icon,
+            contentDescription = stringRes(def.labelRes),
+            modifier = Size25Modifier,
+            tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface65,
+        )
+
+        AddNotifIconIfNeeded(destination, accountViewModel, Modifier.align(Alignment.TopEnd))
+    }
+}
+
+@Composable
+fun AddNotifIconIfNeeded(
+    route: Route,
+    accountViewModel: AccountViewModel,
+    modifier: Modifier = Modifier,
+) {
+    val flow = accountViewModel.hasNewItems[route] ?: return
+    val hasNewItems by flow.collectAsStateWithLifecycle()
+    if (hasNewItems) {
+        NotificationDotIcon(modifier)
+    }
+}
+
+@Composable
+private fun NotificationDotIcon(modifier: Modifier) {
+    val color = MaterialTheme.colorScheme.primary
+    Canvas(modifier = Size10Modifier.then(modifier), onDraw = {
+        drawCircle(color = color)
+    })
+}

@@ -1,0 +1,134 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.ui.navigation.navs
+
+import android.annotation.SuppressLint
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.vitorpamplona.amethyst.ui.navigation.BOTTOM_NAV_ROOT_KEY
+import com.vitorpamplona.amethyst.ui.navigation.isBottomNavRoot
+import com.vitorpamplona.amethyst.ui.navigation.routes.Route
+import com.vitorpamplona.amethyst.ui.navigation.routes.getRouteWithArguments
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlin.reflect.KClass
+
+@Stable
+class Nav(
+    val controller: NavHostController,
+    override val navigationScope: CoroutineScope,
+) : INav {
+    override val drawerState = DrawerState(DrawerValue.Closed)
+
+    override fun closeDrawer() {
+        navigationScope.launch { drawerState.close() }
+    }
+
+    override fun openDrawer() {
+        navigationScope.launch { drawerState.open() }
+    }
+
+    override fun nav(route: Route) {
+        navigationScope.launch {
+            if (getRouteWithArguments(route::class, controller) != route) {
+                controller.navigate(route)
+            }
+        }
+    }
+
+    override fun nav(computeRoute: suspend () -> Route?) {
+        navigationScope.launch {
+            val route = computeRoute()
+            if (route != null && getRouteWithArguments(route::class, controller) != route) {
+                controller.navigate(route)
+            }
+        }
+    }
+
+    override fun newStack(route: Route) {
+        navigationScope.launch {
+            controller.navigate(route) {
+                popUpTo(route) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    }
+
+    override fun navBottomBar(route: Route) {
+        navigationScope.launch {
+            controller.navigate(route) {
+                // Clear sibling bottom-nav entries but keep Home (the start
+                // destination) below, so back-swipe from any tab returns to
+                // Home and back-swipe from Home leaves the app.
+                popUpTo(Route.Home) {
+                    inclusive = false
+                }
+                launchSingleTop = true
+            }
+            // Mark this entry as a tab root: hides the back arrow in canPop
+            // and skips the horizontal slide in composableFromEnd.
+            controller.getBackStackEntry(route).savedStateHandle[BOTTOM_NAV_ROOT_KEY] = true
+        }
+    }
+
+    @Composable
+    override fun canPop(): Boolean {
+        // Observe the current entry as State so consumers recompose when the
+        // back stack settles after a navigation or back-swipe transition.
+        // A non-reactive read would leave a stale value behind: e.g. on
+        // back-swipe to Home, previousBackStackEntry is still the popping
+        // entry until the gesture finishes, and nothing would re-evaluate
+        // canPop afterwards.
+        val current by controller.currentBackStackEntryAsState()
+        val entry = current ?: return false
+        if (entry.isBottomNavRoot()) return false
+        // Home is the graph's start destination and nothing can sit below
+        // it, so a back arrow there is never meaningful.
+        if (entry.destination.id == controller.graph.findStartDestination().id) return false
+        return controller.previousBackStackEntry != null
+    }
+
+    override fun popBack() {
+        navigationScope.launch {
+            controller.navigateUp()
+        }
+    }
+
+    @SuppressLint("RestrictedApi")
+    override fun <T : Route> popUpTo(
+        route: Route,
+        klass: KClass<T>,
+    ) {
+        navigationScope.launch {
+            controller.navigate(route) {
+                popUpTo(klass) { inclusive = true }
+            }
+        }
+    }
+}

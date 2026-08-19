@@ -1,0 +1,23 @@
+/**
+ * Amethyst Ludo Economy — isolated wallet ledger.
+ * NEVER import or bind GameRoom / Matchmaker / Arrow Durable Objects.
+ */
+{
+  "name": "amethyst-ludo-economy",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-17",
+  "workers_dev": true,
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ludo-economy",
+      "database_id": "d19c7993-9b0f-4ddc-b92a-b65860620f86"
+    }
+  ],
+  "vars": {
+    "PUBLIC_BASE_URL": "https://amethyst-ludo-economy.www-hmzhh123-com.workers.dev"
+  }
+}

@@ -1,0 +1,50 @@
+﻿{
+  "name": "amethyst-ludo-dice",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-17",
+  "workers_dev": true,
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "ECONOMY_BASE_URL": "https://amethyst-ludo-economy.www-hmzhh123-com.workers.dev"
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "GAME_ROOM", "class_name": "GameRoom" },
+      { "name": "MATCHMAKER", "class_name": "Matchmaker" },
+      { "name": "GAME_ROOM_4", "class_name": "GameRoom4" },
+      { "name": "MATCHMAKER_4", "class_name": "Matchmaker4" },
+      { "name": "GAME_ROOM_ARROW", "class_name": "GameRoomArrow" },
+      { "name": "MATCHMAKER_ARROW", "class_name": "MatchmakerArrow" },
+      { "name": "GAME_ROOM_ARROW_1", "class_name": "GameRoomArrow1" },
+      { "name": "MATCHMAKER_ARROW_1", "class_name": "MatchmakerArrow1" },
+      { "name": "TEAM_LOBBY", "class_name": "TeamLobby" },
+      { "name": "TEAM_MATCHMAKER", "class_name": "TeamMatchmaker" },
+      { "name": "GAME_ROOM_TEAM", "class_name": "GameRoomTeam2v2" },
+      { "name": "TEAM_INVITE_INBOX", "class_name": "TeamInviteInbox" }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1-live-board",
+      "new_sqlite_classes": ["GameRoom", "Matchmaker"]
+    },
+    {
+      "tag": "v2-live-board-4p",
+      "new_sqlite_classes": ["GameRoom4", "Matchmaker4"]
+    },
+    {
+      "tag": "v3-live-board-arrow",
+      "new_sqlite_classes": ["GameRoomArrow", "MatchmakerArrow"]
+    },
+    {
+      "tag": "v4-live-board-arrow-1v1",
+      "new_sqlite_classes": ["GameRoomArrow1", "MatchmakerArrow1"]
+    },
+    {
+      "tag": "v5-team-2v2",
+      "new_sqlite_classes": ["TeamLobby", "TeamMatchmaker", "GameRoomTeam2v2", "TeamInviteInbox"]
+    }
+  ]
+}

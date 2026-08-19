@@ -1,0 +1,781 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.publicChannels.send
+
+import android.content.Context
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.vitorpamplona.amethyst.Amethyst
+import com.vitorpamplona.amethyst.R
+import com.vitorpamplona.amethyst.commons.model.Channel
+import com.vitorpamplona.amethyst.commons.model.emphChat.EphemeralChatChannel
+import com.vitorpamplona.amethyst.commons.model.nip28PublicChats.PublicChatChannel
+import com.vitorpamplona.amethyst.commons.model.nip29RelayGroups.RelayGroupChannel
+import com.vitorpamplona.amethyst.commons.model.nip30CustomEmojis.EmojiPackState
+import com.vitorpamplona.amethyst.commons.model.nip53LiveActivities.LiveActivitiesChannel
+import com.vitorpamplona.amethyst.commons.richtext.UrlParser
+import com.vitorpamplona.amethyst.commons.service.pow.PoWReplay
+import com.vitorpamplona.amethyst.commons.ui.text.currentWord
+import com.vitorpamplona.amethyst.commons.ui.text.insertUrlAtCursor
+import com.vitorpamplona.amethyst.commons.ui.text.replaceCurrentWord
+import com.vitorpamplona.amethyst.model.Account
+import com.vitorpamplona.amethyst.model.AddressableNote
+import com.vitorpamplona.amethyst.model.LocalCache
+import com.vitorpamplona.amethyst.model.Note
+import com.vitorpamplona.amethyst.model.User
+import com.vitorpamplona.amethyst.service.location.LocationState
+import com.vitorpamplona.amethyst.service.uploads.MediaCompressor
+import com.vitorpamplona.amethyst.service.uploads.SuspendableConfirmation
+import com.vitorpamplona.amethyst.service.uploads.UploadOrchestrator
+import com.vitorpamplona.amethyst.ui.actions.NewMessageTagger
+import com.vitorpamplona.amethyst.ui.actions.uploads.SelectedMedia
+import com.vitorpamplona.amethyst.ui.note.creators.draftTags.DraftTagState
+import com.vitorpamplona.amethyst.ui.note.creators.emojiSuggestions.EmojiSuggestionState
+import com.vitorpamplona.amethyst.ui.note.creators.expiration.IExpiration
+import com.vitorpamplona.amethyst.ui.note.creators.location.ILocationGrabber
+import com.vitorpamplona.amethyst.ui.note.creators.userSuggestions.UserSuggestionState
+import com.vitorpamplona.amethyst.ui.note.creators.zapsplits.SplitBuilder
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.send.IMetaAttachments
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.utils.ChatFileUploadState
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.home.UserSuggestionAnchor
+import com.vitorpamplona.amethyst.ui.stringRes
+import com.vitorpamplona.quartz.experimental.ephemChat.chat.EphemeralChatEvent
+import com.vitorpamplona.quartz.experimental.nip95.data.FileStorageEvent
+import com.vitorpamplona.quartz.experimental.nip95.header.FileStorageHeaderEvent
+import com.vitorpamplona.quartz.nip01Core.core.AddressableEvent
+import com.vitorpamplona.quartz.nip01Core.core.Event
+import com.vitorpamplona.quartz.nip01Core.hints.EventHintBundle
+import com.vitorpamplona.quartz.nip01Core.signers.EventTemplate
+import com.vitorpamplona.quartz.nip01Core.signers.SignerExceptions
+import com.vitorpamplona.quartz.nip01Core.tags.events.ETag
+import com.vitorpamplona.quartz.nip01Core.tags.geohash.geohash
+import com.vitorpamplona.quartz.nip01Core.tags.geohash.getGeoHash
+import com.vitorpamplona.quartz.nip01Core.tags.hashtags.hashtags
+import com.vitorpamplona.quartz.nip01Core.tags.people.pTag
+import com.vitorpamplona.quartz.nip01Core.tags.people.toPTag
+import com.vitorpamplona.quartz.nip01Core.tags.references.references
+import com.vitorpamplona.quartz.nip10Notes.content.findHashtags
+import com.vitorpamplona.quartz.nip10Notes.content.findNostrUris
+import com.vitorpamplona.quartz.nip10Notes.content.findURLs
+import com.vitorpamplona.quartz.nip18Reposts.quotes.quotes
+import com.vitorpamplona.quartz.nip28PublicChat.base.notify
+import com.vitorpamplona.quartz.nip28PublicChat.message.ChannelMessageEvent
+import com.vitorpamplona.quartz.nip29RelayGroups.hTag
+import com.vitorpamplona.quartz.nip30CustomEmoji.CustomEmoji
+import com.vitorpamplona.quartz.nip30CustomEmoji.EmojiUrlTag
+import com.vitorpamplona.quartz.nip30CustomEmoji.emojis
+import com.vitorpamplona.quartz.nip36SensitiveContent.contentWarning
+import com.vitorpamplona.quartz.nip36SensitiveContent.contentWarningReason
+import com.vitorpamplona.quartz.nip36SensitiveContent.isSensitive
+import com.vitorpamplona.quartz.nip37Drafts.DraftWrapEvent
+import com.vitorpamplona.quartz.nip40Expiration.expiration
+import com.vitorpamplona.quartz.nip53LiveActivities.chat.LiveActivitiesChatMessageEvent
+import com.vitorpamplona.quartz.nip53LiveActivities.chat.notify
+import com.vitorpamplona.quartz.nip57Zaps.splits.ZapSplitSetup
+import com.vitorpamplona.quartz.nip57Zaps.splits.zapSplitSetup
+import com.vitorpamplona.quartz.nip57Zaps.zapraiser.zapraiserAmount
+import com.vitorpamplona.quartz.nip92IMeta.imetas
+import com.vitorpamplona.quartz.nipC7Chats.ChatEvent
+import com.vitorpamplona.quartz.utils.Log
+import com.vitorpamplona.quartz.utils.TimeUtils
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+
+@Stable
+open class ChannelNewMessageViewModel :
+    ViewModel(),
+    ILocationGrabber,
+    IExpiration {
+    val draftTag = DraftTagState()
+
+    // Strong reference to the live cache note for the current draft tag (derived from the
+    // versions flow below), so LocalCache cannot weakly collect it before a deletion needs it.
+    var draftNote: AddressableNote? = null
+        private set
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            draftTag.versions.collectLatest {
+                // don't save the first
+                if (it > 0) {
+                    draftNote = account.getOrCreateDraftNote(draftTag.current)
+                    accountViewModel.launchSigner {
+                        sendDraftSync()
+                    }
+                }
+            }
+        }
+    }
+
+    lateinit var accountViewModel: AccountViewModel
+    lateinit var account: Account
+    var channel: Channel? = null
+
+    val replyTo = mutableStateOf<Note?>(null)
+
+    var uploadState by mutableStateOf<ChatFileUploadState?>(null)
+
+    // Stripping failure dialog
+    val strippingFailureConfirmation = SuspendableConfirmation()
+
+    val iMetaAttachments = IMetaAttachments()
+    var nip95attachments by mutableStateOf<List<Pair<FileStorageEvent, FileStorageHeaderEvent>>>(emptyList())
+
+    val message = TextFieldState()
+    var urlPreview by mutableStateOf<String?>(null)
+    val isUploadingImage: Boolean get() = uploadState?.isUploadingImage ?: false
+    val isUploadingFile: Boolean get() = uploadState?.isUploadingFile ?: false
+
+    var userSuggestions: UserSuggestionState? = null
+    var userSuggestionsMainMessage: UserSuggestionAnchor? = null
+
+    var emojiSuggestions: EmojiSuggestionState? = null
+
+    // Invoices
+    var canAddInvoice by mutableStateOf(false)
+    var wantsInvoice by mutableStateOf(false)
+
+    // Forward Zap to
+    var wantsForwardZapTo by mutableStateOf(false)
+    var forwardZapTo by mutableStateOf<SplitBuilder<User>>(SplitBuilder())
+    val forwardZapToEditting = TextFieldState()
+
+    // NSFW, Sensitive
+    var wantsToMarkAsSensitive by mutableStateOf(false)
+    var contentWarningDescription by mutableStateOf("")
+
+    // Expiration Date (NIP-40)
+    var wantsExpirationDate by mutableStateOf(false)
+    override var expirationDate by mutableLongStateOf(TimeUtils.oneDayAhead())
+
+    // GeoHash
+    var wantsToAddGeoHash by mutableStateOf(false)
+    var location: StateFlow<LocationState.LocationResult>? = null
+
+    // ZapRaiser
+    var canAddZapRaiser by mutableStateOf(false)
+    var wantsZapraiser by mutableStateOf(false)
+    var zapRaiserAmount by mutableStateOf<Long?>(null)
+
+    fun lnAddress(): String? = account.userProfile().lnAddress()
+
+    fun hasLnAddress(): Boolean = account.userProfile().lnAddress() != null
+
+    fun user(): User = account.userProfile()
+
+    open fun init(accountVM: AccountViewModel) {
+        this.accountViewModel = accountVM
+        this.account = accountVM.account
+        this.canAddInvoice = hasLnAddress()
+        this.canAddZapRaiser = hasLnAddress()
+
+        this.userSuggestions?.reset()
+        this.userSuggestions =
+            UserSuggestionState(
+                accountVM.account,
+                accountVM.nip05ClientBuilder(),
+                priorityPubkeys = {
+                    // Public channels have no membership; recent posters are the
+                    // closest thing. The cutoff also bounds the note scan.
+                    channel?.participatingAuthors(TimeUtils.oneMonthAgo())?.mapTo(mutableSetOf()) { it.pubkeyHex } ?: emptySet()
+                },
+            )
+
+        this.emojiSuggestions?.reset()
+        this.emojiSuggestions = EmojiSuggestionState(accountVM.account)
+
+        this.uploadState = ChatFileUploadState(account.settings.defaultFileServer, account.settings.stripLocationOnUpload)
+    }
+
+    open fun load(channel: Channel) {
+        this.channel = channel
+    }
+
+    open fun reply(replyNote: Note) {
+        replyTo.value = replyNote
+        draftTag.newVersion()
+    }
+
+    fun clearReply() {
+        replyTo.value = null
+        draftTag.newVersion()
+    }
+
+    open fun editFromDraft(draft: Note) {
+        val noteEvent = draft.event
+        val noteAuthor = draft.author
+
+        if (noteEvent is DraftWrapEvent && noteAuthor != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                accountViewModel.createTempDraftNote(noteEvent)?.let { innerNote ->
+                    val oldTag = (draft.event as? AddressableEvent)?.dTag()
+                    if (oldTag != null) {
+                        draftTag.set(oldTag)
+                        draftNote = account.getOrCreateDraftNote(oldTag)
+                    }
+                    loadFromDraft(innerNote)
+                }
+            }
+        }
+    }
+
+    private fun loadFromDraft(draft: Note) {
+        val draftEvent = draft.event ?: return
+
+        val localForwardZapTo = draftEvent.tags.zapSplitSetup()
+        val totalWeight = localForwardZapTo.sumOf { it.weight }
+        forwardZapTo = SplitBuilder()
+        localForwardZapTo.forEach {
+            if (it is ZapSplitSetup) {
+                val user = LocalCache.getOrCreateUser(it.pubKeyHex)
+                forwardZapTo.addItem(user, (it.weight / totalWeight).toFloat())
+            }
+            // don't support edditing old-style splits.
+        }
+        forwardZapToEditting.clearText()
+        wantsForwardZapTo = localForwardZapTo.isNotEmpty()
+
+        wantsToMarkAsSensitive = draftEvent.isSensitive()
+        contentWarningDescription = draftEvent.contentWarningReason() ?: ""
+
+        val draftExpiration = draftEvent.expiration()
+        wantsExpirationDate = draftExpiration != null
+        expirationDate = draftExpiration ?: TimeUtils.oneDayAhead()
+
+        val geohash = draftEvent.getGeoHash()
+        wantsToAddGeoHash = geohash != null
+
+        val zapraiser = draftEvent.zapraiserAmount()
+        wantsZapraiser = zapraiser != null
+        zapRaiserAmount = null
+        if (zapraiser != null) {
+            zapRaiserAmount = zapraiser
+        }
+
+        if (forwardZapTo.items.isNotEmpty()) {
+            wantsForwardZapTo = true
+        }
+
+        // Both event kinds extend BaseThreadedEvent and share `reply()`. Cast through
+        // both candidates so the elvis result lands on the common supertype, then
+        // load the addressed reply note in a single block.
+        val threadedDraft =
+            (draftEvent as? ChannelMessageEvent)
+                ?: (draftEvent as? LiveActivitiesChatMessageEvent)
+        threadedDraft?.reply()?.eventId?.let { replyId ->
+            replyTo.value = accountViewModel.checkGetOrCreateNote(replyId)
+        }
+
+        message.setTextAndPlaceCursorAtEnd(draftEvent.content)
+
+        iMetaAttachments.addAll(draftEvent.imetas())
+
+        urlPreview = findUrlInMessage()
+    }
+
+    fun sendPost(onDone: suspend () -> Unit) {
+        accountViewModel.launchSigner {
+            sendPostSync()
+            onDone()
+        }
+    }
+
+    suspend fun sendPostSync() {
+        val template = createTemplate() ?: return
+        val channelRelays = channel?.relays() ?: emptySet()
+
+        val draftToDelete = draftNote
+        cancel()
+
+        // Kinds 42/1311 are the PUBLIC_CHAT PoW category: route through the
+        // mining gate (a no-op when the category is off). Draft deletion runs
+        // inside the publish continuation so a cancelled mining job can't
+        // destroy the only copy of the text.
+        accountViewModel.account.sendMined(template, PoWReplay.ToRelays(channelRelays.toList())) { readyTemplate ->
+            accountViewModel.account.signAndSendPrivatelyOrBroadcast(readyTemplate) {
+                channelRelays.toList()
+            }
+            accountViewModel.account.deleteDraftIgnoreErrors(draftToDelete)
+        }
+    }
+
+    suspend fun sendDraftSync() {
+        if (message.text.toString().isBlank()) {
+            account.deleteDraftIgnoreErrors(draftNote)
+        } else if (accountViewModel.settings.automaticallyCreateDrafts()) {
+            val attachments = mutableSetOf<Event>()
+            nip95attachments.forEach {
+                attachments.add(it.first)
+                attachments.add(it.second)
+            }
+
+            val template = createTemplate() ?: return
+            accountViewModel.account.createAndSendDraftIgnoreErrors(draftTag.current, template, attachments)
+        }
+    }
+
+    fun pickedMedia(list: ImmutableList<SelectedMedia>) {
+        uploadState?.load(list)
+    }
+
+    fun upload(
+        onError: (title: String, message: String) -> Unit,
+        context: Context,
+        onceUploaded: suspend () -> Unit,
+    ) = try {
+        uploadUnsafe(onError, context, onceUploaded)
+    } catch (_: SignerExceptions.ReadOnlyException) {
+        onError(
+            stringRes(context, R.string.read_only_user),
+            stringRes(context, R.string.login_with_a_private_key_to_be_able_to_sign_events),
+        )
+    }
+
+    fun uploadUnsafe(
+        onError: (title: String, message: String) -> Unit,
+        context: Context,
+        onceUploaded: suspend () -> Unit,
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val uploadState = uploadState ?: return@launch
+
+            val myMultiOrchestrator = uploadState.multiOrchestrator ?: return@launch
+
+            uploadState.mediaUploadTracker.startUpload(myMultiOrchestrator.hasNonMedia())
+
+            val results =
+                myMultiOrchestrator.upload(
+                    uploadState.caption,
+                    uploadState.contentWarningReason,
+                    MediaCompressor.intToCompressorQuality(uploadState.mediaQualitySlider),
+                    uploadState.selectedServer,
+                    account,
+                    context,
+                    stripMetadata = uploadState.stripMetadata,
+                    onStrippingFailed = strippingFailureConfirmation::awaitConfirmation,
+                )
+
+            if (results.allGood) {
+                val urls =
+                    results.successful.mapNotNull { upload ->
+                        if (upload.result is UploadOrchestrator.OrchestratorResult.NIP95Result) {
+                            val nip95 = account.createNip95(upload.result.bytes, headerInfo = upload.result.fileHeader, uploadState.caption, uploadState.contentWarningReason)
+                            nip95attachments = nip95attachments + nip95
+                            val note = nip95.let { it1 -> account.consumeNip95(it1.first, it1.second) }
+
+                            note?.toNostrUri()
+                        } else if (upload.result is UploadOrchestrator.OrchestratorResult.ServerResult) {
+                            iMetaAttachments.add(upload.result, uploadState.caption, uploadState.contentWarningReason)
+
+                            upload.result.url
+                        } else {
+                            null
+                        }
+                    }
+
+                message.insertUrlAtCursor(urls.joinToString(" "))
+                urlPreview = findUrlInMessage()
+
+                uploadState.reset()
+                onceUploaded()
+                draftTag.newVersion()
+            } else {
+                val errorMessages = results.errors.map { stringRes(context, it.errorResource, *it.params) }.distinct()
+
+                onError(stringRes(context, R.string.failed_to_upload_media_no_details), errorMessages.joinToString(".\n"))
+            }
+
+            uploadState.mediaUploadTracker.finishUpload()
+        }
+    }
+
+    private suspend fun createTemplate(): EventTemplate<out Event>? {
+        val channel = channel ?: return null
+        val messageText = message.text.toString()
+        val tagger =
+            NewMessageTagger(
+                message = messageText,
+                pTags = listOfNotNull(replyTo.value?.author),
+                eTags = listOfNotNull(replyTo.value),
+                dao = accountViewModel,
+            )
+        tagger.run()
+
+        val urls = findURLs(messageText)
+        val usedAttachments = iMetaAttachments.filterIsIn(urls.toSet())
+        val emojis = findEmoji(messageText, accountViewModel.account.emoji.myEmojis.value)
+
+        val channelRelays = channel.relays()
+        val geoHash = if (wantsToAddGeoHash) (location?.value as? LocationState.LocationResult.Success)?.geoHash?.toString() else null
+
+        val contentWarningReason = if (wantsToMarkAsSensitive) contentWarningDescription else null
+        val localExpirationDate = if (wantsExpirationDate) expirationDate else null
+
+        return when {
+            channel is PublicChatChannel -> {
+                val replyingToEvent = replyTo.value?.toEventHint<ChannelMessageEvent>()
+                val channelEvent = channel.event
+
+                if (replyingToEvent != null) {
+                    ChannelMessageEvent.reply(tagger.message, replyingToEvent) {
+                        notify(replyingToEvent.toPTag())
+
+                        hashtags(findHashtags(tagger.message))
+                        references(findURLs(tagger.message))
+                        quotes(findNostrUris(tagger.message))
+                        contentWarningReason?.let { contentWarning(it) }
+                        localExpirationDate?.let { expiration(it) }
+
+                        geoHash?.let { geohash(it) }
+
+                        emojis(emojis)
+                        imetas(usedAttachments)
+                    }
+                } else if (channelEvent != null) {
+                    val hint = EventHintBundle(channelEvent, channelRelays.firstOrNull())
+                    ChannelMessageEvent.message(tagger.message, hint) {
+                        hashtags(findHashtags(tagger.message))
+                        references(findURLs(tagger.message))
+                        quotes(findNostrUris(tagger.message))
+                        contentWarningReason?.let { contentWarning(it) }
+                        localExpirationDate?.let { expiration(it) }
+
+                        geoHash?.let { geohash(it) }
+
+                        emojis(emojis)
+                        imetas(usedAttachments)
+                    }
+                } else {
+                    ChannelMessageEvent.message(tagger.message, ETag(channel.idHex, channelRelays.firstOrNull())) {
+                        hashtags(findHashtags(tagger.message))
+                        references(findURLs(tagger.message))
+                        quotes(findNostrUris(tagger.message))
+                        contentWarningReason?.let { contentWarning(it) }
+                        localExpirationDate?.let { expiration(it) }
+
+                        geoHash?.let { geohash(it) }
+
+                        emojis(emojis)
+                        imetas(usedAttachments)
+                    }
+                }
+            }
+
+            channel is LiveActivitiesChannel -> {
+                val replyingToEvent = replyTo.value?.toEventHint<LiveActivitiesChatMessageEvent>()
+                val activity = channel.info
+
+                if (replyingToEvent != null) {
+                    LiveActivitiesChatMessageEvent.reply(tagger.message, replyingToEvent) {
+                        notify(replyingToEvent.toPTag())
+
+                        hashtags(findHashtags(tagger.message))
+                        references(findURLs(tagger.message))
+                        quotes(findNostrUris(tagger.message))
+                        contentWarningReason?.let { contentWarning(it) }
+                        localExpirationDate?.let { expiration(it) }
+
+                        emojis(emojis)
+                        imetas(usedAttachments)
+                    }
+                } else if (activity != null) {
+                    val hint = EventHintBundle(activity, channelRelays.firstOrNull())
+
+                    LiveActivitiesChatMessageEvent.message(tagger.message, hint) {
+                        hashtags(findHashtags(tagger.message))
+                        references(findURLs(tagger.message))
+                        quotes(findNostrUris(tagger.message))
+                        contentWarningReason?.let { contentWarning(it) }
+                        localExpirationDate?.let { expiration(it) }
+
+                        emojis(emojis)
+                        imetas(usedAttachments)
+                    }
+                } else {
+                    LiveActivitiesChatMessageEvent.message(tagger.message, channel.toATag()) {
+                        hashtags(findHashtags(tagger.message))
+                        references(findURLs(tagger.message))
+                        quotes(findNostrUris(tagger.message))
+                        contentWarningReason?.let { contentWarning(it) }
+                        localExpirationDate?.let { expiration(it) }
+
+                        emojis(emojis)
+                        imetas(usedAttachments)
+                    }
+                }
+            }
+
+            channel is EphemeralChatChannel -> {
+                EphemeralChatEvent.build(
+                    tagger.message,
+                    channel.roomId.relayUrl,
+                    channel.roomId.id,
+                ) {
+                    hashtags(findHashtags(tagger.message))
+                    references(findURLs(tagger.message))
+                    quotes(findNostrUris(tagger.message))
+                    contentWarningReason?.let { contentWarning(it) }
+                    localExpirationDate?.let { expiration(it) }
+
+                    emojis(emojis)
+                    imetas(usedAttachments)
+                }
+            }
+
+            channel is RelayGroupChannel -> {
+                // NIP-29 group message: a kind-9 chat scoped to the group with an
+                // `h` tag. The event is published only to the group's host relay
+                // (channel.relays()), where relay29 authorizes and routes it.
+                val replyingToEvent = replyTo.value?.toEventHint<ChatEvent>()
+                if (replyingToEvent != null) {
+                    // A reply quotes its parent via a NIP-18 `q` tag (added by ChatEvent.reply)
+                    // + a `p` notify to its author. The group scope (`h`) alone doesn't link a
+                    // reply to what it answers — without the `q` tag the quote renders in the
+                    // composer but is missing from the signed event.
+                    ChatEvent.reply(tagger.message, replyingToEvent) {
+                        hTag(channel.groupId.id)
+                        pTag(replyingToEvent.toPTag())
+
+                        hashtags(findHashtags(tagger.message))
+                        references(findURLs(tagger.message))
+                        quotes(findNostrUris(tagger.message))
+                        contentWarningReason?.let { contentWarning(it) }
+                        localExpirationDate?.let { expiration(it) }
+
+                        emojis(emojis)
+                        imetas(usedAttachments)
+                    }
+                } else {
+                    ChatEvent.build(tagger.message) {
+                        hTag(channel.groupId.id)
+
+                        hashtags(findHashtags(tagger.message))
+                        references(findURLs(tagger.message))
+                        quotes(findNostrUris(tagger.message))
+                        contentWarningReason?.let { contentWarning(it) }
+                        localExpirationDate?.let { expiration(it) }
+
+                        emojis(emojis)
+                        imetas(usedAttachments)
+                    }
+                }
+            }
+
+            else -> {
+                null
+            }
+        }
+    }
+
+    fun findEmoji(
+        message: String,
+        myEmojiSet: List<EmojiPackState.EmojiMedia>?,
+    ): List<EmojiUrlTag> {
+        if (myEmojiSet == null) return emptyList()
+        return CustomEmoji.findAllEmojiCodes(message).mapNotNull { possibleEmoji ->
+            myEmojiSet.firstOrNull { it.code == possibleEmoji }?.let { EmojiUrlTag(it.code, it.link) }
+        }
+    }
+
+    open fun cancel() {
+        draftTag.rotate()
+
+        message.setTextAndPlaceCursorAtEnd("")
+
+        replyTo.value = null
+
+        urlPreview = null
+
+        wantsInvoice = false
+        wantsZapraiser = false
+        zapRaiserAmount = null
+
+        wantsForwardZapTo = false
+        wantsToMarkAsSensitive = false
+        contentWarningDescription = ""
+        wantsToAddGeoHash = false
+
+        forwardZapTo = SplitBuilder()
+        forwardZapToEditting.clearText()
+
+        userSuggestions?.reset()
+        userSuggestionsMainMessage = null
+
+        uploadState?.reset()
+
+        iMetaAttachments.reset()
+
+        emojiSuggestions?.reset()
+    }
+
+    open fun findUrlInMessage(): String? = UrlParser().parseValidUrls(message.text.toString()).withScheme.firstOrNull()
+
+    open fun addToMessage(it: String) {
+        message.setTextAndPlaceCursorAtEnd(message.text.toString() + " " + it)
+        onMessageChanged()
+    }
+
+    open fun onMessageChanged() {
+        urlPreview = findUrlInMessage()
+
+        if (message.selection.collapsed) {
+            val lastWord = message.currentWord()
+            if (lastWord.startsWith("@")) {
+                userSuggestionsMainMessage = UserSuggestionAnchor.MAIN_MESSAGE
+                userSuggestions?.processCurrentWord(lastWord)
+            } else {
+                userSuggestionsMainMessage = null
+                userSuggestions?.reset()
+            }
+
+            emojiSuggestions?.processCurrentWord(lastWord)
+        }
+
+        draftTag.newVersion()
+    }
+
+    open fun onForwardZapTextChanged() {
+        if (forwardZapToEditting.selection.collapsed) {
+            val lastWord = forwardZapToEditting.text.toString()
+            userSuggestionsMainMessage = UserSuggestionAnchor.FORWARD_ZAPS
+            userSuggestions?.processCurrentWord(lastWord)
+        }
+    }
+
+    open fun autocompleteWithUser(item: User) {
+        userSuggestions?.let {
+            if (userSuggestionsMainMessage == UserSuggestionAnchor.MAIN_MESSAGE) {
+                val lastWord = message.currentWord()
+                it.replaceCurrentWord(message, lastWord, item)
+            } else if (userSuggestionsMainMessage == UserSuggestionAnchor.FORWARD_ZAPS) {
+                forwardZapTo.addItem(item)
+                forwardZapToEditting.clearText()
+            }
+
+            userSuggestionsMainMessage = null
+            it.reset()
+        }
+
+        draftTag.newVersion()
+    }
+
+    open fun autocompleteWithEmoji(item: EmojiPackState.EmojiMedia) {
+        val wordToInsert = ":${item.code}:"
+        message.replaceCurrentWord(wordToInsert)
+
+        emojiSuggestions?.reset()
+
+        draftTag.newVersion()
+    }
+
+    open fun autocompleteWithEmojiUrl(item: EmojiPackState.EmojiMedia) {
+        val wordToInsert = item.link + " "
+
+        viewModelScope.launch(Dispatchers.IO) {
+            iMetaAttachments.downloadAndPrepare(item.link) {
+                Amethyst.instance.roleBasedHttpClientBuilder.okHttpClientForImage(item.link)
+            }
+        }
+
+        message.replaceCurrentWord(wordToInsert)
+
+        emojiSuggestions?.reset()
+
+        urlPreview = findUrlInMessage()
+
+        draftTag.newVersion()
+    }
+
+    fun canPost(): Boolean =
+        message.text.isNotBlank() &&
+            uploadState?.mediaUploadTracker?.isUploading != true &&
+            !wantsInvoice &&
+            (!wantsZapraiser || zapRaiserAmount != null) &&
+            uploadState?.multiOrchestrator == null
+
+    fun insertAtCursor(newElement: String) {
+        message.insertUrlAtCursor(newElement)
+    }
+
+    override fun locationManager(): LocationState = Amethyst.instance.locationManager
+
+    override fun locationFlow(): StateFlow<LocationState.LocationResult> {
+        if (location == null) {
+            location = locationManager().geohashStateFlow
+        }
+
+        return location!!
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d("Init") { "OnCleared: ${this.javaClass.simpleName}" }
+    }
+
+    fun updateZapPercentage(
+        index: Int,
+        sliderValue: Float,
+    ) {
+        forwardZapTo.updatePercentage(index, sliderValue)
+    }
+
+    fun updateZapFromText() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val tagger = NewMessageTagger(message.text.toString(), emptyList(), emptyList(), accountViewModel)
+            tagger.run()
+            tagger.pTags?.forEach { taggedUser ->
+                if (!forwardZapTo.items.any { it.key == taggedUser }) {
+                    forwardZapTo.addItem(taggedUser)
+                }
+            }
+        }
+    }
+
+    fun updateZapRaiserAmount(newAmount: Long?) {
+        zapRaiserAmount = newAmount
+        draftTag.newVersion()
+    }
+
+    fun toggleMarkAsSensitive() {
+        wantsToMarkAsSensitive = !wantsToMarkAsSensitive
+        draftTag.newVersion()
+    }
+
+    fun toggleExpirationDate() {
+        wantsExpirationDate = !wantsExpirationDate
+        if (wantsExpirationDate) {
+            expirationDate = TimeUtils.oneDayAhead()
+        }
+        draftTag.newVersion()
+    }
+}

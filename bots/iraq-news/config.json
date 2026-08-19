@@ -1,0 +1,99 @@
+{
+  "intervalMinutes": 3,
+  "maxPerFeed": 10,
+  "maxVideoStoriesPerRun": 35,
+  "maxImageStoriesPerRun": 15,
+  "publishStories": true,
+  "publishRetries": 3,
+  "retryDelayMs": 2000,
+  "relays": [
+    "wss://desktop-r082364.tail4b3c94.ts.net/",
+    "wss://nos.lol",
+    "wss://relay.primal.net",
+    "wss://relay.damus.io",
+    "wss://offchain.pub"
+  ],
+  "feeds": [
+    {
+      "id": "peertube-videos",
+      "name": "PeerTube — مقاطع mp4 مباشرة",
+      "url": "https://peertube.tv/feeds/videos.xml"
+    },
+    {
+      "id": "tilvids-videos",
+      "name": "Tilvids — مقاطع قصيرة",
+      "url": "https://tilvids.com/feeds/videos.xml"
+    },
+    {
+      "id": "yt-bbc-arabic",
+      "name": "يوتيوب — BBC عربي",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCelk6aHijZq-GJBBB9YpReA"
+    },
+    {
+      "id": "yt-skynews-arabia",
+      "name": "يوتيوب — سكاي نيوز عربية",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCIJXOvggjKtCagMfxvcCzAA"
+    },
+    {
+      "id": "yt-alarabiya",
+      "name": "يوتيوب — العربية",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCrj5BGAhtWxDfqbza9T9hqA"
+    },
+    {
+      "id": "yt-france24-ar",
+      "name": "يوتيوب — فرانس 24",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCdTyuXgmJkG_O8_75eqej-w"
+    },
+    {
+      "id": "yt-dw-ar",
+      "name": "يوتيوب — DW عربية (مجتمع/يوميات)",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC2KCI1AXQVx1_XJmykB7cHA"
+    },
+    {
+      "id": "alsumaria-iraq",
+      "name": "السومرية — العراق",
+      "url": "https://www.alsumaria.tv/Rss/iraq-latest-news/ar"
+    },
+    {
+      "id": "alsumaria-highlights",
+      "name": "السومرية — متنوع",
+      "url": "https://www.alsumaria.tv/Rss/NewsHighlights/ar"
+    },
+    {
+      "id": "bbc-iraq",
+      "name": "BBC عربي — العراق",
+      "url": "https://feeds.bbci.co.uk/arabic/iraq/rss.xml"
+    },
+    {
+      "id": "bbc-sport",
+      "name": "BBC عربي — رياضة",
+      "url": "https://feeds.bbci.co.uk/arabic/sports/rss.xml"
+    },
+    {
+      "id": "bbc-biz",
+      "name": "BBC عربي — اقتصاد",
+      "url": "https://feeds.bbci.co.uk/arabic/business/rss.xml"
+    },
+    {
+      "id": "bbc-sci",
+      "name": "BBC عربي — علوم وتقنية",
+      "url": "https://feeds.bbci.co.uk/arabic/scienceandtech/rss.xml"
+    },
+    {
+      "id": "bbc-art",
+      "name": "BBC عربي — ثقافة وفن",
+      "url": "https://feeds.bbci.co.uk/arabic/artandculture/rss.xml"
+    },
+    {
+      "id": "bbc-mag",
+      "name": "BBC عربي — مجلة / يوميات",
+      "url": "https://feeds.bbci.co.uk/arabic/magazine/rss.xml"
+    },
+    {
+      "id": "france24-ar",
+      "name": "فرانس 24 عربي",
+      "url": "https://www.france24.com/ar/rss"
+    }
+  ],
+  "hashtags": ["iraq", "أخبار", "middle-east", "news", "عراق", "فيديو", "ترند", "رياضة", "اقتصاد", "ثقافة"]
+}

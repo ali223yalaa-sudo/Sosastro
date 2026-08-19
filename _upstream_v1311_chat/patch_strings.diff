@@ -1,0 +1,27 @@
+@@ -104,6 +104,7 @@
+ Security Filters 
+ Logout 
+ Show More 
++ Show Less 
+ Lightning Invoice 
+ Expired 
+ CLINK Offer 
+@@ -2985,6 +2986,18 @@
+ Add content warning 
+ Remove content warning 
+ 
++ %1$s created the channel %2$s 
++ %1$s created the channel 
++ %1$s updated the channel profile 
++
++ Message Delivery 
++ Close 
++
++ Waiting for a relay to accept this message 
++ No relay information for this message 
++ Accepted by at least one relay 
++ Delivered to all recipients\' relays 
++
+ Add expiration date 
+ Remove expiration date 
+ Expiration Date 

@@ -1,0 +1,44 @@
+#!/bin/bash
+
+GREEN='\033[0;32m'
+NO_COLOR='\033[0m'
+
+echo "*********************************************************"
+echo "Running git pre-push hook."
+echo "*********************************************************"
+echo ""
+echo "Java Version: "
+echo "$JAVA_HOME"
+echo "$(java -version)"
+echo "Running test... "
+
+# Single-variant pre-push tests. `./gradlew test` would compile six Android
+# variants of :amethyst (play/fdroid × debug/release/benchmark) plus full
+# native-libs merging per variant — ~6× the work of one variant. CI runs the
+# multi-flavor matrix on push to main; pre-push only needs one happy path.
+TASKS=(
+    :quartz:jvmTest
+    :commons:jvmTest
+    :nestsClient:jvmTest
+    :quic:jvmTest
+    :amethyst:testPlayDebugUnitTest
+    :cli:test
+)
+
+if [ "${CLAUDE_CODE_REMOTE:-}" = "true" ]; then
+    ./gradlew "${TASKS[@]}" --quiet
+else
+    ./gradlew "${TASKS[@]}" :desktopApp:test --quiet
+fi
+status=$?
+
+if [ "$status" = 0 ] ; then
+    echo "All test passed."
+    exit 0
+else
+    echo "*********************************************************"
+    echo 1>&2 "Failing test"
+    printf "Run ${GREEN}./gradlew test${NO_COLOR} to make sure you have all tests green before pushing...\n"
+    echo "*********************************************************"
+    exit 1
+fi

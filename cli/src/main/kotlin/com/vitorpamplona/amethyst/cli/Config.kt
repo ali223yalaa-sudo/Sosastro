@@ -1,0 +1,542 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.cli
+
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.vitorpamplona.amethyst.cli.secrets.BunkerFile
+import com.vitorpamplona.amethyst.cli.secrets.IdentityFile
+import com.vitorpamplona.amethyst.cli.secrets.IdentitySecret
+import com.vitorpamplona.amethyst.cli.secrets.SecretStore
+import com.vitorpamplona.quartz.nip01Core.core.hexToByteArray
+import com.vitorpamplona.quartz.nip01Core.core.toHexKey
+import com.vitorpamplona.quartz.nip01Core.crypto.KeyPair
+import com.vitorpamplona.quartz.nip19Bech32.bech32.bechToBytes
+import com.vitorpamplona.quartz.nip19Bech32.toNpub
+import com.vitorpamplona.quartz.nip19Bech32.toNsec
+import com.vitorpamplona.quartz.utils.Log
+import java.io.File
+
+private const val TAG = "Config"
+
+/**
+ * Persisted identity.
+ *
+ * [privKeyHex] may be null for read-only accounts imported from an `npub`,
+ * `nprofile` or NIP-05 — in that case [nsec] is also null and any CLI verb
+ * that needs to sign will fail with a clear error. `keyPair()` materialises
+ * a [KeyPair] with only `pubKey` set when no private key is available.
+ */
+data class Identity(
+    val privKeyHex: String?,
+    val pubKeyHex: String,
+    val nsec: String?,
+    val npub: String,
+    val bunker: Bunker? = null,
+) {
+    @get:com.fasterxml.jackson.annotation.JsonIgnore
+    val hasPrivateKey: Boolean get() = privKeyHex != null
+
+    /** Whether this identity can sign — directly (local key) or via a bunker. */
+    @get:com.fasterxml.jackson.annotation.JsonIgnore
+    val canSign: Boolean get() = privKeyHex != null || bunker != null
+
+    fun keyPair(): KeyPair =
+        if (privKeyHex != null) {
+            KeyPair(privKey = privKeyHex.hexToByteArray(), pubKey = pubKeyHex.hexToByteArray())
+        } else {
+            KeyPair(pubKey = pubKeyHex.hexToByteArray())
+        }
+
+    /** The local transport keypair for a NIP-46 bunker account. */
+    fun clientKeyPair(): KeyPair = KeyPair(privKey = bunker!!.clientPrivKeyHex.hexToByteArray())
+
+    companion object {
+        fun create(): Identity = fromPrivateKey(KeyPair().privKey!!)
+
+        fun fromNsec(nsec: String): Identity = fromPrivateKey(nsec.bechToBytes())
+
+        /**
+         * Parse a `bunker://<remote-pubkey>?relay=…&secret=…` URI into a
+         * remote-signer identity. The account acts as `remote-pubkey` (the
+         * key the bunker signs with); a fresh local keypair is minted for the
+         * NIP-46 transport. Mirrors the parsing in Quartz's
+         * `NostrSignerRemote.fromBunkerUri`.
+         */
+        fun fromBunkerUri(uri: String): Identity {
+            require(uri.startsWith("bunker://")) { "not a bunker:// uri" }
+            val parts = uri.removePrefix("bunker://").split("?", limit = 2)
+            val remotePubkey = parts[0].lowercase()
+            require(remotePubkey.length == 64 && remotePubkey.all { it in "0123456789abcdef" }) {
+                "bunker uri must carry a 64-hex remote pubkey"
+            }
+            val relays = mutableListOf<String>()
+            var secret: String? = null
+            parts.getOrNull(1)?.split("&")?.forEach { param ->
+                val kv = param.split("=", limit = 2)
+                if (kv.size < 2) return@forEach
+                // Relay/secret params are percent-encoded by spec-compliant
+                // emitters (nak does: `relay=wss%3A%2F%2F…`), so decode them.
+                val value = java.net.URLDecoder.decode(kv[1], "UTF-8")
+                when (kv[0]) {
+                    "relay" -> relays.add(value)
+                    "secret" -> secret = value
+                }
+            }
+            require(relays.isNotEmpty()) { "bunker uri must carry at least one relay" }
+            return bunkerIdentity(remotePubkey, relays, secret, KeyPair().privKey!!.toHexKey())
+        }
+
+        /**
+         * Build a remote-signer identity from already-resolved parts (used by
+         * the NostrConnect flow once the signer pubkey is discovered). The
+         * account acts as [signerPubkey]; [clientPrivKeyHex] is the local
+         * transport key.
+         */
+        fun bunkerIdentity(
+            signerPubkey: String,
+            relays: List<String>,
+            connectSecret: String?,
+            clientPrivKeyHex: String,
+        ): Identity =
+            Identity(
+                privKeyHex = null,
+                pubKeyHex = signerPubkey,
+                nsec = null,
+                npub = signerPubkey.hexToByteArray().toNpub(),
+                bunker = Bunker(signerPubkey, relays, connectSecret, clientPrivKeyHex),
+            )
+
+        fun fromPrivateKey(priv: ByteArray): Identity {
+            val pub = KeyPair(privKey = priv).pubKey
+            return Identity(
+                privKeyHex = priv.toHexKey(),
+                pubKeyHex = pub.toHexKey(),
+                nsec = priv.toNsec(),
+                npub = pub.toNpub(),
+            )
+        }
+
+        /** Read-only identity (no private key). */
+        fun fromPublicKeyHex(pubHex: String): Identity =
+            Identity(
+                privKeyHex = null,
+                pubKeyHex = pubHex.lowercase(),
+                nsec = null,
+                npub = pubHex.hexToByteArray().toNpub(),
+            )
+
+        /**
+         * Ephemeral, key-less identity for anonymous read-only runs (no
+         * account on disk). It mints a throwaway public key so the
+         * relay-list fallbacks (`outboxRelays()` etc.) resolve to the
+         * built-in defaults, and it carries no private key, so any attempt
+         * to sign/encrypt fails loudly — "you can read, you just can't
+         * auth". Used by [com.vitorpamplona.amethyst.cli.Context.openOrAnonymous].
+         */
+        fun anonymous(): Identity = fromPublicKeyHex(KeyPair().pubKey.toHexKey())
+
+        /**
+         * Rebuild an in-memory identity after a load. Accepts the public
+         * parts that live on disk and a private key resolved from the
+         * backend (or null for read-only accounts). Re-derives `nsec` so
+         * callers that print it (e.g. `amy init`) keep working.
+         */
+        fun fromDisk(
+            pubKeyHex: String,
+            npub: String,
+            privKeyHex: String?,
+            bunker: Bunker? = null,
+        ): Identity =
+            Identity(
+                privKeyHex = privKeyHex,
+                pubKeyHex = pubKeyHex,
+                nsec = privKeyHex?.hexToByteArray()?.toNsec(),
+                npub = npub,
+                bunker = bunker,
+            )
+    }
+}
+
+/**
+ * In-memory NIP-46 bunker connection. [clientPrivKeyHex] is the local
+ * transport key (persisted via the [SecretStore], not in the clear);
+ * [remotePubkey] is the user key the bunker signs as.
+ */
+data class Bunker(
+    val remotePubkey: String,
+    val relays: List<String>,
+    val connectSecret: String?,
+    @get:com.fasterxml.jackson.annotation.JsonIgnore
+    val clientPrivKeyHex: String,
+)
+
+/** Opaque per-run state (subscription cursors, etc). Stored alongside identity. */
+data class RunState(
+    var giftWrapSince: Long? = null,
+    val groupSince: MutableMap<String, Long> = mutableMapOf(),
+)
+
+/**
+ * Root of the on-disk layout for one account.
+ *
+ * Per-account state (identity, sync cursors, MLS material, aliases)
+ * lives at `<root>/<name>/`; the event store is shared across accounts
+ * at `<root>/shared/events-store/`. `<root>` is always `~/.amy/`
+ * (Java's `user.home` + `/.amy`); test harnesses isolate by overriding
+ * `$HOME` for the amy subprocess, exactly the pattern `git`, `gpg`,
+ * `npm` etc. use.
+ *
+ * Use [resolve] to construct one from CLI flags. [secrets] is the
+ * [SecretStore] that mediates private-key persistence. Owning it here
+ * keeps the call sites that already thread [DataDir] from having to
+ * learn about a second parameter.
+ */
+class DataDir(
+    val root: File,
+    val eventsDir: File,
+    val accountName: String,
+    val secrets: SecretStore,
+    /**
+     * Whether this points at a concrete account. `false` for the
+     * accountless directory [resolveOptional] hands back when `~/.amy/`
+     * has no unambiguous account — [root] then points at the shared
+     * sibling and only [eventsDir] (the cross-account event store) is
+     * meaningful. Read-only verbs run anonymously against it; signing
+     * verbs get [noAccountDetail] via `Context.open`.
+     */
+    val hasAccount: Boolean = true,
+    /** Human-readable reason there is no account, for the signing-verb error. */
+    val noAccountDetail: String? = null,
+) {
+    val identityFile = File(root, "identity.json")
+    val stateFile = File(root, "state.json")
+    val aliasesFile = File(root, "aliases.json")
+    val cashuFile = File(root, "cashu.json")
+    val marmotDir = File(root, "marmot")
+    val groupsDir = File(marmotDir, "groups")
+    val keyPackageBundleFile = File(marmotDir, "keypackages.bundle")
+
+    /**
+     * SQLite event-store DB file, a sibling of [eventsDir] under
+     * `<root>/shared/`. Used when the store backend is SQLite (the
+     * default — see [StoreFactory]); the FS backend uses [eventsDir]
+     * instead. Kept alongside the FS store so switching backends never
+     * clobbers the other's data.
+     */
+    val eventsDbFile: File = File(eventsDir.parentFile ?: root, "events.db")
+
+    /**
+     * Persisted DNS cache (SurgeDns snapshot) under `<root>/shared/`, next to the
+     * event store — cross-account like the resolver itself: a relay host resolved
+     * by one account's crawl serves every account's next run.
+     */
+    val dnsCacheFile: File = File(eventsDir.parentFile ?: root, "dns-cache.bin")
+
+    /**
+     * Machine-level operator keys for GrapeRank trusted-assertion publishing,
+     * rooted at `~/.amy/operator/` (the account root's parent) so a single
+     * operator master is shared across accounts. See [OperatorKeys].
+     */
+    fun operatorKeys(): OperatorKeys = OperatorKeys(root.parentFile ?: root, secrets)
+
+    init {
+        SecureFileIO.secureMkdirs(root)
+        // The accountless dir only ever exposes the shared event store; don't
+        // seed per-account marmot dirs / tighten identity files under it.
+        if (hasAccount) {
+            SecureFileIO.secureMkdirs(groupsDir)
+            // Tighten perms on any data already on disk from an older, unhardened CLI.
+            SecureFileIO.tighten(identityFile)
+            SecureFileIO.tighten(stateFile)
+            SecureFileIO.tighten(marmotDir)
+            SecureFileIO.tighten(keyPackageBundleFile)
+        }
+    }
+
+    /**
+     * Read the on-disk metadata without touching any backend. Safe to use
+     * for "does an identity exist?" / "what's the npub?" checks that must
+     * not pop a keychain prompt or ask for a passphrase.
+     */
+    fun loadIdentityFileOrNull(): IdentityFile? = if (identityFile.exists()) Output.mapper.readValue(identityFile.readText()) else null
+
+    fun identityExists(): Boolean = identityFile.exists()
+
+    /**
+     * Load the identity from disk. Resolves the private key through the
+     * configured [SecretStore] (prompting for a passphrase if needed) and
+     * auto-migrates pre-secret-store files that still carry `privKeyHex`/
+     * `nsec` at the top level — the migrated content is written back via
+     * [saveIdentity] on the next explicit save, not eagerly on load.
+     */
+    fun loadIdentityOrNull(): Identity? {
+        val file = loadIdentityFileOrNull() ?: return null
+        // Bunker (NIP-46) account: `secret` holds the local transport key, and
+        // `bunker` records the remote signer. The account has no user privkey.
+        file.bunker?.let { b ->
+            val clientPriv = file.secret?.let { secrets.resolve(it) } ?: file.privKeyHex
+            requireNotNull(clientPriv) { "bunker identity is missing its transport key" }
+            return Identity.fromDisk(
+                pubKeyHex = file.pubKeyHex,
+                npub = file.npub,
+                privKeyHex = null,
+                bunker = Bunker(b.remotePubkey, b.relays, b.connectSecret, clientPriv),
+            )
+        }
+        val privHex: String? =
+            when {
+                file.secret != null -> secrets.resolve(file.secret)
+                file.privKeyHex != null -> file.privKeyHex
+                file.nsec != null -> file.nsec.bechToBytes().toHexKey()
+                else -> null // read-only
+            }
+        return Identity.fromDisk(pubKeyHex = file.pubKeyHex, npub = file.npub, privKeyHex = privHex)
+    }
+
+    /**
+     * Persist [id]. When [id] carries a private key, [SecretStore.store] is
+     * called to push it to the selected backend (keychain / ncryptsec /
+     * plaintext); only the resulting [IdentitySecret] reference is written
+     * to disk. Read-only identities persist `secret: null`.
+     */
+    fun saveIdentity(id: Identity) {
+        if (id.bunker != null) {
+            // Persist the local transport key under its own pubkey; record the
+            // remote signer connection alongside it.
+            val clientPub = id.clientKeyPair().pubKey.toHexKey()
+            val secret = secrets.store(clientPub, id.bunker.clientPrivKeyHex)
+            val file =
+                IdentityFile(
+                    pubKeyHex = id.pubKeyHex,
+                    npub = id.npub,
+                    secret = secret,
+                    bunker = BunkerFile(id.bunker.remotePubkey, id.bunker.relays, id.bunker.connectSecret),
+                )
+            SecureFileIO.writeTextAtomic(identityFile, Output.mapper.writeValueAsString(file))
+            return
+        }
+        val secret: IdentitySecret? = id.privKeyHex?.let { secrets.store(id.pubKeyHex, it) }
+        val file = IdentityFile(pubKeyHex = id.pubKeyHex, npub = id.npub, secret = secret)
+        SecureFileIO.writeTextAtomic(identityFile, Output.mapper.writeValueAsString(file))
+    }
+
+    /** Remove the identity file and any backend-held secret. */
+    fun deleteIdentity() {
+        if (identityFile.exists()) {
+            runCatching {
+                val file = Output.mapper.readValue<IdentityFile>(identityFile.readText())
+                file.secret?.let { secrets.delete(it) }
+            }
+            if (!identityFile.delete() && identityFile.exists()) {
+                Log.w(TAG) { "Failed to delete identity file ${identityFile.absolutePath}" }
+            }
+        }
+    }
+
+    fun loadRunState(): RunState = if (stateFile.exists()) Output.mapper.readValue(stateFile.readText()) else RunState()
+
+    fun saveRunState(s: RunState) {
+        SecureFileIO.writeTextAtomic(stateFile, Output.mapper.writeValueAsString(s))
+    }
+
+    companion object {
+        /**
+         * Per-user root under which `shared/` and `<account>/` live.
+         *
+         * Reads `$HOME` directly rather than `user.home` because JDK 21
+         * resolves the latter from `getpwuid` and ignores `$HOME`,
+         * which would break the standard `HOME=/tmp/foo amy …` test
+         * isolation pattern (the same convention `git`, `gpg`, `npm`
+         * follow). Falls back to `user.home` only when `$HOME` is unset
+         * (Windows, weird containers).
+         */
+        val DEFAULT_ROOT: File get() {
+            val home =
+                System.getenv("HOME").takeUnless { it.isNullOrBlank() }
+                    ?: System.getProperty("user.home")
+            return File(home, ".amy")
+        }
+
+        /** Marker file (one line, just the account name) written by `amy use`. */
+        const val CURRENT_MARKER_NAME = "current"
+
+        /**
+         * Account names become directory names AND alias keys, so we
+         * keep them to a portable, shell-friendly subset. `shared` is
+         * reserved for the cross-account events-store sibling, `current`
+         * collides with the active-account marker file, and `operator` is the
+         * machine-level operator-keys sibling (see [OperatorKeys]) that ANY
+         * graperank crawl/probe creates — counting it as an account broke
+         * single-account auto-selection with "multiple accounts (operator, …)".
+         */
+        private val NAME_REGEX = Regex("^[a-zA-Z0-9_-]{1,64}$")
+        private const val SHARED_DIR_NAME = "shared"
+        private const val OPERATOR_DIR_NAME = "operator"
+        private val RESERVED_NAMES = setOf(SHARED_DIR_NAME, CURRENT_MARKER_NAME, OPERATOR_DIR_NAME)
+
+        fun validateName(name: String): String {
+            require(NAME_REGEX.matches(name)) {
+                "--account must match [a-zA-Z0-9_-]{1,64} (got '$name')"
+            }
+            require(name !in RESERVED_NAMES) {
+                "'$name' is reserved (cannot be used as an account name)"
+            }
+            return name
+        }
+
+        /**
+         * Build a [DataDir] from the parsed CLI flags.
+         *
+         * Resolution order:
+         *   1. `--account X` if provided.
+         *   2. `<root>/current` marker (set by `amy use X`).
+         *   3. Sole subdirectory of `<root>` other than `shared/`.
+         *   4. Error — caller must disambiguate via `--account` or `amy use`.
+         */
+        fun resolve(
+            accountFlag: String?,
+            secrets: SecretStore,
+        ): DataDir {
+            val rootBase = DEFAULT_ROOT
+            val name = if (accountFlag != null) validateName(accountFlag) else pickAccount(rootBase)
+            val accountRoot = File(rootBase, name).absoluteFile
+            val sharedEvents = File(rootBase, "$SHARED_DIR_NAME/events-store").absoluteFile
+            return DataDir(
+                root = accountRoot,
+                eventsDir = sharedEvents,
+                accountName = name,
+                secrets = secrets,
+            )
+        }
+
+        /**
+         * Like [resolve], but never throws when there is no account: read-only
+         * verbs can run without one. When `--account` is given it is honoured;
+         * otherwise the pin / sole-account are used if unambiguous. Failing
+         * that, returns an *accountless* [DataDir] (`hasAccount = false`) whose
+         * [root] is the shared sibling and whose [eventsDir] is still the
+         * cross-account event store — enough for anonymous relay queries and
+         * `store` maintenance. The reason no account was chosen is carried in
+         * [DataDir.noAccountDetail] so a signing verb can surface it.
+         */
+        fun resolveOptional(
+            accountFlag: String?,
+            secrets: SecretStore,
+        ): DataDir {
+            val rootBase = DEFAULT_ROOT
+            val sharedEvents = File(rootBase, "$SHARED_DIR_NAME/events-store").absoluteFile
+            if (accountFlag != null) {
+                val name = validateName(accountFlag)
+                return DataDir(File(rootBase, name).absoluteFile, sharedEvents, name, secrets)
+            }
+            val picked = pickAccountOptional(rootBase)
+            return if (picked.name != null) {
+                DataDir(File(rootBase, picked.name).absoluteFile, sharedEvents, picked.name, secrets)
+            } else {
+                DataDir(
+                    root = File(rootBase, SHARED_DIR_NAME).absoluteFile,
+                    eventsDir = sharedEvents,
+                    accountName = SHARED_DIR_NAME,
+                    secrets = secrets,
+                    hasAccount = false,
+                    noAccountDetail = picked.detail,
+                )
+            }
+        }
+
+        /** Result of [pickAccountOptional]: an account [name], or null plus a [detail] reason. */
+        private data class OptionalPick(
+            val name: String?,
+            val detail: String?,
+        )
+
+        /** Non-throwing sibling of [pickAccount]: null [name] with a [detail] when 0 / ambiguous. */
+        private fun pickAccountOptional(rootBase: File): OptionalPick {
+            val current = File(rootBase, CURRENT_MARKER_NAME)
+            if (current.isFile) {
+                val pinned = current.readText().trim()
+                if (pinned.isNotEmpty() && File(rootBase, pinned).isDirectory) {
+                    return OptionalPick(pinned, null)
+                }
+            }
+            val accounts = listAccounts(rootBase)
+            return when (accounts.size) {
+                0 -> OptionalPick(null, "no account configured (create one with `amy --account <name> init`)")
+                1 -> OptionalPick(accounts.single(), null)
+                else ->
+                    OptionalPick(
+                        null,
+                        "multiple accounts in ${rootBase.absolutePath} (${accounts.joinToString(", ")}); " +
+                            "pick one with --account <name> or `amy use <name>`",
+                    )
+            }
+        }
+
+        /**
+         * Auto-select an account when `--name` was not given. Honours
+         * `<root>/current` first (explicit pin from `amy use`), then
+         * falls back to "exactly one account exists". Throws
+         * [IllegalArgumentException] for the ambiguous cases so
+         * `main`'s catch-all turns them into a clean exit-2 error.
+         */
+        private fun pickAccount(rootBase: File): String {
+            val current = File(rootBase, CURRENT_MARKER_NAME)
+            if (current.isFile) {
+                val pinned = current.readText().trim()
+                require(pinned.isNotEmpty()) {
+                    "${current.absolutePath} is empty; rewrite with `amy use <name>` or pass --account"
+                }
+                require(File(rootBase, pinned).isDirectory) {
+                    "${current.absolutePath} pins '$pinned' but ${File(rootBase, pinned).absolutePath} doesn't exist; " +
+                        "rewrite with `amy use <name>` or pass --account"
+                }
+                return pinned
+            }
+            val accounts = listAccounts(rootBase)
+            return when (accounts.size) {
+                0 -> {
+                    throw IllegalArgumentException(
+                        "no account at ${rootBase.absolutePath}; create one with `amy --account <name> init`",
+                    )
+                }
+
+                1 -> {
+                    accounts.single()
+                }
+
+                else -> {
+                    throw IllegalArgumentException(
+                        "multiple accounts in ${rootBase.absolutePath} (${accounts.joinToString(", ")}); " +
+                            "pick one with --account <name> or `amy use <name>`",
+                    )
+                }
+            }
+        }
+
+        /** Subdirectories of `<root>/` that look like accounts (excludes `shared/`). */
+        fun listAccounts(rootBase: File): List<String> =
+            rootBase
+                .listFiles { f -> f.isDirectory && f.name !in RESERVED_NAMES }
+                ?.map { it.name }
+                ?.sorted()
+                .orEmpty()
+    }
+}

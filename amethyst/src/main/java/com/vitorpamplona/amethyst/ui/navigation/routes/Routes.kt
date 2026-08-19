@@ -1,0 +1,929 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.ui.navigation.routes
+
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavHostController
+import androidx.navigation.toRoute
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.bookmarkgroups.BookmarkType
+import com.vitorpamplona.quartz.nip01Core.core.Address
+import com.vitorpamplona.quartz.nip01Core.core.HexKey
+import com.vitorpamplona.quartz.nip17Dm.base.ChatroomKey
+import kotlinx.serialization.Serializable
+import kotlin.reflect.KClass
+
+sealed class Route {
+    @Serializable object Home : Route()
+
+    @Serializable object Message : Route()
+
+    @Serializable object Video : Route()
+
+    @Serializable data class Discover(
+        val initialTab: DiscoverTab? = null,
+    ) : Route()
+
+    @Serializable data class Notification(
+        val scrollToEventId: String? = null,
+    ) : Route()
+
+    @Serializable object Polls : Route()
+
+    @Serializable object Communities : Route()
+
+    @Serializable object NewCommunity : Route()
+
+    @Serializable data class EditCommunity(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+    ) : Route() {
+        constructor(address: Address) : this(
+            kind = address.kind,
+            pubKeyHex = address.pubKeyHex,
+            dTag = address.dTag,
+        )
+    }
+
+    @Serializable object Badges : Route()
+
+    @Serializable object ProfileBadges : Route()
+
+    @Serializable object ProfileAppRecommendations : Route()
+
+    @Serializable data class AwardBadge(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+    ) : Route() {
+        constructor(address: Address) : this(
+            kind = address.kind,
+            pubKeyHex = address.pubKeyHex,
+            dTag = address.dTag,
+        )
+    }
+
+    @Serializable object Pictures : Route()
+
+    @Serializable object Workouts : Route()
+
+    @Serializable object GitRepositories : Route()
+
+    @Serializable object SoftwareApps : Route()
+
+    @Serializable object Napplets : Route()
+
+    @Serializable object Nsites : Route()
+
+    @Serializable object Browser : Route()
+
+    @Serializable object FavoriteApps : Route()
+
+    @Serializable data class WebApp(
+        val url: String,
+    ) : Route()
+
+    @Serializable data class NostrApp(
+        val coordinate: String,
+    ) : Route()
+
+    @Serializable object ConnectedApps : Route()
+
+    @Serializable object RelayAuthSettings : Route()
+
+    @Serializable data class ConnectedAppDetail(
+        val coordinate: String,
+    ) : Route()
+
+    @Serializable data class SoftwareAppDetail(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+    ) : Route() {
+        constructor(address: Address) : this(
+            kind = address.kind,
+            pubKeyHex = address.pubKeyHex,
+            dTag = address.dTag,
+        )
+    }
+
+    @Serializable object Calendars : Route()
+
+    @Serializable object CalendarCollections : Route()
+
+    @Serializable
+    data class NewCalendarEvent(
+        val draft: String? = null,
+    ) : Route()
+
+    @Serializable
+    data class EditCalendarEvent(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+    ) : Route() {
+        constructor(address: Address) : this(
+            kind = address.kind,
+            pubKeyHex = address.pubKeyHex,
+            dTag = address.dTag,
+        )
+    }
+
+    @Serializable
+    data class NewCalendarCollection(
+        val dTag: String? = null,
+    ) : Route()
+
+    @Serializable data class CalendarEventDetail(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+    ) : Route() {
+        constructor(address: Address) : this(
+            kind = address.kind,
+            pubKeyHex = address.pubKeyHex,
+            dTag = address.dTag,
+        )
+    }
+
+    @Serializable object Products : Route()
+
+    @Serializable object Shorts : Route()
+
+    @Serializable object PublicChats : Route()
+
+    @Serializable object FollowPacks : Route()
+
+    @Serializable object LiveStreams : Route()
+
+    @Serializable object Nests : Route()
+
+    @Serializable data class NestLobby(
+        val addressValue: String,
+    ) : Route()
+
+    @Serializable object Longs : Route()
+
+    @Serializable object Articles : Route()
+
+    @Serializable object MusicTracks : Route()
+
+    @Serializable object MusicPlaylists : Route()
+
+    @Serializable object PodcastEpisodes : Route()
+
+    @Serializable object Podcasts : Route()
+
+    @Serializable data class Podcast(
+        val pubkey: String,
+    ) : Route()
+
+    @Serializable object PodcastAuthoring : Route()
+
+    @Serializable object EditPodcastShow : Route()
+
+    @Serializable
+    data class NewPodcastEpisode(
+        val dTag: String? = null,
+    ) : Route()
+
+    @Serializable object NewPodcastTrailer : Route()
+
+    @Serializable
+    data class NewMusicTrack(
+        val dTag: String? = null,
+    ) : Route()
+
+    @Serializable
+    data class NewMusicPlaylist(
+        val dTag: String? = null,
+    ) : Route()
+
+    @Serializable
+    data class AddToMusicPlaylist(
+        val trackAddress: String,
+    ) : Route()
+
+    @Serializable object Chess : Route()
+
+    @Serializable object Wallet : Route()
+
+    @Serializable
+    data class WalletSend(
+        val walletId: String,
+    ) : Route()
+
+    @Serializable
+    data class WalletReceive(
+        val walletId: String,
+    ) : Route()
+
+    @Serializable
+    data class WalletTransactions(
+        val walletId: String,
+    ) : Route()
+
+    @Serializable object OnchainTransactions : Route()
+
+    @Serializable
+    data class WalletDetail(
+        val walletId: String,
+    ) : Route()
+
+    @Serializable object WalletAdd : Route()
+
+    @Serializable data class WalletAddNwc(
+        val nip47: String? = null,
+    ) : Route()
+
+    @Serializable object CashuWalletMints : Route()
+
+    @Serializable data class WalletAddClinkDebit(
+        val ndebit: String? = null,
+    ) : Route()
+
+    @Serializable object CashuWallet : Route()
+
+    /** Find-or-create wizard, shown when no NIP-60 wallet is loaded. */
+    @Serializable object CashuWalletWizard : Route()
+
+    /** Celebratory interstitial after choosing to create a new wallet. */
+    @Serializable object CashuWalletCreated : Route()
+
+    @Serializable object CashuWalletSettings : Route()
+
+    @Serializable object CashuMintRecommendations : Route()
+
+    /**
+     * Unified profile payment screen: collects amount/message/zap type and pays
+     * through whichever rail (Lightning, CLINK offer, on-chain, Cashu) the
+     * profile supports. [method] preselects a rail (see ProfilePaymentMethod
+     * route keys); [lnAddressOverride] pays a specific lightning target instead
+     * of the profile's kind:0 lud16; [btcAddressOverride] makes the on-chain
+     * rail pay that announced address directly (plain send, no NIP-BC receipt)
+     * instead of the recipient's pubkey-derived Taproot address.
+     */
+    @Serializable
+    data class SendPayment(
+        val userHex: String,
+        val method: String? = null,
+        val lnAddressOverride: String? = null,
+        val btcAddressOverride: String? = null,
+    ) : Route()
+
+    @Serializable object Search : Route()
+
+    @Serializable object SecurityFilters : Route()
+
+    @Serializable object BlockedUsers : Route()
+
+    @Serializable object SpammingUsers : Route()
+
+    @Serializable object HiddenWords : Route()
+
+    @Serializable object MutedThreads : Route()
+
+    @Serializable object PrivacyOptions : Route()
+
+    @Serializable object NamecoinSettings : Route()
+
+    @Serializable object OtsSettings : Route()
+
+    @Serializable object Bookmarks : Route()
+
+    @Serializable object OldBookmarks : Route()
+
+    @Serializable object PinnedNotes : Route()
+
+    @Serializable object BookmarkedRepositories : Route()
+
+    @Serializable object BookmarkedPodcasts : Route()
+
+    @Serializable object BookmarkGroups : Route()
+
+    @Serializable object InterestSets : Route()
+
+    @Serializable data class InterestSetView(
+        val dTag: String,
+    ) : Route()
+
+    @Serializable data class InterestSetMetadataEdit(
+        val dTag: String? = null,
+    ) : Route()
+
+    @Serializable object ImportFollowsSelectUser : Route()
+
+    @Serializable data class ImportFollowsPickFollows(
+        val userHex: HexKey,
+    ) : Route()
+
+    @Serializable data class BookmarkGroupView(
+        val dTag: String,
+        val bookmarkType: BookmarkType,
+    ) : Route()
+
+    @Serializable data class BookmarkGroupMetadataEdit(
+        val dTag: String? = null,
+    ) : Route()
+
+    @Serializable data class PostBookmarkManagement(
+        val postId: String,
+    ) : Route()
+
+    @Serializable data class ArticleBookmarkManagement(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+    ) : Route() {
+        constructor(address: Address) : this(
+            kind = address.kind,
+            pubKeyHex = address.pubKeyHex,
+            dTag = address.dTag,
+        )
+    }
+
+    @Serializable object EmojiPacks : Route()
+
+    @Serializable object MyEmojiList : Route()
+
+    @Serializable object BrowseEmojiSets : Route()
+
+    @Serializable data class EmojiPackView(
+        val dTag: String,
+    ) : Route()
+
+    @Serializable data class EmojiPackMetadataEdit(
+        val dTag: String? = null,
+    ) : Route()
+
+    @Serializable data class EmojiPackSelection(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+    ) : Route() {
+        constructor(address: Address) : this(
+            kind = address.kind,
+            pubKeyHex = address.pubKeyHex,
+            dTag = address.dTag,
+        )
+    }
+
+    @Serializable object WebBookmarks : Route()
+
+    @Serializable object Drafts : Route()
+
+    @Serializable object ScheduledPosts : Route()
+
+    @Serializable object AllSettings : Route()
+
+    @Serializable object AccountBackup : Route()
+
+    @Serializable object Settings : Route()
+
+    @Serializable object ComposeSettings : Route()
+
+    @Serializable object UserSettings : Route()
+
+    @Serializable object ReactionsSettings : Route()
+
+    @Serializable object MessagesSettings : Route()
+
+    @Serializable object AudioVisualizerSettings : Route()
+
+    @Serializable object BottomBarSettings : Route()
+
+    @Serializable object HomeTabsSettings : Route()
+
+    @Serializable object ProfileUiSettings : Route()
+
+    @Serializable object ProfileLayoutSettings : Route()
+
+    @Serializable object VideoPlayerSettings : Route()
+
+    @Serializable object CallSettings : Route()
+
+    @Serializable object NotificationSettings : Route()
+
+    @Serializable object CalendarReminderSettings : Route()
+
+    @Serializable object Lists : Route()
+
+    @Serializable data class MyPeopleListView(
+        val dTag: String,
+    ) : Route()
+
+    @Serializable data class MyFollowPackView(
+        val dTag: String,
+    ) : Route()
+
+    @Serializable data class PeopleListMetadataEdit(
+        val dTag: String? = null,
+    ) : Route()
+
+    @Serializable data class FollowPackMetadataEdit(
+        val dTag: String? = null,
+    ) : Route()
+
+    @Serializable data class PeopleListManagement(
+        val userToAdd: HexKey,
+    ) : Route()
+
+    @Serializable object EditProfile : Route()
+
+    @Serializable object EditRelays : Route()
+
+    @Serializable object EventSync : Route()
+
+    @Serializable object RequestToVanish : Route()
+
+    @Serializable object VanishEvents : Route()
+
+    @Serializable object EditMediaServers : Route()
+
+    @Serializable object EditNestsServers : Route()
+
+    @Serializable object EditFavoriteAlgoFeeds : Route()
+
+    @Serializable object EditPaymentTargets : Route()
+
+    @Serializable object UpdateReactionType : Route()
+
+    @Serializable data class Nip47NWCSetup(
+        val nip47: String? = null,
+    ) : Route()
+
+    @Serializable data class UpdateZapAmount(
+        val nip47: String? = null,
+    ) : Route()
+
+    @Serializable data class Profile(
+        val id: String,
+    ) : Route()
+
+    @Serializable data class QRDisplay(
+        val pubkey: String,
+    ) : Route()
+
+    @Serializable data class ContentDiscovery(
+        val id: String,
+    ) : Route()
+
+    @Serializable data class Note(
+        val id: String,
+    ) : Route()
+
+    @Serializable data class ShareNoteAsImage(
+        val id: String,
+    ) : Route()
+
+    @Serializable data class ShareNoteAsImageFile(
+        val id: String,
+    ) : Route()
+
+    @Serializable data class ContactListUsers(
+        val noteId: String,
+    ) : Route()
+
+    @Serializable data class Hashtag(
+        val hashtag: String,
+    ) : Route()
+
+    @Serializable data class Geohash(
+        val geohash: String,
+    ) : Route()
+
+    @Serializable data class Url(
+        val url: String,
+    ) : Route()
+
+    @Serializable data class ChessGame(
+        val gameId: String,
+    ) : Route()
+
+    @Serializable data class Community(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+    ) : Route() {
+        constructor(address: Address) : this(
+            kind = address.kind,
+            pubKeyHex = address.pubKeyHex,
+            dTag = address.dTag,
+        )
+    }
+
+    @Serializable data class GitRepository(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+    ) : Route() {
+        constructor(address: Address) : this(
+            kind = address.kind,
+            pubKeyHex = address.pubKeyHex,
+            dTag = address.dTag,
+        )
+    }
+
+    @Serializable data class GitRepositoryCode(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+    ) : Route() {
+        constructor(address: Address) : this(
+            kind = address.kind,
+            pubKeyHex = address.pubKeyHex,
+            dTag = address.dTag,
+        )
+    }
+
+    @Serializable data class GitRepositoryIssues(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+    ) : Route() {
+        constructor(address: Address) : this(
+            kind = address.kind,
+            pubKeyHex = address.pubKeyHex,
+            dTag = address.dTag,
+        )
+    }
+
+    @Serializable data class GitRepositoryPulls(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+    ) : Route() {
+        constructor(address: Address) : this(
+            kind = address.kind,
+            pubKeyHex = address.pubKeyHex,
+            dTag = address.dTag,
+        )
+    }
+
+    @Serializable data class GitRepositoryNewIssue(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+    ) : Route() {
+        constructor(address: Address) : this(
+            kind = address.kind,
+            pubKeyHex = address.pubKeyHex,
+            dTag = address.dTag,
+        )
+    }
+
+    @Serializable data class FollowPack(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+    ) : Route() {
+        constructor(address: Address) : this(
+            kind = address.kind,
+            pubKeyHex = address.pubKeyHex,
+            dTag = address.dTag,
+        )
+    }
+
+    @Serializable data class PublicChatChannel(
+        val id: String,
+        val draftId: HexKey? = null,
+        val replyTo: HexKey? = null,
+    ) : Route()
+
+    @Serializable data class LiveActivityChannel(
+        val kind: Int,
+        val pubKeyHex: HexKey,
+        val dTag: String,
+        val draftId: HexKey? = null,
+        val replyTo: HexKey? = null,
+    ) : Route()
+
+    @Serializable data class RelayInfo(
+        val url: String,
+    ) : Route()
+
+    @Serializable data class RelayManagement(
+        val url: String,
+    ) : Route()
+
+    @Serializable data class RelayMembers(
+        val url: String,
+    ) : Route()
+
+    @Serializable data class RelayFeed(
+        val url: String,
+    ) : Route()
+
+    @Serializable data class EphemeralChat(
+        val id: String,
+        val relayUrl: String,
+        val draftId: HexKey? = null,
+        val replyTo: HexKey? = null,
+    ) : Route()
+
+    @Serializable object NewEphemeralChat : Route()
+
+    @Serializable data class RelayGroup(
+        val id: String,
+        val relayUrl: String,
+        val draftId: HexKey? = null,
+        val replyTo: HexKey? = null,
+        // NIP-29 invite code from a `wss://relay'id?code=…` link — auto-joins a closed
+        // group when the screen opens. Null for a plain (view-only) group link.
+        val inviteCode: String? = null,
+    ) : Route()
+
+    @Serializable data class RelayGroupServer(
+        val relayUrl: String,
+    ) : Route()
+
+    @Serializable data class RelayGroupMembers(
+        val id: String,
+        val relayUrl: String,
+    ) : Route()
+
+    @Serializable data class RelayGroupThreads(
+        val id: String,
+        val relayUrl: String,
+    ) : Route()
+
+    @Serializable data class RelayGroupCreate(
+        val relayUrl: String,
+    ) : Route()
+
+    @Serializable data class RelayGroupEdit(
+        val id: String,
+        val relayUrl: String,
+    ) : Route()
+
+    @Serializable object RelayGroups : Route()
+
+    @Serializable object RelayGroupBrowse : Route()
+
+    @Serializable data class ChannelMetadataEdit(
+        val id: String? = null,
+    ) : Route()
+
+    @Serializable object MarmotGroupList : Route()
+
+    @Serializable data class MarmotGroupChat(
+        val nostrGroupId: String,
+        val message: String? = null,
+        val replyId: HexKey? = null,
+    ) : Route()
+
+    @Serializable data class MarmotGroupInfo(
+        val nostrGroupId: String,
+    ) : Route()
+
+    @Serializable object CreateMarmotGroup : Route()
+
+    @Serializable data class MarmotGroupEditInfo(
+        val nostrGroupId: String,
+    ) : Route()
+
+    @Serializable data class NewGroupDM(
+        val message: String? = null,
+        val attachment: String? = null,
+    ) : Route()
+
+    @Serializable data class ShareToDM(
+        val message: String? = null,
+        val attachment: String? = null,
+    ) : Route()
+
+    @Serializable data class Room(
+        val id: String,
+        val message: String? = null,
+        val attachment: String? = null,
+        val replyId: HexKey? = null,
+        val draftId: HexKey? = null,
+        val expiresDays: Int? = null,
+    ) : Route() {
+        constructor(key: ChatroomKey, message: String? = null, attachment: String? = null, replyId: HexKey? = null, draftId: HexKey? = null, expiresDays: Int? = null) : this(
+            id = key.users.joinToString(","),
+            message = message,
+            attachment = attachment,
+            replyId = replyId,
+            draftId = draftId,
+            expiresDays = expiresDays,
+        )
+
+        fun toKey(): ChatroomKey = ChatroomKey(id.split(",").toSet())
+    }
+
+    @Serializable data class NewPublicMessage(
+        val to: String,
+        val replyId: HexKey? = null,
+        val draftId: HexKey? = null,
+    ) : Route() {
+        constructor(users: Set<HexKey>, parentId: HexKey, draftId: HexKey? = null) : this(
+            to = users.joinToString(","),
+            replyId = parentId,
+            draftId = draftId,
+        )
+
+        fun toKey(): Set<HexKey> = to.split(",").toSet()
+    }
+
+    @Serializable data class RoomByAuthor(
+        val id: String,
+    ) : Route()
+
+    @Serializable data class ActiveCall(
+        val callId: String,
+        val peerPubKey: HexKey,
+    ) : Route()
+
+    @Serializable data class EventRedirect(
+        val id: String,
+    ) : Route()
+
+    @Serializable
+    data class NewProduct(
+        val message: String? = null,
+        val attachment: String? = null,
+        val quote: String? = null,
+        val draft: String? = null,
+    ) : Route()
+
+    @Serializable data object NewGoal : Route()
+
+    /**
+     * Manual workout composer. All fields are optional pre-fill, used when a
+     * workout is detected from Health Connect and the user accepts the
+     * suggestion; a blank [NewWorkout] opens the empty manual form.
+     */
+    @Serializable
+    data class NewWorkout(
+        val exercise: String? = null,
+        val title: String? = null,
+        val durationSeconds: Long = 0,
+        val distanceMeters: Double = 0.0,
+        val calories: Int = 0,
+        val avgHeartRate: Int = 0,
+        val maxHeartRate: Int = 0,
+        val steps: Int = 0,
+        val elevationGainMeters: Double = 0.0,
+        val startTime: Long = 0,
+        val source: String? = null,
+    ) : Route()
+
+    @Serializable
+    data class NewLongFormPost(
+        val draft: String? = null,
+        val version: String? = null,
+    ) : Route()
+
+    @Serializable
+    data class GeoPost(
+        val geohash: String? = null,
+        val message: String? = null,
+        val attachment: String? = null,
+        val replyTo: String? = null,
+        val quote: String? = null,
+        val draft: String? = null,
+    ) : Route()
+
+    @Serializable
+    data class HashtagPost(
+        val hashtag: String? = null,
+        val message: String? = null,
+        val attachment: String? = null,
+        val replyTo: String? = null,
+        val quote: String? = null,
+        val draft: String? = null,
+    ) : Route()
+
+    @Serializable
+    data class UrlPost(
+        val url: String? = null,
+        val message: String? = null,
+        val attachment: String? = null,
+        val replyTo: String? = null,
+        val quote: String? = null,
+        val draft: String? = null,
+    ) : Route()
+
+    @Serializable
+    data class GenericCommentPost(
+        val message: String? = null,
+        val attachment: String? = null,
+        val replyTo: String? = null,
+        val quote: String? = null,
+        val draft: String? = null,
+    ) : Route()
+
+    @Serializable
+    data class NewShortNote(
+        val message: String? = null,
+        val attachment: String? = null,
+        val baseReplyTo: String? = null,
+        val quote: String? = null,
+        val fork: String? = null,
+        val version: String? = null,
+        val draft: String? = null,
+        // When set, the composer produces a NIP-29 kind-11 group thread scoped to this group id and
+        // published only to its host relay (see ShortNotePostViewModel.setGroupThread).
+        val groupThreadId: String? = null,
+        val groupThreadRelayUrl: String? = null,
+    ) : Route()
+
+    @Serializable
+    data class NewPoll(
+        val message: String? = null,
+        val draft: String? = null,
+    ) : Route()
+
+    @Serializable data object NewHlsVideo : Route()
+
+    @Serializable
+    data class VoiceReply(
+        val replyToNoteId: String,
+        val recordingFilePath: String,
+        val mimeType: String,
+        val duration: Int,
+        val amplitudes: String, // JSON-encoded List<Float>
+    ) : Route()
+
+    @Serializable
+    data class ManualZapSplitPayment(
+        val paymentId: String,
+    ) : Route()
+
+    @Serializable
+    data class ReloadMint(
+        val requestId: String,
+    ) : Route()
+
+    @Serializable
+    data class TopUpMint(
+        val mintUrl: String,
+    ) : Route()
+}
+
+inline fun <reified T : Route> isBaseRoute(navController: NavHostController): Boolean = navController.currentBackStackEntry?.destination?.hasRoute<T>() == true
+
+fun <T : Route> getRouteWithArguments(
+    klazz: KClass<T>,
+    navController: NavHostController,
+): Route? {
+    val entry = navController.currentBackStackEntry ?: return null
+    val dest = entry.destination
+
+    return if (dest.hasRoute(klazz)) {
+        entry.toRoute(klazz)
+    } else {
+        null
+    }
+}
+
+@Serializable
+enum class DiscoverTab {
+    FOLLOWS,
+    READS,
+    ALGOS,
+    LIVE,
+    COMMUNITY,
+    MARKETPLACE,
+    CHATS,
+}
+
+fun isSameRoute(
+    currentRoute: Route?,
+    newRoute: Route,
+): Boolean {
+    if (currentRoute == null) return false
+
+    if (currentRoute == newRoute) {
+        return true
+    }
+
+    if (newRoute is Route.EventRedirect) {
+        return when (currentRoute) {
+            is Route.Note -> newRoute.id == currentRoute.id
+            is Route.PublicChatChannel -> newRoute.id == currentRoute.id
+            else -> false
+        }
+    }
+
+    return false
+}

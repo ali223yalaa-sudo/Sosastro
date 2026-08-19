@@ -1,0 +1,79 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.napplet
+
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import com.vitorpamplona.amethyst.commons.napplet.NappletStorage
+import kotlinx.coroutines.flow.first
+
+private val Context.nappletStorageDataStore by preferencesDataStore(name = "napplet_storage")
+
+/**
+ * DataStore-backed [NappletStorage]. Every key is prefixed with the applet's coordinate, so one
+ * napplet's keys can never collide with another's, and this store is entirely separate from the
+ * app's own preferences.
+ */
+class DataStoreNappletStorage(
+    private val dataStore: DataStore<Preferences>,
+) : NappletStorage {
+    constructor(context: Context) : this(context.applicationContext.nappletStorageDataStore)
+
+    override suspend fun get(
+        coordinate: String,
+        key: String,
+    ): String? = dataStore.data.first()[keyOf(coordinate, key)]
+
+    override suspend fun set(
+        coordinate: String,
+        key: String,
+        value: String,
+    ) {
+        dataStore.edit { it[keyOf(coordinate, key)] = value }
+    }
+
+    override suspend fun remove(
+        coordinate: String,
+        key: String,
+    ) {
+        dataStore.edit { it.remove(keyOf(coordinate, key)) }
+    }
+
+    override suspend fun keys(coordinate: String): List<String> {
+        val prefix = "$coordinate "
+        return dataStore.data
+            .first()
+            .asMap()
+            .keys
+            .map { it.name }
+            .filter { it.startsWith(prefix) }
+            .map { it.removePrefix(prefix) }
+    }
+
+    private fun keyOf(
+        coordinate: String,
+        key: String,
+    ) = stringPreferencesKey("$coordinate\u0000$key")
+}

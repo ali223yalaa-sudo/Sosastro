@@ -1,0 +1,2773 @@
+/*
+ * Copyright (c) 2025 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.amethyst.ui.note
+
+import android.content.Context
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.vitorpamplona.amethyst.R
+import com.vitorpamplona.amethyst.commons.emojicoder.EmojiCoder
+import com.vitorpamplona.amethyst.commons.hashtags.Cashu
+import com.vitorpamplona.amethyst.commons.hashtags.CustomHashTagIcons
+import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
+import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
+import com.vitorpamplona.amethyst.commons.ui.components.AnimatedBorderTextCornerRadius
+import com.vitorpamplona.amethyst.commons.ui.components.GenericLoadable
+import com.vitorpamplona.amethyst.model.AddressableNote
+import com.vitorpamplona.amethyst.model.MIN_ONCHAIN_ZAP_SATS
+import com.vitorpamplona.amethyst.model.Note
+import com.vitorpamplona.amethyst.model.ReactionRowAction
+import com.vitorpamplona.amethyst.model.ReactionRowItem
+import com.vitorpamplona.amethyst.model.User
+import com.vitorpamplona.amethyst.model.stars.NoteGiftSummary
+import com.vitorpamplona.amethyst.model.stars.StarsCatalog
+import com.vitorpamplona.amethyst.model.zap.CashuRailStatus
+import com.vitorpamplona.amethyst.model.zap.RailCapability
+import com.vitorpamplona.amethyst.model.zap.RailCapabilityResolver
+import com.vitorpamplona.amethyst.service.ZapPaymentHandler
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.EventFinderFilterAssemblerSubscription
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNoteEvent
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNoteReactionCount
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNoteReactions
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNoteReferences
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNoteReplyCount
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNoteRepostCount
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNoteReposts
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNoteRepostsBy
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNoteZaps
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.nwc.NWCFinderFilterAssemblerSubscription
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.user.observeUserInfo
+import com.vitorpamplona.amethyst.ui.actions.CrossfadeIfEnabled
+import com.vitorpamplona.amethyst.ui.actions.uploads.FloatingRecordingIndicator
+import com.vitorpamplona.amethyst.ui.actions.uploads.MAX_VOICE_RECORD_SECONDS
+import com.vitorpamplona.amethyst.ui.actions.uploads.RecordAudioBox
+import com.vitorpamplona.amethyst.ui.components.ClickableBox
+import com.vitorpamplona.amethyst.ui.components.InLineIconRenderer
+import com.vitorpamplona.amethyst.ui.components.toasts.multiline.UserBasedErrorMessage
+import com.vitorpamplona.amethyst.ui.navigation.navs.INav
+import com.vitorpamplona.amethyst.ui.navigation.routes.Route
+import com.vitorpamplona.amethyst.ui.navigation.routes.routeCommentOnNote
+import com.vitorpamplona.amethyst.ui.note.comments.CommentsBottomSheet
+import com.vitorpamplona.amethyst.ui.note.effects.FriendReactionChip
+import com.vitorpamplona.amethyst.ui.note.effects.FriendReactionFacepile
+import com.vitorpamplona.amethyst.ui.note.effects.GiftLaunchBurst
+import com.vitorpamplona.amethyst.ui.note.effects.ReceivedGiftTrail
+import com.vitorpamplona.amethyst.ui.note.elements.MoreOptionsButton
+import com.vitorpamplona.amethyst.ui.note.elements.ShareOptionsBottomSheet
+import com.vitorpamplona.amethyst.ui.note.types.EditState
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.profile.header.PaymentTargetsDialog
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.stars.GiftSupportSheet
+import com.vitorpamplona.amethyst.ui.stringRes
+import com.vitorpamplona.amethyst.ui.theme.BitcoinOrange
+import com.vitorpamplona.amethyst.ui.theme.ButtonBorder
+import com.vitorpamplona.amethyst.ui.theme.Font14SP
+import com.vitorpamplona.amethyst.ui.theme.HalfDoubleVertSpacer
+import com.vitorpamplona.amethyst.ui.theme.HalfPadding
+import com.vitorpamplona.amethyst.ui.theme.Height24dpFilledModifier
+import com.vitorpamplona.amethyst.ui.theme.Height4dpFilledModifier
+import com.vitorpamplona.amethyst.ui.theme.NoSoTinyBorders
+import com.vitorpamplona.amethyst.ui.theme.ReactionRowExpandButton
+import com.vitorpamplona.amethyst.ui.theme.ReactionRowHeight
+import com.vitorpamplona.amethyst.ui.theme.ReactionRowHeightWithPadding
+import com.vitorpamplona.amethyst.ui.theme.RowColSpacing
+import com.vitorpamplona.amethyst.ui.theme.Size14Modifier
+import com.vitorpamplona.amethyst.ui.theme.Size18Modifier
+import com.vitorpamplona.amethyst.ui.theme.Size18dp
+import com.vitorpamplona.amethyst.ui.theme.Size19Modifier
+import com.vitorpamplona.amethyst.ui.theme.Size20Modifier
+import com.vitorpamplona.amethyst.ui.theme.Size20dp
+import com.vitorpamplona.amethyst.ui.theme.Size22Modifier
+import com.vitorpamplona.amethyst.ui.theme.Size24Modifier
+import com.vitorpamplona.amethyst.ui.theme.Size24dp
+import com.vitorpamplona.amethyst.ui.theme.Size28Modifier
+import com.vitorpamplona.amethyst.ui.theme.Size30Modifier
+import com.vitorpamplona.amethyst.ui.theme.Size30dp
+import com.vitorpamplona.amethyst.ui.theme.SmallBorder
+import com.vitorpamplona.amethyst.ui.theme.ThemeComparisonColumn
+import com.vitorpamplona.amethyst.ui.theme.TinyBorders
+import com.vitorpamplona.amethyst.ui.theme.defaultTweenDuration
+import com.vitorpamplona.amethyst.ui.theme.defaultTweenFloatSpec
+import com.vitorpamplona.amethyst.ui.theme.defaultTweenIntOffsetSpec
+import com.vitorpamplona.amethyst.ui.theme.fundraiserProgressColor
+import com.vitorpamplona.amethyst.ui.theme.iconTint
+import com.vitorpamplona.amethyst.ui.theme.placeholderText
+import com.vitorpamplona.amethyst.ui.theme.reactionBox
+import com.vitorpamplona.amethyst.ui.theme.ripple24dp
+import com.vitorpamplona.amethyst.ui.theme.selectedReactionBoxModifier
+import com.vitorpamplona.quartz.experimental.nipA3.PaymentTargetsEvent
+import com.vitorpamplona.quartz.nip10Notes.BaseThreadedEvent
+import com.vitorpamplona.quartz.nip10Notes.TextNoteEvent
+import com.vitorpamplona.quartz.nip17Dm.base.ChatroomKeyable
+import com.vitorpamplona.quartz.nip30CustomEmoji.CustomEmoji
+import com.vitorpamplona.quartz.nip57Zaps.zapraiser.zapraiserAmount
+import com.vitorpamplona.quartz.nip61Nutzaps.info.NutzapInfoEvent
+import com.vitorpamplona.quartz.nipA0VoiceMessages.BaseVoiceEvent
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.coroutines.delay
+import kotlinx.serialization.json.Json
+import kotlin.math.roundToInt
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+import androidx.compose.material3.Icon as Material3Icon
+
+@Composable
+fun ReactionsRow(
+    baseNote: Note,
+    showReactionDetail: Boolean,
+    addPadding: Boolean,
+    editState: State<GenericLoadable<EditState>>?,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+    instagramStyle: Boolean = false,
+) {
+    val wantsToSeeReactions = rememberSaveable(baseNote) { mutableStateOf(false) }
+
+    if (instagramStyle) {
+        InstagramFeedReactionRow(baseNote, editState, accountViewModel, nav)
+    } else {
+        InnerReactionRow(baseNote, showReactionDetail, addPadding, wantsToSeeReactions, editState, accountViewModel, nav)
+    }
+
+    LoadAndDisplayZapraiser(baseNote, showReactionDetail, wantsToSeeReactions, accountViewModel)
+
+    if (showReactionDetail && wantsToSeeReactions.value) {
+        ReactionDetailGallery(baseNote, nav, accountViewModel)
+        Spacer(modifier = HalfDoubleVertSpacer)
+    }
+}
+
+/** Instagram-sized outline actions: like, comment, repost, send — bookmark on the far side. */
+@Composable
+private fun InstagramFeedReactionRow(
+    baseNote: Note,
+    editState: State<GenericLoadable<EditState>>?,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    val grayTint = MaterialTheme.colorScheme.iconTint
+    val isPrivateRumor = baseNote.isPrivateRumor()
+    val iconMod = Size24Modifier
+
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 6.dp),
+        verticalAlignment = CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Row(verticalAlignment = CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            LikeReaction(
+                baseNote,
+                grayTint,
+                accountViewModel,
+                nav,
+                iconSize = Size24dp,
+                heartSizeModifier = iconMod,
+                showCounter = true,
+            )
+        }
+        Row(verticalAlignment = CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            ReplyReactionWithDialog(
+                baseNote,
+                grayTint,
+                accountViewModel,
+                nav,
+                showCounter = true,
+                iconSizeModifier = iconMod,
+            )
+        }
+        if (!isPrivateRumor && baseNote.event !is ChatroomKeyable) {
+            Row(verticalAlignment = CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                BoostWithDialog(
+                    baseNote,
+                    editState,
+                    grayTint,
+                    accountViewModel,
+                    nav,
+                    showCounter = true,
+                    iconSizeModifier = iconMod,
+                    iconSize = Size24dp,
+                )
+            }
+        }
+        if (!isPrivateRumor) {
+            Row(verticalAlignment = CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                ZapReaction(
+                    baseNote,
+                    grayTint,
+                    accountViewModel,
+                    iconSize = Size24dp,
+                    iconSizeModifier = iconMod,
+                    nav = nav,
+                    showCounter = true,
+                )
+            }
+            ShareReaction(
+                note = baseNote,
+                nav = nav,
+                grayTint = grayTint,
+                barChartModifier = iconMod,
+                useSendIcon = true,
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        InstagramBookmarkButton(baseNote, accountViewModel, iconMod, grayTint)
+    }
+}
+
+@Composable
+private fun InstagramBookmarkButton(
+    note: Note,
+    accountViewModel: AccountViewModel,
+    iconMod: Modifier,
+    grayTint: Color,
+) {
+    val bookmarkState = accountViewModel.account.bookmarkState
+    val publicAddresses by bookmarkState.publicBookmarkAddressIdSet.collectAsStateWithLifecycle()
+    val publicEvents by bookmarkState.publicBookmarkEventIdSet.collectAsStateWithLifecycle()
+    val isBookmarked =
+        remember(note, publicAddresses, publicEvents) {
+            if (note is AddressableNote) {
+                note.address in publicAddresses
+            } else {
+                note.idHex in publicEvents
+            }
+        }
+
+    ClickableBox(
+        modifier = iconMod,
+        onClick = {
+            if (isBookmarked) {
+                accountViewModel.removePublicBookmark(note)
+            } else {
+                accountViewModel.addPublicBookmark(note)
+            }
+        },
+    ) {
+        Icon(
+            symbol = if (isBookmarked) MaterialSymbols.Bookmark else MaterialSymbols.BookmarkBorder,
+            contentDescription =
+                stringRes(
+                    if (isBookmarked) R.string.remove_from_public_bookmarks else R.string.add_to_public_bookmarks,
+                ),
+            tint = if (isBookmarked) MaterialTheme.colorScheme.primary else grayTint,
+            modifier = iconMod,
+        )
+    }
+}
+
+/**
+ * Instagram Reels-style vertical stack: outline icons ~30dp with counts underneath.
+ */
+@Composable
+fun ShortsReelsSideReactions(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+    modifier: Modifier = Modifier,
+    tint: Color = Color.White,
+    bottomContentPadding: Dp = 120.dp,
+) {
+    val voiceRecordingState = remember(baseNote.idHex) { mutableStateOf(false) }
+    val isPrivateRumor = baseNote.isPrivateRumor()
+    val iconMod = Size30Modifier
+
+    Column(
+        modifier = modifier.padding(start = 8.dp, bottom = bottomContentPadding + 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            LikeReaction(
+                baseNote,
+                tint,
+                accountViewModel,
+                nav,
+                iconSize = Size30dp,
+                heartSizeModifier = iconMod,
+                showCounter = true,
+            )
+        }
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            ZapReaction(
+                baseNote = baseNote,
+                grayTint = tint,
+                accountViewModel = accountViewModel,
+                iconSize = Size30dp,
+                iconSizeModifier = iconMod,
+                animationModifier = Size14Modifier,
+                showCounter = true,
+                nav = nav,
+            )
+        }
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            ReplyReactionWithDialog(
+                baseNote,
+                tint,
+                accountViewModel,
+                nav,
+                showCounter = true,
+                voiceRecordingState = voiceRecordingState,
+                iconSizeModifier = iconMod,
+            )
+        }
+
+        if (!isPrivateRumor && baseNote.event !is ChatroomKeyable) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                BoostWithDialog(
+                    baseNote,
+                    null,
+                    tint,
+                    accountViewModel,
+                    nav,
+                    showCounter = true,
+                    iconSizeModifier = iconMod,
+                    iconSize = Size30dp,
+                )
+            }
+        }
+
+        if (!isPrivateRumor) {
+            ShareReaction(
+                note = baseNote,
+                nav = nav,
+                grayTint = tint,
+                barChartModifier = iconMod,
+                useSendIcon = true,
+            )
+        }
+
+        InstagramBookmarkButton(baseNote, accountViewModel, iconMod, tint)
+
+        MoreOptionsButton(
+            baseNote = baseNote,
+            editState = null,
+            accountViewModel = accountViewModel,
+            nav = nav,
+            modifier = iconMod,
+            iconTint = tint,
+        )
+
+        NoteAuthorPicture(
+            baseNote = baseNote,
+            size = Size30dp,
+            pictureModifier = Modifier.clip(RoundedCornerShape(8.dp)),
+            accountViewModel = accountViewModel,
+            nav = nav,
+        )
+    }
+}
+
+@Composable
+private fun InnerReactionRow(
+    baseNote: Note,
+    showReactionDetail: Boolean,
+    addPadding: Boolean,
+    wantsToSeeReactions: MutableState<Boolean>,
+    editState: State<GenericLoadable<EditState>>?,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    val voiceRecordingState = remember(baseNote.idHex) { mutableStateOf(false) }
+    val reactionRowItems by accountViewModel.reactionRowItemsFlow().collectAsStateWithLifecycle()
+
+    GenericInnerReactionRow(
+        showReactionDetail = showReactionDetail,
+        addPadding = addPadding,
+        weightTwo = if (voiceRecordingState.value) 2f else 1f,
+        one = {
+            WatchReactionsZapsBoostsAndDisplayIfExists(baseNote, accountViewModel) {
+                RenderShowIndividualReactionsButton(wantsToSeeReactions, accountViewModel)
+            }
+        },
+        reactions = reactionRowItems,
+        renderReaction = { item ->
+            // Unsealed rumors (private replies/posts) must not receive public
+            // reposts or quotes: each would e-tag the private rumor id onto
+            // public relays. Replies, reactions, and zaps stay enabled because
+            // the composer locks private mode for rumor parents, ReactionAction
+            // gift-wraps reactions to empty-sig targets, and zaps are forced to
+            // the PRIVATE type with public rails suppressed.
+            val isPrivateRumor = baseNote.isPrivateRumor()
+            when (item.action) {
+                ReactionRowAction.Reply -> {
+                    ReplyReactionWithDialog(
+                        baseNote,
+                        MaterialTheme.colorScheme.placeholderText,
+                        accountViewModel,
+                        nav,
+                        showCounter = item.showCounter,
+                        voiceRecordingState = voiceRecordingState,
+                    )
+                }
+
+                ReactionRowAction.Boost -> {
+                    val isDM = baseNote.event is ChatroomKeyable
+                    if (!isDM && !isPrivateRumor) {
+                        BoostWithDialog(
+                            baseNote,
+                            editState,
+                            MaterialTheme.colorScheme.placeholderText,
+                            accountViewModel,
+                            nav,
+                            showCounter = item.showCounter,
+                        )
+                    }
+                }
+
+                ReactionRowAction.Like -> {
+                    LikeReaction(
+                        baseNote,
+                        MaterialTheme.colorScheme.placeholderText,
+                        accountViewModel,
+                        nav,
+                        showCounter = item.showCounter,
+                    )
+                }
+
+                ReactionRowAction.Zap -> {
+                    // Zaps stay enabled on private rumors: AccountViewModel.zap
+                    // forces the PRIVATE zap type, and the public nutzap/onchain
+                    // rails are suppressed for them.
+                    ZapReaction(
+                        baseNote,
+                        MaterialTheme.colorScheme.placeholderText,
+                        accountViewModel,
+                        nav = nav,
+                        showCounter = item.showCounter,
+                    )
+                }
+
+                ReactionRowAction.Share -> {
+                    if (!isPrivateRumor) {
+                        ShareReaction(
+                            note = baseNote,
+                            nav = nav,
+                            grayTint = MaterialTheme.colorScheme.placeholderText,
+                        )
+                    }
+                }
+
+                ReactionRowAction.Pay -> {
+                    PayReaction(
+                        baseNote = baseNote,
+                        grayTint = MaterialTheme.colorScheme.placeholderText,
+                        accountViewModel = accountViewModel,
+                    )
+                }
+            }
+        },
+    )
+}
+
+@Composable
+fun ShareReaction(
+    note: Note,
+    nav: INav,
+    grayTint: Color,
+    barChartModifier: Modifier = Size19Modifier,
+    useSendIcon: Boolean = false,
+) {
+    var showShareSheet by remember { mutableStateOf(false) }
+
+    ClickableBox(
+        modifier = barChartModifier,
+        onClick = { showShareSheet = true },
+    ) {
+        if (useSendIcon) {
+            Icon(
+                symbol = MaterialSymbols.AutoMirrored.Send,
+                contentDescription = stringRes(R.string.share_or_save),
+                modifier = barChartModifier,
+                tint = grayTint,
+            )
+        } else {
+            ShareIcon(barChartModifier, grayTint)
+        }
+    }
+
+    if (showShareSheet) {
+        ShareOptionsBottomSheet(
+            note = note,
+            nav = nav,
+            onDismiss = { showShareSheet = false },
+        )
+    }
+}
+
+@Composable
+fun PayReaction(
+    baseNote: Note,
+    grayTint: Color,
+    accountViewModel: AccountViewModel,
+    iconSizeModifier: Modifier = Size20Modifier,
+) {
+    val authorPubkey = baseNote.author?.pubkeyHex ?: return
+    val address = remember(authorPubkey) { PaymentTargetsEvent.createAddress(authorPubkey) }
+
+    LoadAddressableNote(address, accountViewModel) { note ->
+        var expanded by remember { mutableStateOf(false) }
+
+        ClickableBox(
+            modifier = iconSizeModifier,
+            onClick = { expanded = true },
+        ) {
+            Icon(
+                symbol = MaterialSymbols.AccountBalanceWallet,
+                contentDescription = stringRes(R.string.payment_targets),
+                tint = grayTint,
+                modifier = iconSizeModifier,
+            )
+        }
+
+        if (expanded && note != null) {
+            EventFinderFilterAssemblerSubscription(note, accountViewModel)
+            val event by observeNoteEvent<PaymentTargetsEvent>(note, accountViewModel)
+            val targets = remember(event) { event?.paymentTargets() ?: emptyList() }
+
+            PaymentTargetsDialog(targets = targets, onDismiss = { expanded = false })
+        }
+    }
+}
+
+@Composable
+private fun GenericInnerReactionRow(
+    showReactionDetail: Boolean,
+    addPadding: Boolean,
+    weightTwo: Float = 1f,
+    one: @Composable () -> Unit,
+    reactions: ImmutableList<ReactionRowItem>,
+    renderReaction: @Composable (ReactionRowItem) -> Unit,
+) {
+    val enabledReactions = remember(reactions) { reactions.filter { it.enabled } }
+    val lastIndex = enabledReactions.lastIndex
+
+    Row(
+        verticalAlignment = CenterVertically,
+        horizontalArrangement = RowColSpacing,
+        modifier = if (addPadding) ReactionRowHeightWithPadding else ReactionRowHeight,
+    ) {
+        if (showReactionDetail) {
+            Row(
+                verticalAlignment = CenterVertically,
+                modifier = ReactionRowExpandButton,
+            ) {
+                one()
+            }
+        }
+
+        enabledReactions.forEachIndexed { index, item ->
+            // Skip the weighted slice for the rightmost item only when it has no counter
+            // (e.g. Share / Pay) — those are icon-only, so letting them collapse to natural
+            // width pins them flush against the right padding. If the rightmost item carries
+            // a counter (Zap / Like / etc.), keep it weighted so its icon stays at the left
+            // of an equal-width slice and the counter doesn't get pushed to the edge.
+            val isLastIconOnly = index == lastIndex && !item.showCounter
+            val itemWeight = if (item.action == ReactionRowAction.Reply) weightTwo else 1f
+            val mod = if (isLastIconOnly) Modifier else Modifier.weight(itemWeight)
+            Row(
+                verticalAlignment = CenterVertically,
+                horizontalArrangement = RowColSpacing,
+                modifier = mod,
+            ) {
+                renderReaction(item)
+            }
+        }
+    }
+}
+
+@Composable
+fun LoadAndDisplayZapraiser(
+    baseNote: Note,
+    showReactionDetail: Boolean,
+    wantsToSeeReactions: MutableState<Boolean>,
+    accountViewModel: AccountViewModel,
+) {
+    // Star gifts replaced Lightning zapraisers in the visible UI.
+}
+
+@Immutable data class ZapraiserStatus(
+    val progress: Float,
+    val left: String,
+)
+
+@Composable
+fun RenderZapRaiser(
+    baseNote: Note,
+    zapraiserAmount: Long,
+    details: Boolean,
+    accountViewModel: AccountViewModel,
+) {
+    val zapsState by observeNoteZaps(baseNote, accountViewModel)
+
+    var zapraiserStatus by remember { mutableStateOf(ZapraiserStatus(0F, "$zapraiserAmount")) }
+
+    LaunchedEffect(key1 = zapsState) {
+        zapsState?.note?.let {
+            val newStatus = accountViewModel.calculateZapraiser(baseNote)
+            if (zapraiserStatus != newStatus) {
+                zapraiserStatus = newStatus
+            }
+        }
+    }
+
+    LinearProgressIndicator(
+        modifier = if (details) Height24dpFilledModifier else Height4dpFilledModifier,
+        color = MaterialTheme.colorScheme.fundraiserProgressColor,
+        progress = { zapraiserStatus.progress },
+        gapSize = 0.dp,
+        strokeCap = StrokeCap.Square,
+        drawStopIndicator = {},
+    )
+
+    if (details) {
+        Box(
+            contentAlignment = Center,
+            modifier = TinyBorders,
+        ) {
+            val totalPercentage by
+                remember(zapraiserStatus) {
+                    derivedStateOf { "${(zapraiserStatus.progress * 100).roundToInt()}%" }
+                }
+
+            Text(
+                text =
+                    stringRes(id = R.string.sats_to_complete, totalPercentage, zapraiserStatus.left),
+                modifier = NoSoTinyBorders,
+                // color = MaterialTheme.colorScheme.placeholderText,
+                fontSize = Font14SP,
+                maxLines = 1,
+            )
+        }
+    }
+}
+
+@Composable
+private fun WatchReactionsZapsBoostsAndDisplayIfExists(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    content: @Composable () -> Unit,
+) {
+    val hasReactions by observeNoteReferences(baseNote, accountViewModel)
+
+    val hasZapraiser = (baseNote.event?.zapraiserAmount() ?: 0) > 0
+
+    if (hasReactions || hasZapraiser) {
+        content()
+    }
+}
+
+@Composable
+private fun RenderShowIndividualReactionsButton(
+    wantsToSeeReactions: MutableState<Boolean>,
+    accountViewModel: AccountViewModel,
+) {
+    ClickableBox(
+        onClick = { wantsToSeeReactions.value = !wantsToSeeReactions.value },
+        modifier = Size20Modifier,
+    ) {
+        CrossfadeIfEnabled(
+            targetState = wantsToSeeReactions.value,
+            label = "RenderShowIndividualReactionsButton",
+            accountViewModel = accountViewModel,
+        ) {
+            if (it) {
+                ExpandLessIcon(modifier = Size22Modifier, R.string.close_all_reactions_to_this_post)
+            } else {
+                ExpandMoreIcon(modifier = Size22Modifier, R.string.open_all_reactions_to_this_post)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReactionDetailGallery(
+    baseNote: Note,
+    nav: INav,
+    accountViewModel: AccountViewModel,
+) {
+    val defaultBackgroundColor = MaterialTheme.colorScheme.background
+    val backgroundColor = remember { mutableStateOf(defaultBackgroundColor) }
+
+    val hasReactions by observeNoteReferences(baseNote, accountViewModel)
+
+    if (hasReactions) {
+        Row(
+            verticalAlignment = CenterVertically,
+            modifier = Modifier.padding(start = 10.dp, top = 5.dp),
+        ) {
+            Column {
+                WatchZapAndRenderGallery(baseNote, backgroundColor, nav, accountViewModel)
+                WatchNutzapsAndRenderGallery(baseNote, nav, accountViewModel)
+                WatchOnchainZapsAndRenderGallery(baseNote, nav, accountViewModel)
+                WatchBoostsAndRenderGallery(baseNote, nav, accountViewModel)
+                WatchReactionsAndRenderGallery(baseNote, nav, accountViewModel)
+            }
+        }
+    }
+}
+
+@Composable
+private fun WatchBoostsAndRenderGallery(
+    baseNote: Note,
+    nav: INav,
+    accountViewModel: AccountViewModel,
+) {
+    val boostsEvents by observeNoteReposts(baseNote, accountViewModel)
+
+    boostsEvents?.let {
+        if (it.note.boosts.isNotEmpty()) {
+            RenderBoostGallery(
+                it,
+                nav,
+                accountViewModel,
+            )
+        }
+    }
+}
+
+@Composable
+private fun WatchReactionsAndRenderGallery(
+    baseNote: Note,
+    nav: INav,
+    accountViewModel: AccountViewModel,
+) {
+    val reactionsState by observeNoteReactions(baseNote, accountViewModel)
+    val reactionEvents = reactionsState?.note?.reactions ?: return
+
+    if (reactionEvents.isNotEmpty()) {
+        reactionEvents.forEach {
+            val reactions = remember(it.key) { it.value.toImmutableList() }
+            RenderLikeGallery(
+                it.key,
+                reactions,
+                nav,
+                accountViewModel,
+            )
+        }
+    }
+}
+
+@Composable
+private fun WatchZapAndRenderGallery(
+    baseNote: Note,
+    backgroundColor: MutableState<Color>,
+    nav: INav,
+    accountViewModel: AccountViewModel,
+) {
+    val zapsState by observeNoteZaps(baseNote, accountViewModel)
+
+    var zapEvents by
+        remember(zapsState) {
+            mutableStateOf(
+                accountViewModel.cachedDecryptAmountMessageInGroup(baseNote),
+            )
+        }
+
+    LaunchedEffect(key1 = zapsState) {
+        accountViewModel.decryptAmountMessageInGroup(baseNote) { zapEvents = it }
+    }
+
+    if (zapEvents.isNotEmpty()) {
+        RenderZapGallery(
+            zapEvents,
+            backgroundColor,
+            accountViewModel,
+            nav,
+        )
+    }
+}
+
+@Composable
+private fun BoostWithDialog(
+    baseNote: Note,
+    editState: State<GenericLoadable<EditState>>?,
+    grayTint: Color,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+    showCounter: Boolean = true,
+    iconSizeModifier: Modifier = Size19Modifier,
+    iconSize: Dp = Size20dp,
+) {
+    BoostReaction(
+        baseNote,
+        grayTint,
+        accountViewModel,
+        iconSizeModifier = iconSizeModifier,
+        iconSize = iconSize,
+        showCounter = showCounter,
+        onQuotePress = {
+            nav.nav {
+                Route.NewShortNote(
+                    quote = baseNote.idHex,
+                    version =
+                        (editState?.value as? GenericLoadable.Loaded)
+                            ?.loaded
+                            ?.modificationToShow
+                            ?.value
+                            ?.idHex,
+                )
+            }
+        },
+        onForkPress = {
+            nav.nav {
+                val forkEvent = baseNote.event
+                val replyTo =
+                    if (forkEvent is BaseThreadedEvent) {
+                        baseNote.replyTo?.firstOrNull { it.event?.id == forkEvent.replyingTo() }
+                    } else {
+                        null
+                    }
+
+                Route.NewShortNote(
+                    baseReplyTo = replyTo?.idHex,
+                    fork = baseNote.idHex,
+                    version =
+                        (editState?.value as? GenericLoadable.Loaded)
+                            ?.loaded
+                            ?.modificationToShow
+                            ?.value
+                            ?.idHex,
+                )
+            }
+        },
+    )
+}
+
+@Composable
+private fun ReplyReactionWithDialog(
+    baseNote: Note,
+    grayTint: Color,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+    showCounter: Boolean = true,
+    voiceRecordingState: MutableState<Boolean>? = null,
+    iconSizeModifier: Modifier = Size19Modifier,
+) {
+    if (baseNote.event is BaseVoiceEvent) {
+        ReplyViaVoiceReaction(
+            baseNote,
+            grayTint,
+            accountViewModel,
+            nav,
+            showCounter = showCounter,
+            voiceRecordingState = voiceRecordingState,
+        )
+    } else {
+        var showCommentsSheet by remember(baseNote.idHex) { mutableStateOf(false) }
+
+        ReplyReaction(baseNote, grayTint, accountViewModel, showCounter = showCounter, iconSizeModifier = iconSizeModifier) {
+            val route = routeCommentOnNote(baseNote, accountViewModel.account)
+            if (route is Route.Note) {
+                showCommentsSheet = true
+            } else if (route != null) {
+                nav.nav { route }
+            }
+        }
+
+        if (showCommentsSheet) {
+            CommentsBottomSheet(
+                note = baseNote,
+                accountViewModel = accountViewModel,
+                nav = nav,
+                onDismiss = { showCommentsSheet = false },
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun ReplyViaVoiceReaction(
+    baseNote: Note,
+    grayTint: Color,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+    showCounter: Boolean = true,
+    iconSizeModifier: Modifier = Size19Modifier,
+    voiceRecordingState: MutableState<Boolean>? = null,
+) {
+    RecordAudioBox(
+        modifier = Modifier,
+        onRecordTaken = { audio ->
+            nav.nav {
+                Route.VoiceReply(
+                    replyToNoteId = baseNote.idHex,
+                    recordingFilePath = audio.file.absolutePath,
+                    mimeType = audio.mimeType,
+                    duration = audio.duration,
+                    amplitudes = Json.encodeToString(audio.amplitudes),
+                )
+            }
+        },
+        maxDurationSeconds = MAX_VOICE_RECORD_SECONDS,
+    ) { isRecording, elapsedSeconds, onStop ->
+        if (voiceRecordingState != null) {
+            SideEffect {
+                if (voiceRecordingState.value != isRecording) {
+                    voiceRecordingState.value = isRecording
+                }
+            }
+        }
+        if (isRecording) {
+            FloatingRecordingIndicator(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(40.dp),
+                isRecording = true,
+                elapsedSeconds = elapsedSeconds,
+                isCompact = true,
+                onClick = onStop,
+            )
+        } else {
+            VoiceReplyIcon(iconSizeModifier, grayTint)
+        }
+    }
+
+    if (showCounter) {
+        ReplyCounter(baseNote, grayTint, accountViewModel)
+    }
+}
+
+@Composable
+fun ReplyReaction(
+    baseNote: Note,
+    grayTint: Color,
+    accountViewModel: AccountViewModel,
+    showCounter: Boolean = true,
+    iconSizeModifier: Modifier = Size19Modifier,
+    onPress: () -> Unit,
+) {
+    ClickableBox(
+        modifier = iconSizeModifier,
+        onClick = {
+            if (baseNote.isDraft()) {
+                accountViewModel.toastManager.toast(
+                    R.string.draft_note,
+                    R.string.it_s_not_possible_to_reply_to_a_draft_note,
+                )
+            } else {
+                if (accountViewModel.isWriteable()) {
+                    onPress()
+                } else {
+                    accountViewModel.toastManager.toast(
+                        R.string.read_only_user,
+                        R.string.login_with_a_private_key_to_be_able_to_reply,
+                    )
+                }
+            }
+        },
+    ) {
+        CommentIcon(iconSizeModifier, grayTint)
+    }
+
+    if (showCounter) {
+        ReplyCounter(baseNote, grayTint, accountViewModel)
+    }
+}
+
+@Composable
+fun ReplyCounter(
+    baseNote: Note,
+    textColor: Color,
+    accountViewModel: AccountViewModel,
+) {
+    val repliesState by observeNoteReplyCount(baseNote, accountViewModel)
+
+    SlidingAnimationCount(repliesState, textColor, accountViewModel)
+}
+
+@Composable
+private fun SlidingAnimationCount(
+    baseCount: Int,
+    textColor: Color,
+    accountViewModel: AccountViewModel,
+) {
+    if (accountViewModel.settings.isPerformanceMode()) {
+        TextCount(baseCount, textColor)
+    } else {
+        AnimatedContent(
+            targetState = baseCount,
+            transitionSpec = AnimatedContentTransitionScope<Int>::transitionSpec,
+            label = "SlidingAnimationCount",
+        ) { count ->
+            TextCount(count, textColor)
+        }
+    }
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+private fun <S> AnimatedContentTransitionScope<S>.transitionSpec(): ContentTransform = slideAnimation
+
+@ExperimentalAnimationApi
+val slideAnimation: ContentTransform =
+    (
+        slideInVertically(animationSpec = tween(durationMillis = 100)) { height -> height } +
+            fadeIn(
+                animationSpec = tween(durationMillis = 100),
+            )
+    ).togetherWith(
+        slideOutVertically(animationSpec = tween(durationMillis = 100)) { height -> -height } +
+            fadeOut(
+                animationSpec = tween(durationMillis = 100),
+            ),
+    )
+
+@Composable
+fun TextCount(
+    count: Int,
+    textColor: Color,
+) {
+    Text(
+        text = showCount(count),
+        fontSize = Font14SP,
+        color = textColor,
+        maxLines = 1,
+    )
+}
+
+@Composable
+fun SlidingAnimationAmount(
+    amount: String,
+    textColor: Color,
+    accountViewModel: AccountViewModel,
+) {
+    if (accountViewModel.settings.isPerformanceMode()) {
+        Text(
+            text = amount,
+            fontSize = Font14SP,
+            color = textColor,
+            maxLines = 1,
+        )
+    } else {
+        AnimatedContent(
+            targetState = amount,
+            transitionSpec = AnimatedContentTransitionScope<String>::transitionSpec,
+            label = "SlidingAnimationAmount",
+        ) { count ->
+            Text(
+                text = count,
+                fontSize = Font14SP,
+                color = textColor,
+                maxLines = 1,
+            )
+        }
+    }
+}
+
+@Composable
+fun BoostReaction(
+    baseNote: Note,
+    grayTint: Color,
+    accountViewModel: AccountViewModel,
+    iconSizeModifier: Modifier = Size19Modifier,
+    iconSize: Dp = Size20dp,
+    showCounter: Boolean = true,
+    onQuotePress: () -> Unit,
+    onForkPress: () -> Unit,
+) {
+    var wantsToBoost by remember { mutableStateOf(false) }
+
+    ClickableBox(
+        modifier = iconSizeModifier,
+        onClick = {
+            accountViewModel.tryBoost(baseNote) { wantsToBoost = true }
+        },
+    ) {
+        ObserveBoostIcon(baseNote, accountViewModel) { hasBoosted ->
+            RepostedIcon(iconSizeModifier, if (hasBoosted) Color.Unspecified else grayTint)
+        }
+
+        if (wantsToBoost) {
+            BoostTypeChoicePopup(
+                baseNote,
+                iconSize,
+                accountViewModel,
+                onDismiss = { wantsToBoost = false },
+                onQuote = {
+                    wantsToBoost = false
+                    onQuotePress()
+                },
+                onRepost = {
+                    accountViewModel.boost(baseNote)
+                },
+                onFork = {
+                    wantsToBoost = false
+                    onForkPress()
+                },
+            )
+        }
+    }
+
+    if (showCounter) {
+        BoostText(baseNote, grayTint, accountViewModel)
+    }
+}
+
+@Composable
+fun ObserveBoostIcon(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    inner: @Composable (Boolean) -> Unit,
+) {
+    val hasBoosted by observeNoteRepostsBy(baseNote, accountViewModel.userProfile(), accountViewModel)
+
+    inner(hasBoosted)
+}
+
+@Composable
+fun BoostText(
+    baseNote: Note,
+    grayTint: Color,
+    accountViewModel: AccountViewModel,
+) {
+    val boostState by observeNoteRepostCount(baseNote, accountViewModel)
+
+    SlidingAnimationCount(boostState, grayTint, accountViewModel)
+}
+
+@Composable
+fun LikeReaction(
+    baseNote: Note,
+    grayTint: Color,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+    iconSize: Dp = Size18dp,
+    heartSizeModifier: Modifier = Size18Modifier,
+    iconFontSize: TextUnit = Font14SP,
+    showCounter: Boolean = true,
+) {
+    var wantsToReact by remember { mutableStateOf(false) }
+    val reactionsState by observeNoteReactions(baseNote, accountViewModel)
+    val follows by accountViewModel.account.kind3FollowList.flow
+        .collectAsStateWithLifecycle()
+    val friendChips =
+        remember(reactionsState, follows.authors, baseNote.idHex) {
+            friendReactionsFrom(
+                note = reactionsState?.note,
+                me = accountViewModel.userProfile().pubkeyHex,
+                following = follows.authors,
+            )
+        }
+
+    ClickableBox(
+        onClick = {
+            likeClick(
+                accountViewModel,
+                baseNote,
+                onMultipleChoices = { accountViewModel.reactToOrDelete(baseNote, "+") },
+                onWantsToSignReaction = { accountViewModel.reactToOrDelete(baseNote, "+") },
+            )
+        },
+        onLongClick = { wantsToReact = true },
+    ) {
+        ObserveLikeIcon(baseNote, accountViewModel) { reactionType ->
+            CrossfadeIfEnabled(targetState = reactionType, contentAlignment = Center, label = "LikeIcon", accountViewModel = accountViewModel) {
+                if (reactionType != null) {
+                    RenderReactionType(reactionType, heartSizeModifier, iconFontSize)
+                } else {
+                    LikeIcon(heartSizeModifier, grayTint)
+                }
+            }
+        }
+
+        if (wantsToReact) {
+            ReactionChoicePopup(
+                baseNote,
+                iconSize,
+                accountViewModel,
+                onDismiss = { wantsToReact = false },
+                onChangeAmount = {
+                    wantsToReact = false
+                    nav.nav(Route.UpdateReactionType)
+                },
+            )
+        }
+    }
+
+    if (friendChips.isNotEmpty()) {
+        FriendReactionFacepile(
+            chips = friendChips,
+            accountViewModel = accountViewModel,
+        )
+    }
+
+    if (showCounter) {
+        ObserveLikeText(baseNote, accountViewModel) { reactionCount -> SlidingAnimationCount(reactionCount, grayTint, accountViewModel) }
+    }
+}
+
+private fun friendReactionsFrom(
+    note: Note?,
+    me: String,
+    following: Set<String>,
+    limit: Int = 3,
+): List<FriendReactionChip> {
+    if (note == null || following.isEmpty()) return emptyList()
+    val best = LinkedHashMap<String, FriendReactionChip>()
+    note.reactions.forEach { (type, reactionNotes) ->
+        reactionNotes.forEach { reactionNote ->
+            val author = reactionNote.author ?: return@forEach
+            val hex = author.pubkeyHex
+            if (hex == me || hex !in following) return@forEach
+            val at = reactionNote.createdAt() ?: 0L
+            val existing = best[hex]
+            if (existing == null || at > existing.createdAt) {
+                best[hex] = FriendReactionChip(hex, author, type, at)
+            }
+        }
+    }
+    if (best.isEmpty()) return emptyList()
+    return best.values.sortedByDescending { it.createdAt }.take(limit)
+}
+
+@Composable
+fun ObserveLikeIcon(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    inner: @Composable (String?) -> Unit,
+) {
+    val reactionsState by observeNoteReactions(baseNote, accountViewModel)
+
+    @Suppress("ProduceStateDoesNotAssignValue")
+    val reactionType by
+        produceState(initialValue = null as String?, key1 = reactionsState) {
+            val newReactionType = accountViewModel.loadReactionTo(reactionsState?.note)
+            if (value != newReactionType) {
+                value = newReactionType
+            }
+        }
+
+    inner(reactionType)
+}
+
+@Composable
+private fun RenderReactionType(
+    reactionType: String,
+    iconSizeModifier: Modifier = Size20Modifier,
+    iconFontSize: TextUnit,
+) {
+    if (reactionType.isNotEmpty() && reactionType[0] == ':') {
+        val renderable =
+            remember(reactionType) {
+                persistentListOf(
+                    CustomEmoji.ImageUrlType(reactionType.removePrefix(":").substringAfter(":")),
+                )
+            }
+
+        InLineIconRenderer(
+            renderable,
+            style = SpanStyle(color = Color.White),
+            fontSize = iconFontSize,
+            maxLines = 1,
+        )
+    } else {
+        when (reactionType) {
+            "+" -> {
+                LikedIcon(iconSizeModifier)
+            }
+
+            "-" -> {
+                Text(text = "\uD83D\uDC4E", maxLines = 1, fontSize = iconFontSize)
+            }
+
+            else -> {
+                if (EmojiCoder.isCoded(reactionType)) {
+                    AnimatedBorderTextCornerRadius(
+                        reactionType,
+                        fontSize = iconFontSize,
+                    )
+                } else {
+                    Text(text = reactionType, maxLines = 1, fontSize = iconFontSize)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ObserveLikeText(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    inner: @Composable (Int) -> Unit,
+) {
+    val reactionCount by observeNoteReactionCount(baseNote, accountViewModel)
+
+    inner(reactionCount)
+}
+
+private fun likeClick(
+    accountViewModel: AccountViewModel,
+    baseNote: Note,
+    onMultipleChoices: () -> Unit,
+    onWantsToSignReaction: () -> Unit,
+) {
+    if (baseNote.isDraft()) {
+        accountViewModel.toastManager.toast(
+            R.string.draft_note,
+            R.string.it_s_not_possible_to_react_to_a_draft_note,
+        )
+        return
+    }
+
+    val choices = accountViewModel.reactionChoices()
+    when {
+        choices.isEmpty() -> {
+            accountViewModel.toastManager.toast(
+                R.string.no_reactions_setup,
+                R.string.no_reaction_type_setup_long_press_to_change,
+            )
+        }
+
+        !accountViewModel.isWriteable() -> {
+            accountViewModel.toastManager.toast(
+                R.string.read_only_user,
+                R.string.login_with_a_private_key_to_like_posts,
+            )
+        }
+
+        choices.size == 1 -> {
+            onWantsToSignReaction()
+        }
+
+        choices.size > 1 -> {
+            onMultipleChoices()
+        }
+    }
+}
+
+@Immutable
+private data class OnchainZapRequest(
+    val amountSats: Long?,
+)
+
+/**
+ * Pays a single payable via a wallet intent, or routes multiple payables (zap
+ * splits) to the manual payment screen. The shared tail of every zap flow.
+ */
+@OptIn(ExperimentalUuidApi::class)
+fun payViaIntentOrManualSplit(
+    payables: ImmutableList<ZapPaymentHandler.Payable>,
+    context: Context,
+    accountViewModel: AccountViewModel,
+    nav: INav,
+    onPaymentError: () -> Unit = {},
+) {
+    if (payables.size == 1) {
+        val payable = payables.first()
+        payViaIntent(payable.invoice, context, { }) { error ->
+            onPaymentError()
+            accountViewModel.toastManager.toast(R.string.error_dialog_zap_error, UserBasedErrorMessage(error, payable.info.user))
+        }
+    } else {
+        val uid = Uuid.random().toString()
+        accountViewModel.tempManualPaymentCache.put(uid, payables)
+        nav.nav(Route.ManualZapSplitPayment(uid))
+    }
+}
+
+@Composable
+@OptIn(ExperimentalFoundationApi::class)
+fun ZapReaction(
+    baseNote: Note,
+    grayTint: Color,
+    accountViewModel: AccountViewModel,
+    iconSize: Dp = Size20dp,
+    iconSizeModifier: Modifier = Size20Modifier,
+    animationModifier: Modifier = Size14Modifier,
+    showCounter: Boolean = true,
+    nav: INav,
+) {
+    var openSheet by remember { mutableStateOf(false) }
+    var giftTotal by remember(baseNote.idHex) { mutableIntStateOf(0) }
+    var giftEmojis by remember(baseNote.idHex) { mutableStateOf(listOf<String>()) }
+    var flyEmoji by remember { mutableStateOf<String?>(null) }
+    val catalog by accountViewModel.account.starsWallet.snapshot
+        .collectAsStateWithLifecycle()
+
+    LaunchedEffect(baseNote.idHex) {
+        val id = baseNote.idHex
+        if (id.length == 64) {
+            accountViewModel.account.starsWallet
+                .noteGifts(id)
+                .onSuccess { summary ->
+                    giftTotal = summary.total
+                    giftEmojis = emojisFromGiftSummary(summary, catalog.catalog)
+                }
+        }
+    }
+
+    if (openSheet) {
+        GiftSupportSheet(
+            accountViewModel = accountViewModel,
+            toPubkey = baseNote.author?.pubkeyHex,
+            noteId = baseNote.idHex.takeIf { it.length == 64 && !baseNote.isPrivateRumor() },
+            onDismiss = { openSheet = false },
+            onSent = { emoji ->
+                giftTotal += 1
+                flyEmoji = emoji
+                if (emoji.isNotBlank()) {
+                    giftEmojis = (listOf(emoji) + giftEmojis).distinct().take(4)
+                }
+            },
+            onOpenStore = {
+                openSheet = false
+                nav.nav(Route.Wallet)
+            },
+        )
+    }
+
+    Box {
+        flyEmoji?.let { emoji ->
+            GiftLaunchBurst(
+                emoji = emoji,
+                modifier = Modifier.align(Alignment.Center),
+                onFinished = { flyEmoji = null },
+            )
+        }
+        Row(verticalAlignment = CenterVertically) {
+            Icon(
+                symbol = MaterialSymbols.Star,
+                contentDescription = stringRes(R.string.stars_gift_send),
+                tint = if (giftTotal > 0) MaterialTheme.colorScheme.primary else grayTint,
+                modifier =
+                    iconSizeModifier.combinedClickable(
+                        role = Role.Button,
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple24dp,
+                        onClick = { openSheet = true },
+                        onLongClick = { nav.nav(Route.Wallet) },
+                    ),
+            )
+            if (giftEmojis.isNotEmpty()) {
+                ReceivedGiftTrail(emojis = giftEmojis)
+            }
+        }
+    }
+
+    if (showCounter && giftTotal > 0) {
+        SlidingAnimationAmount(giftTotal.toString(), grayTint, accountViewModel)
+    }
+}
+
+private fun emojisFromGiftSummary(
+    summary: NoteGiftSummary,
+    catalog: StarsCatalog?,
+): List<String> {
+    val byId = catalog?.gifts?.associate { it.id to it.emoji }.orEmpty()
+    return summary.bySku.entries
+        .sortedByDescending { it.value }
+        .map { byId[it.key] ?: "🎁" }
+        .distinct()
+        .take(4)
+}
+
+fun zapClick(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    context: Context,
+    onZapStarts: () -> Unit,
+    onZappingProgress: (Float) -> Unit,
+    onMultipleChoices: () -> Unit,
+    onCustomAmount: () -> Unit,
+    onError: (String, String, User?) -> Unit,
+    onPayViaIntent: (ImmutableList<ZapPaymentHandler.Payable>) -> Unit,
+) {
+    if (baseNote.isDraft()) {
+        accountViewModel.toastManager.toast(
+            R.string.draft_note,
+            R.string.it_s_not_possible_to_zap_to_a_draft_note,
+        )
+        return
+    }
+
+    val choices = accountViewModel.zapAmountChoices()
+
+    when {
+        choices.isEmpty() -> {
+            onCustomAmount()
+        }
+
+        !accountViewModel.isWriteable() -> {
+            accountViewModel.toastManager.toast(
+                R.string.error_dialog_zap_error,
+                R.string.login_with_a_private_key_to_be_able_to_send_zaps,
+            )
+        }
+
+        choices.size == 1 -> {
+            // One-tap fast path is Lightning-only. If the recipient can't
+            // receive Lightning (no lud16/lud06), firing a zap here would just
+            // fail — open the picker instead so the rail-aware chip can route to
+            // cashu / on-chain / reload.
+            val caps = RailCapabilityResolver.peek(baseNote, accountViewModel.account.cashuWalletState)
+            if (caps.hasLightning) {
+                onZapStarts()
+                accountViewModel.zap(
+                    baseNote,
+                    choices.first() * 1000,
+                    null,
+                    "",
+                    context,
+                    onError = onError,
+                    onProgress = { onZappingProgress(it) },
+                    onPayViaIntent = onPayViaIntent,
+                )
+            } else {
+                onMultipleChoices()
+            }
+        }
+
+        choices.size > 1 -> {
+            onMultipleChoices()
+        }
+    }
+}
+
+@Composable
+private fun TwoStageZapProgressIcon(
+    progress: Float,
+    modifier: Modifier,
+    invoiceTint: Color,
+) {
+    val isPaymentRequestStage = progress >= 0.75f
+    val stageProgress =
+        if (isPaymentRequestStage) {
+            ((progress - 0.75f) / 0.25f).coerceIn(0f, 1f)
+        } else {
+            (progress / 0.75f).coerceIn(0f, 1f)
+        }
+    val stageTint = if (isPaymentRequestStage) MaterialTheme.colorScheme.primary else invoiceTint
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Center,
+    ) {
+        CircularProgressIndicator(
+            progress = { stageProgress },
+            modifier = modifier,
+            strokeWidth = 2.dp,
+            color = stageTint,
+        )
+
+        if (isPaymentRequestStage) {
+            ZapIcon(Modifier.size(10.dp), stageTint)
+        } else {
+            OutlinedZapIcon(Modifier.size(10.dp), stageTint)
+        }
+    }
+}
+
+@Immutable
+data class ZapIconState(
+    val wasZappedByLoggedInUser: Boolean = false,
+    val hasPendingPaymentRequest: Boolean = false,
+)
+
+@Composable
+fun ObserveZapIconState(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    afterTimeInSeconds: Long = 0,
+    inner: @Composable (ZapIconState) -> Unit,
+) {
+    val zapIconState = remember { mutableStateOf(ZapIconState()) }
+
+    if (!zapIconState.value.wasZappedByLoggedInUser) {
+        val zapsState by observeNoteZaps(baseNote, accountViewModel)
+        val hasPendingPaymentRequest =
+            zapsState?.note?.zapPayments?.any { it.value == null } == true
+
+        zapsState?.note?.zapPayments?.forEach {
+            if (it.value == null) {
+                NWCFinderFilterAssemblerSubscription(it.key, accountViewModel)
+            }
+        }
+
+        LaunchedEffect(key1 = zapsState, key2 = hasPendingPaymentRequest) {
+            val hasZapData =
+                zapsState?.note?.zapPayments?.isNotEmpty() == true ||
+                    zapsState?.note?.zaps?.isNotEmpty() == true ||
+                    zapsState?.note?.nutzaps?.isNotEmpty() == true ||
+                    zapsState?.note?.onchainZaps?.isNotEmpty() == true
+            val wasZapped =
+                if (hasZapData) {
+                    accountViewModel.calculateIfNoteWasZappedByAccount(baseNote, afterTimeInSeconds)
+                } else {
+                    false
+                }
+            val newState =
+                ZapIconState(
+                    wasZappedByLoggedInUser = wasZapped,
+                    hasPendingPaymentRequest = hasPendingPaymentRequest && !wasZapped,
+                )
+            if (zapIconState.value != newState) {
+                zapIconState.value = newState
+            }
+        }
+    }
+
+    inner(zapIconState.value)
+}
+
+@Composable
+fun ObserveZapIcon(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    afterTimeInSeconds: Long = 0,
+    inner: @Composable (MutableState<Boolean>) -> Unit,
+) {
+    val wasZappedByLoggedInUser = remember { mutableStateOf(false) }
+
+    if (!wasZappedByLoggedInUser.value) {
+        val zapsState by observeNoteZaps(baseNote, accountViewModel)
+
+        zapsState?.note?.zapPayments?.forEach {
+            if (it.value == null) {
+                NWCFinderFilterAssemblerSubscription(it.key, accountViewModel)
+            }
+        }
+
+        LaunchedEffect(key1 = zapsState) {
+            if (zapsState?.note?.zapPayments?.isNotEmpty() == true || zapsState?.note?.zaps?.isNotEmpty() == true) {
+                val newWasZapped = accountViewModel.calculateIfNoteWasZappedByAccount(baseNote, afterTimeInSeconds)
+                if (wasZappedByLoggedInUser.value != newWasZapped) {
+                    wasZappedByLoggedInUser.value = newWasZapped
+                }
+            }
+        }
+    }
+
+    inner(wasZappedByLoggedInUser)
+}
+
+@Composable
+fun ObserveZapAmountText(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    inner: @Composable (String) -> Unit,
+) {
+    val zapsState by observeNoteZaps(baseNote, accountViewModel)
+
+    if (zapsState?.note?.zapPayments?.isNotEmpty() == true) {
+        zapsState?.note?.zapPayments?.forEach {
+            if (it.value == null) {
+                NWCFinderFilterAssemblerSubscription(it.key, accountViewModel)
+            }
+        }
+
+        @Suppress("ProduceStateDoesNotAssignValue")
+        val zapAmountTxt by
+            produceState(initialValue = showAmount(baseNote.zapsAmount), key1 = zapsState) {
+                zapsState?.note?.let {
+                    val newZapAmount = accountViewModel.calculateZapAmount(it)
+                    if (value != newZapAmount) {
+                        value = newZapAmount
+                    }
+                }
+            }
+
+        inner(zapAmountTxt)
+    } else {
+        // Include the signed-in user's own pending onchain zaps so
+        // the counter reflects the optimistic value the gallery shows.
+        val ownPubKey = accountViewModel.account.userProfile().pubkeyHex
+        val note = zapsState?.note
+        val total =
+            (note?.zapsAmount ?: java.math.BigDecimal(0)) +
+                java.math.BigDecimal(note?.extraOwnPendingOnchainSats(ownPubKey) ?: 0L)
+        inner(showAmount(total))
+    }
+}
+
+@Composable
+private fun BoostTypeChoicePopup(
+    baseNote: Note,
+    iconSize: Dp,
+    accountViewModel: AccountViewModel,
+    onDismiss: () -> Unit,
+    onQuote: () -> Unit,
+    onRepost: () -> Unit,
+    onFork: () -> Unit,
+) {
+    val visibilityState = rememberVisibilityState(onDismiss)
+    BoostTypeChoicePopup(
+        baseNote,
+        iconSize,
+        accountViewModel,
+        visibilityState,
+        onQuote,
+        onRepost,
+        onFork,
+    )
+}
+
+@Composable
+private fun BoostTypeChoicePopup(
+    baseNote: Note,
+    iconSize: Dp,
+    accountViewModel: AccountViewModel,
+    visibilityState: MutableTransitionState<Boolean>,
+    onQuote: () -> Unit,
+    onRepost: () -> Unit,
+    onFork: () -> Unit,
+) {
+    val iconSizePx = with(LocalDensity.current) { -iconSize.toPx().toInt() }
+
+    Popup(
+        alignment = Alignment.BottomCenter,
+        offset = IntOffset(0, iconSizePx),
+        onDismissRequest = { visibilityState.targetState = false },
+        properties = PopupProperties(focusable = true),
+    ) {
+        AnimatedVisibility(
+            visibleState = visibilityState,
+            enter = popupAnimationEnter,
+            exit = popupAnimationExit,
+        ) {
+            BoostTypeChoicePopupContent(
+                // removes the option to fork for now because we do not have screens for
+                // LongForm, Wiki and NIP posting.
+                showFork = baseNote.event is TextNoteEvent,
+                onBoost = {
+                    if (accountViewModel.isWriteable()) {
+                        accountViewModel.boost(baseNote)
+                    } else {
+                        onRepost()
+                    }
+                    visibilityState.targetState = false
+                },
+                onQuote = {
+                    onQuote()
+                    visibilityState.targetState = false
+                },
+                onFork = {
+                    onFork()
+                    visibilityState.targetState = false
+                },
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun BoostTypeChoicePopupContent(
+    showFork: Boolean,
+    onBoost: () -> Unit,
+    onQuote: () -> Unit,
+    onFork: () -> Unit,
+) {
+    Box(HalfPadding, contentAlignment = Center) {
+        ElevatedCard(
+            shape = SmallBorder,
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        ) {
+            FlowRow(
+                modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.Center,
+                itemVerticalAlignment = CenterVertically,
+            ) {
+                BoostActionChip(
+                    label = stringRes(R.string.boost),
+                    onClick = onBoost,
+                ) { tint ->
+                    RepostedIcon(Size18Modifier, tint)
+                }
+
+                BoostActionChip(
+                    label = stringRes(R.string.quote),
+                    onClick = onQuote,
+                ) { tint ->
+                    RepostedIcon(Size18Modifier, tint)
+                }
+
+                if (showFork) {
+                    BoostActionChip(
+                        label = stringRes(R.string.fork),
+                        onClick = onFork,
+                    ) { tint ->
+                        Icon(
+                            symbol = MaterialSymbols.EditNote,
+                            contentDescription = null,
+                            modifier = Size18Modifier,
+                            tint = tint,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * A single quote/repost action rendered as a pill: a coloured leading icon next
+ * to its label, wrapped in the same soft-outlined surface the zap rails use so
+ * the popups read as one family.
+ */
+@Composable
+private fun BoostActionChip(
+    label: String,
+    onClick: () -> Unit,
+    icon: @Composable (Color) -> Unit,
+) {
+    Surface(
+        shape = ButtonBorder,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+    ) {
+        Row(
+            modifier =
+                Modifier
+                    .clip(ButtonBorder)
+                    .clickable(onClick = onClick)
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = CenterVertically,
+        ) {
+            icon(MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = label,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun BoostTypeChoicePopupPreview() {
+    ThemeComparisonColumn {
+        Column {
+            // With the fork action (e.g. a plain text note).
+            BoostTypeChoicePopupContent(
+                showFork = true,
+                onBoost = {},
+                onQuote = {},
+                onFork = {},
+            )
+
+            // Without the fork action (e.g. long-form, wiki, …).
+            BoostTypeChoicePopupContent(
+                showFork = false,
+                onBoost = {},
+                onQuote = {},
+                onFork = {},
+            )
+        }
+    }
+}
+
+val popupAnimationEnter: EnterTransition =
+    slideInVertically(
+        animationSpec = defaultTweenIntOffsetSpec,
+        initialOffsetY = { it / 2 },
+    ) + fadeIn(animationSpec = defaultTweenFloatSpec)
+
+val popupAnimationExit: ExitTransition =
+    slideOutVertically(
+        animationSpec = defaultTweenIntOffsetSpec,
+        targetOffsetY = { it / 2 },
+    ) + fadeOut(animationSpec = defaultTweenFloatSpec)
+
+@Composable
+fun rememberVisibilityState(onDismiss: () -> Unit): MutableTransitionState<Boolean> {
+    // Prevent multiple calls to onDismiss()
+    var dismissed by remember { mutableStateOf(false) }
+
+    val visibilityState = remember { MutableTransitionState(false).apply { targetState = true } }
+    LaunchedEffect(visibilityState.targetState) {
+        if (!visibilityState.targetState && !dismissed) {
+            delay(defaultTweenDuration.toLong())
+            dismissed = true
+            onDismiss()
+        }
+    }
+
+    return visibilityState
+}
+
+@Composable
+fun ReactionChoicePopup(
+    baseNote: Note,
+    iconSize: Dp,
+    accountViewModel: AccountViewModel,
+    onDismiss: () -> Unit,
+    onChangeAmount: () -> Unit,
+) {
+    val visibilityState = rememberVisibilityState(onDismiss)
+    ReactionChoicePopup(baseNote, iconSize, accountViewModel, visibilityState, onChangeAmount)
+}
+
+@Composable
+fun ReactionChoicePopup(
+    baseNote: Note,
+    iconSize: Dp,
+    accountViewModel: AccountViewModel,
+    visibilityState: MutableTransitionState<Boolean>,
+    onChangeAmount: () -> Unit,
+) {
+    val iconSizePx = with(LocalDensity.current) { -iconSize.toPx().toInt() }
+
+    val reactions by accountViewModel.reactionChoicesFlow().collectAsStateWithLifecycle()
+    val toRemove = remember { baseNote.allReactionsByAuthor(accountViewModel.userProfile()).toImmutableSet() }
+
+    Popup(
+        alignment = Alignment.BottomCenter,
+        offset = IntOffset(0, iconSizePx),
+        onDismissRequest = { visibilityState.targetState = false },
+        properties = PopupProperties(focusable = true),
+    ) {
+        AnimatedVisibility(
+            visibleState = visibilityState,
+            enter = popupAnimationEnter,
+            exit = popupAnimationExit,
+        ) {
+            ReactionChoicePopupContent(
+                reactions,
+                toRemove = toRemove,
+                onClick = { reactionType ->
+                    accountViewModel.reactToOrDelete(
+                        baseNote,
+                        reactionType,
+                    )
+                    visibilityState.targetState = false
+                },
+                onChangeAmount,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun ReactionChoicePopupContent(
+    listOfReactions: ImmutableList<String>,
+    toRemove: ImmutableSet<String>,
+    onClick: (reactionType: String) -> Unit,
+    onChangeAmount: () -> Unit,
+) {
+    Box(HalfPadding, contentAlignment = Center) {
+        ElevatedCard(
+            shape = SmallBorder,
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        ) {
+            FlowRow(
+                modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                listOfReactions.forEach { reactionType ->
+                    ActionableReactionButton(
+                        reactionType = reactionType,
+                        onClick = { onClick(reactionType) },
+                        onChangeAmount = onChangeAmount,
+                        toRemove = toRemove,
+                    )
+                }
+
+                ClickableBox(modifier = reactionBox, onClick = onChangeAmount) {
+                    ChangeReactionIcon(modifier = Size28Modifier, MaterialTheme.colorScheme.placeholderText)
+                }
+            }
+        }
+    }
+}
+
+private const val EMOJI_ROCKET = "\uD83D\uDE80"
+private const val EMOJI_THINKING = "\uD83E\uDD14"
+private const val EMOJI_SCREAM = "\uD83D\uDE31"
+private const val EMOJI_PARTY = "\uD83C\uDF89"
+
+@Preview()
+@Composable
+fun ReactionChoicePopupPeeview() {
+    ThemeComparisonColumn {
+        ReactionChoicePopupContent(
+            persistentListOf(
+                EMOJI_ROCKET,
+                "\uD83E\uDEC2",
+                "\uD83D\uDC40",
+                "\uD83D\uDE02",
+                EMOJI_PARTY,
+                EMOJI_THINKING,
+                EMOJI_SCREAM,
+                EMOJI_THINKING,
+                EMOJI_SCREAM,
+                "+",
+                "-",
+                EMOJI_PARTY,
+                EMOJI_THINKING,
+                EMOJI_SCREAM,
+                EMOJI_THINKING,
+                EMOJI_SCREAM,
+                "\uD83D\uDE80\uDB40\uDD58\uDB40\uDD64\uDB40\uDD64\uDB40\uDD60\uDB40\uDD63\uDB40\uDD2A\uDB40\uDD1F\uDB40\uDD1F\uDB40\uDD53\uDB40\uDD54\uDB40\uDD5E\uDB40\uDD1E\uDB40\uDD63\uDB40\uDD51\uDB40\uDD64\uDB40\uDD55\uDB40\uDD5C\uDB40\uDD5C\uDB40\uDD59\uDB40\uDD64\uDB40\uDD55\uDB40\uDD1E\uDB40\uDD55\uDB40\uDD51\uDB40\uDD62\uDB40\uDD64\uDB40\uDD58\uDB40\uDD1F\uDB40\uDD29\uDB40\uDD24\uDB40\uDD27\uDB40\uDD55\uDB40\uDD24\uDB40\uDD51\uDB40\uDD52\uDB40\uDD22\uDB40\uDD54\uDB40\uDD23\uDB40\uDD21\uDB40\uDD21\uDB40\uDD25\uDB40\uDD52\uDB40\uDD55\uDB40\uDD25\uDB40\uDD26\uDB40\uDD25\uDB40\uDD51\uDB40\uDD24\uDB40\uDD29\uDB40\uDD53\uDB40\uDD56\uDB40\uDD25\uDB40\uDD54\uDB40\uDD52\uDB40\uDD20\uDB40\uDD22\uDB40\uDD25\uDB40\uDD25\uDB40\uDD29\uDB40\uDD56\uDB40\uDD23\uDB40\uDD21\uDB40\uDD20\uDB40\uDD53\uDB40\uDD51\uDB40\uDD20\uDB40\uDD51\uDB40\uDD26\uDB40\uDD54\uDB40\uDD54\uDB40\uDD56\uDB40\uDD54\uDB40\uDD54\uDB40\uDD52\uDB40\uDD54\uDB40\uDD24\uDB40\uDD52\uDB40\uDD54\uDB40\uDD28\uDB40\uDD53\uDB40\uDD52\uDB40\uDD55\uDB40\uDD53\uDB40\uDD24\uDB40\uDD24\uDB40\uDD29\uDB40\uDD29\uDB40\uDD25\uDB40\uDD53\uDB40\uDD22\uDB40\uDD55\uDB40\uDD27\uDB40\uDD1E\uDB40\uDD67\uDB40\uDD55\uDB40\uDD52\uDB40\uDD60",
+            ),
+            onClick = {},
+            onChangeAmount = {},
+            toRemove = persistentSetOf(EMOJI_ROCKET, EMOJI_THINKING, EMOJI_SCREAM),
+        )
+    }
+}
+
+@Composable
+private fun ActionableReactionButton(
+    reactionType: String,
+    onClick: () -> Unit,
+    onChangeAmount: () -> Unit,
+    toRemove: ImmutableSet<String>,
+) {
+    ClickableBox(
+        modifier = if (reactionType in toRemove) MaterialTheme.colorScheme.selectedReactionBoxModifier else reactionBox,
+        onClick = onClick,
+        onLongClick = onChangeAmount,
+    ) {
+        RenderReaction(reactionType)
+    }
+}
+
+@Composable
+fun RenderReaction(reactionType: String) {
+    if (reactionType.startsWith(":")) {
+        val noStartColon = reactionType.removePrefix(":")
+        val url = noStartColon.substringAfter(":")
+
+        InLineIconRenderer(
+            persistentListOf(
+                CustomEmoji.ImageUrlType(url),
+            ),
+            style = SpanStyle(color = MaterialTheme.colorScheme.onBackground),
+            maxLines = 1,
+            fontSize = 22.sp,
+        )
+    } else {
+        when (reactionType) {
+            "+" -> {
+                LikedIcon(modifier = Size28Modifier)
+            }
+
+            "-" -> {
+                Text(
+                    text = "\uD83D\uDC4E",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    maxLines = 1,
+                    fontSize = 22.sp,
+                )
+            }
+
+            else -> {
+                if (EmojiCoder.isCoded(reactionType)) {
+                    AnimatedBorderTextCornerRadius(
+                        reactionType,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontSize = 20.sp,
+                    )
+                } else {
+                    Text(
+                        reactionType,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        maxLines = 1,
+                        fontSize = 22.sp,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ZapAmountChoicePopup(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    popupYOffset: Dp,
+    onZapStarts: () -> Unit,
+    onDismiss: () -> Unit,
+    onChangeAmount: () -> Unit,
+    onError: (title: String, text: String, user: User?) -> Unit,
+    onProgress: (percent: Float) -> Unit,
+    onPayViaIntent: (ImmutableList<ZapPaymentHandler.Payable>) -> Unit,
+    onOnchainAmount: ((Long?) -> Unit)? = null,
+    onReloadNutzap: (Long) -> Unit = {},
+) {
+    val zapAmountChoices by
+        accountViewModel.account.settings.syncedSettings.zaps.zapAmountChoices
+            .collectAsStateWithLifecycle()
+
+    ZapAmountChoicePopup(
+        baseNote = baseNote,
+        zapAmountChoices = zapAmountChoices,
+        accountViewModel = accountViewModel,
+        popupYOffset = popupYOffset,
+        onZapStarts = onZapStarts,
+        onDismiss = onDismiss,
+        onChangeAmount = onChangeAmount,
+        onError = onError,
+        onProgress = onProgress,
+        onPayViaIntent = onPayViaIntent,
+        onOnchainAmount = onOnchainAmount ?: {},
+        onchainSupported = onOnchainAmount != null,
+        onReloadNutzap = onReloadNutzap,
+    )
+}
+
+/**
+ * The recipient/sender rail availability (lightning, cashu, on-chain) for zapping
+ * [baseNote], recomputed as the async inputs (recipient kind:0 / kind:10019, the
+ * local cashu wallet) load. Each observe call also subscribes the relay fetch, so
+ * missing inputs are pulled in while the caller is on screen.
+ */
+@Composable
+fun observeZapRailCapability(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    onchainSupported: Boolean,
+): RailCapability {
+    val cashuState = accountViewModel.account.cashuWalletState
+    val author = baseNote.author
+    // These four are deliberately read only to drive the recompute below — do NOT
+    // delete them as "unused". Each observe* call ALSO subscribes the relay fetch
+    // (so a not-yet-seen kind:0 / kind:10019 gets pulled in while the popup is
+    // open), and each value is a remember() key so railCapability recomputes when
+    // it arrives. RailCapabilityResolver.peek re-reads everything itself; these
+    // just say *when* to re-run it.
+    val cashuMints by cashuState.mints.collectAsStateWithLifecycle()
+    val cashuEntries by cashuState.tokenEntries.collectAsStateWithLifecycle()
+    val recipientInfo = author?.let { observeUserInfo(it, accountViewModel).value }
+    val nutzapInfo = author?.let { observeNoteEvent<NutzapInfoEvent>(it.nutzapInfoNote, accountViewModel).value }
+    // Honors the user's "show on-chain wallet" preference: off hides the on-chain
+    // rail from the zap chips too, matching the wallet screen, profile chips, and
+    // Send Payment screen.
+    val showOnchainWallet by accountViewModel.settings.uiSettingsFlow.showOnchainWallet
+        .collectAsStateWithLifecycle()
+
+    return remember(baseNote, onchainSupported, showOnchainWallet, cashuMints, cashuEntries, recipientInfo, nutzapInfo) {
+        val rc = RailCapabilityResolver.peek(baseNote, cashuState)
+        if (onchainSupported && showOnchainWallet) rc else rc.copy(hasOnchain = false)
+    }
+}
+
+@Composable
+fun ZapAmountChoicePopup(
+    baseNote: Note,
+    zapAmountChoices: ImmutableList<Long>,
+    accountViewModel: AccountViewModel,
+    popupYOffset: Dp,
+    onZapStarts: () -> Unit,
+    onDismiss: () -> Unit,
+    onChangeAmount: () -> Unit,
+    onError: (title: String, text: String, user: User?) -> Unit,
+    onProgress: (percent: Float) -> Unit,
+    onPayViaIntent: (ImmutableList<ZapPaymentHandler.Payable>) -> Unit,
+    onOnchainAmount: (Long?) -> Unit = {},
+    onchainSupported: Boolean = true,
+    onReloadNutzap: (Long) -> Unit = {},
+) {
+    // One chip per amount; the chip itself shows which rails can pay it.
+    // [zapAmountChoices] is already the single merged+sorted preset list (the
+    // on-chain amounts were folded in at the settings layer), so rail
+    // availability per amount is decided in [UnifiedZapAmountChip] from
+    // [railCapability] rather than by keeping separate per-rail lists.
+    //
+    // [railCapability] gates which rails the recipient can receive on (plus the
+    // sender's cashu balance). The inputs load asynchronously, so observe them and
+    // recompute as they arrive — the chip's Lightning logo appears once the
+    // recipient's lnAddress (kind:0) loads, and the cashu logo once their nutzap
+    // info (kind:10019) and our cashu wallet (mints + proofs) load. The observers
+    // also trigger the relay fetch, so a not-yet-seen lnAddress / kind:10019 is
+    // pulled in while the popup is open. A caller that can't drive the on-chain
+    // dialog (onchainSupported == false) masks that rail off here.
+    val railCapability = observeZapRailCapability(baseNote, accountViewModel, onchainSupported)
+    val amountChoices =
+        remember(zapAmountChoices) {
+            // Keep the user's saved order (already de-duped at the settings
+            // layer); don't re-sort, that would override a deliberate ordering.
+            zapAmountChoices.distinct().toImmutableList()
+        }
+    val visibilityState = rememberVisibilityState(onDismiss)
+    ZapAmountChoicePopup(
+        baseNote,
+        amountChoices,
+        railCapability,
+        accountViewModel,
+        popupYOffset,
+        visibilityState,
+        onZapStarts,
+        onChangeAmount,
+        onOnchainAmount,
+        onError,
+        onProgress,
+        onPayViaIntent,
+        onReloadNutzap,
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
+@Composable
+fun ZapAmountChoicePopup(
+    baseNote: Note,
+    amountChoices: ImmutableList<Long>,
+    railCapability: RailCapability,
+    accountViewModel: AccountViewModel,
+    popupYOffset: Dp,
+    visibilityState: MutableTransitionState<Boolean>,
+    onZapStarts: () -> Unit,
+    onChangeAmount: () -> Unit,
+    onOnchainAmount: (Long?) -> Unit,
+    onError: (title: String, text: String, user: User?) -> Unit,
+    onProgress: (percent: Float) -> Unit,
+    onPayViaIntent: (ImmutableList<ZapPaymentHandler.Payable>) -> Unit,
+    onReloadNutzap: (Long) -> Unit = {},
+) {
+    val context = LocalContext.current
+    val yOffset = with(LocalDensity.current) { -popupYOffset.toPx().toInt() }
+
+    Popup(
+        alignment = Alignment.BottomCenter,
+        offset = IntOffset(0, yOffset),
+        onDismissRequest = { visibilityState.targetState = false },
+        properties = PopupProperties(focusable = true),
+    ) {
+        AnimatedVisibility(
+            visibleState = visibilityState,
+            enter = popupAnimationEnter,
+            exit = popupAnimationExit,
+        ) {
+            ZapAmountChoicePopupContent(
+                amountChoices = amountChoices,
+                railCapability = railCapability,
+                onLightningZap = { amountInSats ->
+                    onZapStarts()
+                    accountViewModel.zap(
+                        baseNote,
+                        amountInSats * 1000,
+                        null,
+                        "",
+                        context,
+                        true,
+                        onError,
+                        onProgress,
+                        onPayViaIntent,
+                    )
+                    visibilityState.targetState = false
+                },
+                onNutzap = { amountInSats ->
+                    onZapStarts()
+                    // Instant click feedback. Without this initial nudge
+                    // the bar stays flat for ~1s until scrubLocallyStale-
+                    // Proofs returns; the user thinks the tap was lost.
+                    onProgress(0.05f)
+                    accountViewModel.sendNutzap(
+                        baseNote = baseNote,
+                        amountSats = amountInSats,
+                        message = "",
+                        onError = onError,
+                        onProgress = onProgress,
+                    )
+                    visibilityState.targetState = false
+                },
+                onOnchainAmount = { amount ->
+                    onOnchainAmount(amount)
+                    visibilityState.targetState = false
+                },
+                onReloadNutzap = { amount ->
+                    onReloadNutzap(amount)
+                    visibilityState.targetState = false
+                },
+                onChangeAmount = onChangeAmount,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun ZapAmountChoicePopupContent(
+    amountChoices: ImmutableList<Long>,
+    railCapability: RailCapability,
+    onLightningZap: (Long) -> Unit,
+    onNutzap: (Long) -> Unit,
+    onOnchainAmount: (Long?) -> Unit,
+    onChangeAmount: () -> Unit,
+    onReloadNutzap: (Long) -> Unit = {},
+) {
+    Box(HalfPadding, contentAlignment = Center) {
+        ElevatedCard(
+            shape = SmallBorder,
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        ) {
+            ZapAmountChoiceGrid(
+                amountChoices = amountChoices,
+                railCapability = railCapability,
+                onLightningZap = onLightningZap,
+                onNutzap = onNutzap,
+                onOnchainAmount = onOnchainAmount,
+                onChangeAmount = onChangeAmount,
+                onReloadNutzap = onReloadNutzap,
+            )
+        }
+    }
+}
+
+/**
+ * The bare zap-amount chip grid (one rail-aware pill per preset amount plus the
+ * preset editor button), without the popup card — embeddable in any surface, e.g.
+ * the chat long-press sheet.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun ZapAmountChoiceGrid(
+    amountChoices: ImmutableList<Long>,
+    railCapability: RailCapability,
+    onLightningZap: (Long) -> Unit,
+    onNutzap: (Long) -> Unit,
+    onOnchainAmount: (Long?) -> Unit,
+    onChangeAmount: () -> Unit,
+    onReloadNutzap: (Long) -> Unit = {},
+) {
+    FlowRow(
+        modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Center,
+        itemVerticalAlignment = CenterVertically,
+    ) {
+        amountChoices.forEach { amountInSats ->
+            UnifiedZapAmountChip(
+                amountInSats = amountInSats,
+                railCapability = railCapability,
+                onLightningZap = onLightningZap,
+                onNutzap = onNutzap,
+                onOnchainAmount = onOnchainAmount,
+                onReloadNutzap = onReloadNutzap,
+                onChangeAmount = onChangeAmount,
+            )
+        }
+        ClickableBox(
+            modifier =
+                Modifier
+                    .padding(horizontal = 4.dp, vertical = 6.dp)
+                    .size(32.dp)
+                    .padding(7.dp),
+            onClick = onChangeAmount,
+        ) {
+            Icon(
+                symbol = MaterialSymbols.Tune,
+                contentDescription = stringRes(R.string.quick_zap_amounts),
+                modifier = Size18Modifier,
+                tint = MaterialTheme.colorScheme.placeholderText,
+            )
+        }
+    }
+}
+
+/**
+ * One pill per amount, showing a tappable logo for every rail that can pay it:
+ *  - **Cashu** as a solid logo when a single shared mint already covers the
+ *    amount (FUNDED), or as a dimmed logo with a "+" badge when funds exist but
+ *    in the wrong mint (NEEDS_RELOAD) — tapping the latter opens the Reload Mint
+ *    screen. Cashu is the one rail whose balance is free to read.
+ *  - **Lightning** optimistically whenever the recipient can receive — an
+ *    external wallet can pay any invoice, so we don't gate on a sender balance.
+ *  - **On-chain** when a backend is configured and the amount clears
+ *    [MIN_ONCHAIN_ZAP_SATS]; UTXO sufficiency stays a send-time check.
+ *
+ * Tapping the amount fires the amount-tiered default rail: under
+ * [CASHU_PREFERRED_BELOW_SATS] cashu, over [ONCHAIN_PREFERRED_ABOVE_SATS]
+ * on-chain, and Lightning in between (falling back through the other rails when
+ * the tier's rail isn't available). That default logo sits to the left of the
+ * amount in colour; the alternatives follow on the right in monochrome and can
+ * be tapped to force their rail. Long-press opens the amount-preset editor. A
+ * pill with no payable rail is not rendered.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun UnifiedZapAmountChip(
+    amountInSats: Long,
+    railCapability: RailCapability,
+    onLightningZap: (Long) -> Unit,
+    onNutzap: (Long) -> Unit,
+    onOnchainAmount: (Long?) -> Unit,
+    onReloadNutzap: (Long) -> Unit,
+    onChangeAmount: () -> Unit,
+) {
+    val cashuStatus = railCapability.cashuStatus(amountInSats)
+    val cashuReady = cashuStatus == CashuRailStatus.FUNDED
+    val cashuReloadable = cashuStatus == CashuRailStatus.NEEDS_RELOAD
+    val lightningReady = railCapability.hasLightning
+    val onchainReady = railCapability.hasOnchain && amountInSats >= MIN_ONCHAIN_ZAP_SATS
+
+    if (!cashuReady && !cashuReloadable && !lightningReady && !onchainReady) return
+
+    // Default rail is amount-tiered: tiny zaps lean on cashu (Lightning min/fees
+    // make sub-10-sat payments awkward), large zaps settle on-chain, and the
+    // middle ground defaults to Lightning, with the remaining rails as fallbacks.
+    val present =
+        buildList {
+            if (cashuReady) add(ZapRail.CASHU)
+            if (cashuReloadable) add(ZapRail.RELOAD)
+            if (lightningReady) add(ZapRail.LIGHTNING)
+            if (onchainReady) add(ZapRail.ONCHAIN)
+        }
+    val preferred =
+        when {
+            amountInSats < CASHU_PREFERRED_BELOW_SATS && cashuReady -> ZapRail.CASHU
+            amountInSats < CASHU_PREFERRED_BELOW_SATS && cashuReloadable -> ZapRail.RELOAD
+            amountInSats > ONCHAIN_PREFERRED_ABOVE_SATS && onchainReady -> ZapRail.ONCHAIN
+            lightningReady -> ZapRail.LIGHTNING
+            cashuReady -> ZapRail.CASHU
+            cashuReloadable -> ZapRail.RELOAD
+            else -> ZapRail.ONCHAIN
+        }
+    // The rails are one connected segmented toggle (shared surfaceVariant track).
+    // Tapping a rail only *selects* it — switching never moves money. The selected
+    // segment is the only one that shows the amount (+ a send arrow) and is the
+    // only thing that, when tapped, actually sends. Starts on the amount-tier
+    // default.
+    var selectedRail by remember(preferred, present) {
+        mutableStateOf(if (preferred in present) preferred else present.first())
+    }
+
+    Surface(
+        shape = ButtonBorder,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        // A soft outline around the whole component so it reads as one toggle
+        // control rather than a few loose icons (outlineVariant — between a hard
+        // outline and none).
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(3.dp),
+            verticalAlignment = CenterVertically,
+        ) {
+            present.forEach { rail ->
+                val isSelected = rail == selectedRail
+                // The "thumb" fill slides to the selected segment (colour animates
+                // in/out per segment), showing both the grouping and the selection.
+                val thumb by animateColorAsState(
+                    targetValue = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                    label = "zapRailThumb",
+                )
+                val send: () -> Unit = {
+                    when (rail) {
+                        ZapRail.CASHU -> onNutzap(amountInSats)
+                        ZapRail.RELOAD -> onReloadNutzap(amountInSats)
+                        ZapRail.LIGHTNING -> onLightningZap(amountInSats)
+                        ZapRail.ONCHAIN -> onOnchainAmount(amountInSats)
+                    }
+                }
+                Row(
+                    modifier =
+                        Modifier
+                            .clip(RoundedCornerShape(percent = 50))
+                            .background(thumb)
+                            .combinedClickable(
+                                onClick = { if (isSelected) send() else selectedRail = rail },
+                                onLongClick = onChangeAmount,
+                            ).padding(horizontal = 8.dp, vertical = 5.dp),
+                    verticalAlignment = CenterVertically,
+                ) {
+                    ZapRailIcon(rail, colored = isSelected)
+                    // The amount lives only on the selected segment — it expands in
+                    // here and shrinks away on the old one, so it reads as travelling
+                    // to the icon you picked.
+                    AnimatedVisibility(
+                        visible = isSelected,
+                        enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
+                        exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start),
+                    ) {
+                        Row(verticalAlignment = CenterVertically) {
+                            Spacer(Modifier.width(5.dp))
+                            Text(
+                                text = showAmount(amountInSats.toBigDecimal().setScale(1)),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign = TextAlign.Center,
+                            )
+                            Spacer(Modifier.width(3.dp))
+                            Icon(
+                                symbol = MaterialSymbols.AutoMirrored.ArrowForward,
+                                contentDescription = null,
+                                modifier = Modifier.size(13.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Payment rails a zap-amount chip can offer, in canonical display order. */
+internal enum class ZapRail { CASHU, RELOAD, LIGHTNING, ONCHAIN }
+
+/** Below this, the default rail is cashu (Lightning min/fees make tiny zaps awkward). */
+internal const val CASHU_PREFERRED_BELOW_SATS = 10L
+
+/** Above this, the default rail is an on-chain transaction. */
+internal const val ONCHAIN_PREFERRED_ABOVE_SATS = 10_000L
+
+/**
+ * Default rail for a preset amount with no recipient context (the settings
+ * preview): cashu under [CASHU_PREFERRED_BELOW_SATS], on-chain over
+ * [ONCHAIN_PREFERRED_ABOVE_SATS] (and at/above the on-chain minimum), else
+ * Lightning. Mirrors the live chip's tiering so the preview matches the feed.
+ */
+internal fun previewPreferredRail(amountInSats: Long): ZapRail =
+    when {
+        amountInSats < CASHU_PREFERRED_BELOW_SATS -> ZapRail.CASHU
+        amountInSats > ONCHAIN_PREFERRED_ABOVE_SATS && amountInSats >= MIN_ONCHAIN_ZAP_SATS -> ZapRail.ONCHAIN
+        else -> ZapRail.LIGHTNING
+    }
+
+/** Rails a preset of [amountInSats] could use, default first then the rest. */
+internal fun previewRailsFor(amountInSats: Long): List<ZapRail> {
+    val preferred = previewPreferredRail(amountInSats)
+    val all =
+        buildList {
+            add(ZapRail.CASHU)
+            add(ZapRail.LIGHTNING)
+            if (amountInSats >= MIN_ONCHAIN_ZAP_SATS) add(ZapRail.ONCHAIN)
+        }
+    return listOf(preferred) + all.filter { it != preferred }
+}
+
+/**
+ * Just the rail's logo (no click target), drawn at [size]. [colored] renders it
+ * in its accent colour (the preferred rail); otherwise it's flattened to the
+ * on-surface monochrome tint. The cashu mark is drawn ~0.86× the symbol size —
+ * the new monochrome outline carries less weight than the old multi-tone mark,
+ * so it needs less shrinking to read at a matching optical size.
+ */
+@Composable
+internal fun ZapRailIcon(
+    rail: ZapRail,
+    colored: Boolean,
+    size: Dp = 18.dp,
+) {
+    val mono = MaterialTheme.colorScheme.onSurface
+    val cashuSize = size * 0.86f
+    when (rail) {
+        ZapRail.CASHU ->
+            Material3Icon(
+                imageVector = CustomHashTagIcons.Cashu,
+                contentDescription = stringRes(R.string.nutzap),
+                modifier = Modifier.size(cashuSize),
+                // The cashu mark is a monochrome, tintable outline — colour it the
+                // same brand orange as the other rails when selected, else mono.
+                tint = if (colored) BitcoinOrange else mono,
+            )
+        ZapRail.RELOAD ->
+            // Funds exist but in the wrong mint — a dimmed cashu logo with a
+            // small "+" badge; tapping it opens the top-up screen.
+            Box(contentAlignment = Alignment.BottomEnd) {
+                Material3Icon(
+                    imageVector = CustomHashTagIcons.Cashu,
+                    contentDescription = stringRes(R.string.reload_mint_title),
+                    modifier = Modifier.size(cashuSize).alpha(0.5f),
+                    tint = if (colored) BitcoinOrange else mono,
+                )
+                Icon(
+                    symbol = MaterialSymbols.AddCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(size * 0.5f),
+                    tint = if (colored) BitcoinOrange else mono,
+                )
+            }
+        ZapRail.LIGHTNING ->
+            Icon(
+                symbol = MaterialSymbols.Bolt,
+                contentDescription = null,
+                modifier = Modifier.size(size),
+                tint = if (colored) BitcoinOrange else mono,
+            )
+        ZapRail.ONCHAIN ->
+            Icon(
+                symbol = MaterialSymbols.CurrencyBitcoin,
+                contentDescription = null,
+                modifier = Modifier.size(size),
+                tint = if (colored) BitcoinOrange else mono,
+            )
+    }
+}
+
+/**
+ * Exercises the chip across rail combinations and amount bands so the default
+ * (coloured, left of the amount) and the alternative circular buttons can be
+ * eyeballed. Amounts span the tiers: 5 (cashu), 100/5k (Lightning), 100k
+ * (on-chain).
+ */
+@Preview
+@Composable
+fun ZapAmountChoicePopupPreview() {
+    val amounts = persistentListOf(5L, 100L, 5_000L, 100_000L)
+    ThemeComparisonColumn {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            ZapChipPreviewRow(
+                "All rails · cashu funded",
+                RailCapability(hasCashu = true, hasLightning = true, hasOnchain = true, cashuBestSingleMintSats = 1_000_000L, cashuTotalWalletSats = 1_000_000L),
+                amounts,
+            )
+            ZapChipPreviewRow(
+                "Cashu only",
+                RailCapability(hasCashu = true, hasLightning = false, hasOnchain = false, cashuBestSingleMintSats = 1_000_000L, cashuTotalWalletSats = 1_000_000L),
+                amounts,
+            )
+            ZapChipPreviewRow(
+                "Lightning only",
+                RailCapability(hasCashu = false, hasLightning = true, hasOnchain = false, cashuBestSingleMintSats = 0L, cashuTotalWalletSats = 0L),
+                amounts,
+            )
+            ZapChipPreviewRow(
+                "Reload (funds split across mints)",
+                RailCapability(hasCashu = true, hasLightning = true, hasOnchain = true, cashuBestSingleMintSats = 10L, cashuTotalWalletSats = 1_000_000L),
+                amounts,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ZapChipPreviewRow(
+    label: String,
+    caps: RailCapability,
+    amounts: ImmutableList<Long>,
+) {
+    Text(label, style = MaterialTheme.typography.labelSmall)
+    ZapAmountChoicePopupContent(
+        amountChoices = amounts,
+        railCapability = caps,
+        onLightningZap = {},
+        onNutzap = {},
+        onOnchainAmount = {},
+        onReloadNutzap = {},
+        onChangeAmount = {},
+    )
+}
+
+fun showCount(count: Int?): String {
+    if (count == null) return ""
+    if (count == 0) return ""
+
+    return when {
+        count >= 1000000000 -> "${(count / 1000000000f).roundToInt()}G"
+        count >= 1000000 -> "${(count / 1000000f).roundToInt()}M"
+        count >= 10000 -> "${(count / 1000f).roundToInt()}k"
+        else -> "$count"
+    }
+}
