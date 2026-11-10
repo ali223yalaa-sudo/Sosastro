@@ -85,7 +85,7 @@ fun Iterable<Note>.sortedByInterestOrDefault(
             ranked.diversifyByAuthor() +
                 ownUnranked.diversifyByAuthor() +
                 otherUnranked.diversifyByAuthor()
-        ).distinctBy { it.idHex }
+        ).distinctBy { it.idHex }.astroRegionRanked()
     }
     // Cold start / no similar yet: chronological ME (or all) without recommendation badges.
     val meOnly =

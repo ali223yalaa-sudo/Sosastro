@@ -20,6 +20,7 @@
  */
 package com.vitorpamplona.amethyst.model.topNavFeeds.allFollows
 
+import com.vitorpamplona.amethyst.commons.defaults.Constants
 import com.vitorpamplona.amethyst.model.serverList.MergedFollowListsState
 import com.vitorpamplona.amethyst.model.topNavFeeds.IFeedFlowsType
 import com.vitorpamplona.amethyst.model.topNavFeeds.IFeedTopNavFilter
@@ -37,12 +38,17 @@ class AllFollowsFeedFlow(
     fun convert(
         allFollows: MergedFollowListsState.AllFollows?,
         proxyRelays: Set<NormalizedRelayUrl>,
-    ): IFeedTopNavFilter =
-        if (allFollows != null) {
+    ): IFeedTopNavFilter {
+        // Astro: always OR the Arab/Iraqi hashtag seed into the feed. This is what makes
+        // public relays return local content, and it is the same set the client-side match
+        // checks, so seeded notes are not dropped after they arrive. Without it the default
+        // home feed only ever contains whatever the (often non-Arab) follow graph produced.
+        val hashtags = (allFollows?.hashtags ?: emptySet()) + Constants.REGION_QUERY_HASHTAGS
+        return if (allFollows != null) {
             if (proxyRelays.isEmpty()) {
                 AllFollowsByOutboxTopNavFilter(
                     authors = allFollows.authors,
-                    hashtags = allFollows.hashtags,
+                    hashtags = hashtags,
                     geotags = allFollows.geotags,
                     communities = allFollows.communities,
                     defaultRelays = followsRelays,
@@ -51,7 +57,7 @@ class AllFollowsFeedFlow(
             } else {
                 AllFollowsByProxyTopNavFilter(
                     authors = allFollows.authors,
-                    hashtags = allFollows.hashtags,
+                    hashtags = hashtags,
                     geotags = allFollows.geotags,
                     communities = allFollows.communities,
                     proxyRelays = proxyRelays,
@@ -60,10 +66,12 @@ class AllFollowsFeedFlow(
         } else {
             AllFollowsByOutboxTopNavFilter(
                 authors = emptySet(),
+                hashtags = hashtags,
                 defaultRelays = followsRelays,
                 blockedRelays = blockedRelays,
             )
         }
+    }
 
     override fun flow() = combine(allFollows, proxyRelays, ::convert)
 

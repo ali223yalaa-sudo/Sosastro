@@ -22,6 +22,7 @@ package com.vitorpamplona.amethyst.ui.screen.loggedIn.home.datasource.nip01Core
 
 import com.vitorpamplona.amethyst.model.topNavFeeds.global.GlobalTopNavPerRelayFilterSet
 import com.vitorpamplona.amethyst.service.relays.SincePerRelayMap
+import com.vitorpamplona.amethyst.ui.dal.astroRegionHashtagFilter
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.home.datasource.nip65Follows.HomePostsConversationKinds
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.home.datasource.nip65Follows.HomePostsNewThreadKinds1
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.home.datasource.nip65Follows.HomePostsNewThreadKinds2
@@ -66,6 +67,12 @@ fun filterHomePostsByGlobal(
                         limit = 50,
                         since = since ?: repliesSince,
                     ),
+            ),
+            astroRegionHashtagFilter(
+                relay = relayUrl,
+                kinds = HomePostsNewThreadKinds1,
+                since = since ?: newThreadSince,
+                limit = 50,
             ),
         )
     }

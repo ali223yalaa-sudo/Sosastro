@@ -23,6 +23,7 @@ package com.vitorpamplona.amethyst.ui.dal
 import com.vitorpamplona.amethyst.model.Note
 import com.vitorpamplona.quartz.nip01Core.tags.geohash.GeoHash
 import com.vitorpamplona.quartz.nip10Notes.TextNoteEvent
+import com.vitorpamplona.quartz.nip71Video.VideoVerticalEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -77,6 +78,23 @@ class AstroRegionRankTest {
     @Test
     fun `non-arabic text without tags ranks as global tier`() {
         assertEquals(AstroRegionRank.TIER_GLOBAL, AstroRegionRank.tier(noteWithContent("hello world")))
+    }
+
+    @Test
+    fun `video with an arabic title but empty content ranks as arab tier`() {
+        // NIP-71 videos keep the caption in content but the title in a `title` tag.
+        // Ranking must look at both, otherwise Arabic reels fall to the global tier.
+        val video =
+            VideoVerticalEvent(
+                "vid",
+                "pub",
+                0L,
+                arrayOf(arrayOf("title", "مقطع عراقي جميل"), arrayOf("t", "بغداد")),
+                "",
+                "sig",
+            )
+        val note = Note("vid").apply { this.event = video }
+        assertEquals(AstroRegionRank.TIER_HOME, AstroRegionRank.tier(note))
     }
 
     @Test

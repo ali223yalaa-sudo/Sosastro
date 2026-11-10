@@ -21,9 +21,11 @@
 package com.vitorpamplona.amethyst.ui.dal
 
 import com.vitorpamplona.amethyst.model.Note
+import com.vitorpamplona.quartz.nip01Core.core.Event
 import com.vitorpamplona.quartz.nip01Core.tags.geohash.GeoHash
 import com.vitorpamplona.quartz.nip01Core.tags.geohash.getGeoHash
 import com.vitorpamplona.quartz.nip01Core.tags.hashtags.hashtags
+import com.vitorpamplona.quartz.nip50Search.SearchableEvent
 
 /**
  * Astro: Instagram-style regional ranking, done entirely client-side so it works
@@ -224,10 +226,21 @@ object AstroRegionRank {
             }
         }
 
-        if (isArabicScript(event.content)) return TIER_ARAB
+        if (isArabicScript(searchableText(event))) return TIER_ARAB
 
         return TIER_GLOBAL
     }
+
+    /**
+     * All human-readable text a note carries. Videos keep their caption in `content`
+     * but their title in a `title` tag, so a plain `event.content` check misses most
+     * Arabic reels. [SearchableEvent.indexableContent] joins title + content.
+     */
+    private fun searchableText(event: Event): String =
+        when (event) {
+            is SearchableEvent -> event.indexableContent()
+            else -> event.content
+        }
 }
 
 /**

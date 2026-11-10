@@ -63,3 +63,30 @@ If JitPack ever publishes the missing Android artifact for `f92ef49c9d`, delete
   returns an ordered `List<Note>`.
 - Ranking helpers live in `.../ui/dal/` (`DefaultFeedOrder.kt`,
   `AstroRegionRank.kt`).
+
+## Feed ranking needs the fetch layer, not just the sort
+
+`AstroRegionRank` can only re-tier notes that already reached `LocalCache`. If the
+REQ never asks for Arab content, the cache holds only foreign posts and no amount of
+client-side ranking will surface Iraqi/Arab notes. Nostr has no language/country
+filter, so the only lever is the `#t` (hashtag) tag.
+
+- `Constants.REGION_QUERY_HASHTAGS` is the shared Arab/Iraqi hashtag seed.
+- `astroRegionHashtagFilter(...)` (`ui/dal/AstroRegionQuery.kt`) turns it into a
+  `RelayBasedFilter`; it is OR-ed into the Global and AllFollows home fetches and the
+  Shorts/Video global fetches.
+- `AllFollowsFeedFlow.convert` unions the seed into the feed's `hashtags`. This matters
+  because `AllFollowsByOutbox/ProxyTopNavFilter.match` drops any fetched note that is
+  not from a followed author **or** carrying a followed hashtag — seeding only the REQ
+  without also seeding `match` would fetch the notes and then throw them away.
+- `AstroRegionRank.tier` reads `SearchableEvent.indexableContent()` (title + content),
+  not just `content`: NIP-71 videos keep the title in a `title` tag, so a `content`-only
+  check classified almost every Arabic reel as global.
+- The interest path (`usesAstroInterestOrder()` = Middle East / Trending) re-applies
+  `astroRegionRanked()` after `ServedFeedOrder`, otherwise the ranked list skipped it.
+
+The personal ME relay and algo-relay live on a Tailscale host
+(`desktop-r082364.tail4b3c94.ts.net`) that does not resolve on the public internet, so
+those paths contribute nothing for normal users. Public-relay seeding is what makes the
+feed work.
+

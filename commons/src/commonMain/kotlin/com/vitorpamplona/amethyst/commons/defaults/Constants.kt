@@ -122,6 +122,40 @@ object Constants {
 
     /** Hashtag used for REQ `#t` filters (widely supported). */
     const val REGION_HASHTAG = "middle-east"
+
+    /**
+     * Hashtags used as a `#t` REQ seed so public relays actually return Arab content.
+     * Nostr has no language filter, so the only way to pull Arabic posts into the
+     * cache (and therefore into [AstroRegionRank]) is to ask for the hashtags Arabic
+     * speakers use. Kept small — this is a seed, the rest arrives via follows/outbox.
+     */
+    val REGION_QUERY_HASHTAGS: Set<String> =
+        setOf(
+            "middle-east",
+            "arabic",
+            "arab",
+            "iraq",
+            "iraqi",
+            "baghdad",
+            "basra",
+            "mosul",
+            "erbil",
+            "kurdistan",
+            "العراق",
+            "بغداد",
+            "الموصل",
+            "البصرة",
+            "العربية",
+            "السعودية",
+            "مصر",
+            "الخليج",
+            "سوريا",
+            "فلسطين",
+            "اليمن",
+            "الأردن",
+            "لبنان",
+            "الجزائر",
+        )
 }
 
 /** Attach Middle-East region tags so EU relays can filter ME copies later. */
