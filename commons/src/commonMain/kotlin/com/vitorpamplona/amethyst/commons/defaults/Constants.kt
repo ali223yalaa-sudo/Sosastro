@@ -42,8 +42,14 @@ object Constants {
      * Self-hosted on the owner's Cloudflare account (nosflare on Workers + D1).
      * Every other constant below points here too, so the whole app is an
      * isolated island: no public Nostr relays are contacted.
+     *
+     * IMPORTANT: must be the worker root. The former `/gw-<token>` gateway path is
+     * dead — Cloudflare answers the WebSocket handshake with HTTP 400 "Invalid
+     * request", so the client could neither read nor publish (feed showed nothing).
+     * The root path accepts the WebSocket and both stores and serves events
+     * (verified: EVENT -> ["OK", id, true, "Event saved successfully"] -> read back).
      */
-    val amethystHome = RelayUrlNormalizer.normalize("wss://astro-relay.hmzzhproxy29127.workers.dev/gw-4ahaAskmWXBPABsWDUzW0E9FTUBmeaSz")
+    val amethystHome = RelayUrlNormalizer.normalize("wss://astro-relay.hmzzhproxy29127.workers.dev/")
 
     /** Astro owned media (Blossom) server — images/videos live on the owner's R2. */
     const val ASTRO_MEDIA_BASE = "https://astro-media.hmzzhproxy29127.workers.dev"

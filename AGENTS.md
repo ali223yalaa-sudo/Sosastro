@@ -125,9 +125,14 @@ region ever appears in the UI.
 - **Media**: `DEFAULT_MEDIA_SERVERS` is only `ServerName("Astro Media", Constants.ASTRO_MEDIA_BASE)`.
   `AstroMediaAnalysisClient.analyze()` no longer calls the Tailscale algo host — it
   returns `Response(status = "done")` locally, so uploads never depend on it.
-- **Relay gateway**: `nosflare/src/config.ts` `ASTRO_GATEWAY_PATH` is the only path that
-  accepts a WebSocket; `relay-worker.ts` rejects `/` and every other path. The app points
-  at `wss://astro-relay.<...>.workers.dev/gw-<...>` (see `Constants.amethystHome`).
+- **Relay gateway**: the app must use the relay worker **root** URL
+  (`wss://astro-relay.<...>.workers.dev/`). The `/gw-<token>` path that an earlier
+  build used is **dead**: Cloudflare rejects the WebSocket handshake with
+  `HTTP 400 Invalid request`, so the client could neither read nor publish and the
+  feed stayed empty even though the user's own posts existed. The root path accepts
+  the WebSocket and stores/serves events (verified end-to-end: publish →
+  `["OK", id, true, "Event saved successfully"]` → read-back). See
+  `Constants.amethystHome`.
 - Arabic is supported by the existing `values-ar-rSA` locale (no `values-ar` needed).
 
 ## Working rules
