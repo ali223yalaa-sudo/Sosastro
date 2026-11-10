@@ -46,6 +46,10 @@ languageId = "17.0.6"
 lifecycleRuntimeKtx = "2.11.0"
 lightcompressor-enhanced = "2.2.1"
 jlatexmath = "1.4"
+# JitPack never published the Android variant of `richtext-commonmark` for this
+# commit (404). The single missing artifact is vendored under gradle/local-maven
+# and resolved via the repo declared in settings.gradle.kts. Keep the raw commit:
+# JitPack's rebuilt tags carry inconsistent `main-SNAPSHOT` metadata and are rejected.
 markdown = "f92ef49c9d"
 highlights = "1.1.0"
 material3 = "1.9.0"

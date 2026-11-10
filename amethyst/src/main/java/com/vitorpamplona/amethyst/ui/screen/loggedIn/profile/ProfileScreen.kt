@@ -511,7 +511,7 @@ private fun RenderScreen(
                 add(ProfileTab.Bookmarks)
                 add(ProfileTab.FollowedTags)
                 add(ProfileTab.Reports)
-                add(ProfileTab.Relays)
+                // Island mode: relay list tab hidden — users never see or edit relays.
             }
         }
 

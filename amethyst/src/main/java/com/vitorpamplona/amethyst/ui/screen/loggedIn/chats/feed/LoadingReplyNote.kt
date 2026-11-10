@@ -93,6 +93,10 @@ fun LoadingReplyNote(
     accountViewModel: AccountViewModel,
     modifier: Modifier = Modifier,
 ) {
+    // Astro: the inline "searching history / N relays unreachable · tap to see which" status
+    // strip is hidden from chat surfaces — relay paging state is internal, never shown to users.
+    return
+
     val giftWrapsHistory = remember(accountViewModel) { accountViewModel.dataSources().account.giftWrapsHistory }
     val nip04History = remember(accountViewModel) { accountViewModel.dataSources().chatroom.nip04History }
 

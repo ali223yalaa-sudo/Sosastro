@@ -20,18 +20,23 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vitorpamplona.amethyst.R
 import com.vitorpamplona.amethyst.model.TopFilter
 import com.vitorpamplona.amethyst.ui.navigation.navs.INav
+import com.vitorpamplona.amethyst.ui.navigation.topbars.AstroWordmark
 import com.vitorpamplona.amethyst.ui.navigation.topbars.FeedFilterSpinner
 import com.vitorpamplona.amethyst.ui.navigation.topbars.UserDrawerSearchTopBar
 import com.vitorpamplona.amethyst.ui.screen.FeedDefinition
 import com.vitorpamplona.amethyst.ui.screen.TopNavFilterState
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.amethyst.ui.stringRes
+import com.vitorpamplona.amethyst.ui.theme.Size20Modifier
 
 @Composable
 fun ShortsTopBar(
@@ -42,12 +47,16 @@ fun ShortsTopBar(
         val list by accountViewModel.account.settings.defaultShortsFollowList
             .collectAsStateWithLifecycle()
 
-        ShortsTopNavFilterBar(
-            followListsModel = accountViewModel.feedStates.feedListOptions,
-            listName = list,
-            accountViewModel = accountViewModel,
-            onChange = accountViewModel.account.settings::changeDefaultShortsFollowList,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AstroWordmark()
+            Spacer(modifier = Size20Modifier)
+            ShortsTopNavFilterBar(
+                followListsModel = accountViewModel.feedStates.feedListOptions,
+                listName = list,
+                accountViewModel = accountViewModel,
+                onChange = accountViewModel.account.settings::changeDefaultShortsFollowList,
+            )
+        }
     }
 }
 
@@ -58,7 +67,7 @@ private fun ShortsTopNavFilterBar(
     accountViewModel: AccountViewModel,
     onChange: (FeedDefinition) -> Unit,
 ) {
-    val allLists by followListsModel.kind3GlobalPeopleRoutes.collectAsStateWithLifecycle()
+    val allLists by followListsModel.astroOnlyRoutes.collectAsStateWithLifecycle()
 
     FeedFilterSpinner(
         placeholderCode = listName,

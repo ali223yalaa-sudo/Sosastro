@@ -974,9 +974,17 @@ object LocalPreferences {
         return migrated
     }
 
+    /**
+     * Astro: only "For You" ([TopFilter.Global]) and "Following" ([TopFilter.AllFollows]) are
+     * offered. Any value persisted by an older build (Europe, Middle East, Trending, Around Me,
+     * a relay chip, …) would leave the spinner with no matching option, so fold it to "For You".
+     */
+    private fun migrateAstroFilter(current: TopFilter): TopFilter =
+        if (current is TopFilter.Global || current is TopFilter.AllFollows) current else TopFilter.Global
+
     private fun SharedPreferences.loadFollowListPrefs(): FollowListPrefs =
         FollowListPrefs(
-            home = parseTopFilterOrDefault(getString(PrefKeys.DEFAULT_HOME_FOLLOW_LIST, null), TopFilter.AllFollows),
+            home = migrateAstroFilter(parseTopFilterOrDefault(getString(PrefKeys.DEFAULT_HOME_FOLLOW_LIST, null), TopFilter.Global)),
             stories = parseTopFilterOrDefault(getString(PrefKeys.DEFAULT_STORIES_FOLLOW_LIST, null), TopFilter.Global),
             notification = migrateNotificationFilter(parseTopFilterOrDefault(getString(PrefKeys.DEFAULT_NOTIFICATION_FOLLOW_LIST, null), TopFilter.Selected)),
             discovery = parseTopFilterOrDefault(getString(PrefKeys.DEFAULT_DISCOVERY_FOLLOW_LIST, null), TopFilter.Global),
@@ -989,7 +997,7 @@ object LocalPreferences {
             gitRepositories = parseTopFilterOrDefault(getString(PrefKeys.DEFAULT_GIT_REPOSITORIES_FOLLOW_LIST, null), TopFilter.Global),
             calendars = parseTopFilterOrDefault(getString(PrefKeys.DEFAULT_CALENDARS_FOLLOW_LIST, null), TopFilter.Global),
             products = parseTopFilterOrDefault(getString(PrefKeys.DEFAULT_PRODUCTS_FOLLOW_LIST, null), TopFilter.AroundMe),
-            shorts = parseTopFilterOrDefault(getString(PrefKeys.DEFAULT_SHORTS_FOLLOW_LIST, null), TopFilter.Global),
+            shorts = migrateAstroFilter(parseTopFilterOrDefault(getString(PrefKeys.DEFAULT_SHORTS_FOLLOW_LIST, null), TopFilter.Global)),
             publicChats = parseTopFilterOrDefault(getString(PrefKeys.DEFAULT_PUBLIC_CHATS_FOLLOW_LIST, null), TopFilter.Global),
             liveStreams = parseTopFilterOrDefault(getString(PrefKeys.DEFAULT_LIVE_STREAMS_FOLLOW_LIST, null), TopFilter.Global),
             nests = parseTopFilterOrDefault(getString(PrefKeys.DEFAULT_NESTS_FOLLOW_LIST, null), TopFilter.Global),

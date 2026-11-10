@@ -29,17 +29,12 @@ package com.vitorpamplona.amethyst.commons.defaults
  * authenticated indexer fan-out turns "indexer learns we queried for pubkey X"
  * into "indexer learns Amethyst user U queried for pubkey X").
  *
- * Astro: ME relay first so peers on the same build resolve each other without
- * manual inbox setup; public indexers remain as fallback.
+ * Astro: island mode — only the owner's relay is used, so peers on the same
+ * build resolve each other without ever touching public indexers.
  */
 object DefaultDmIndexerRelays {
     val RELAYS: List<String> =
         listOf(
             Constants.amethystHome.url,
-            "wss://relay.nos.social",
-            "wss://relay.damus.io",
-            "wss://nos.lol",
-            "wss://relay.nostr.band",
-            "wss://purplerelay.com",
         )
 }

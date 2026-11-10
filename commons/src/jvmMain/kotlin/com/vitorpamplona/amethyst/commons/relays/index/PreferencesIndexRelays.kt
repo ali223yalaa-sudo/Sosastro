@@ -20,6 +20,7 @@
  */
 package com.vitorpamplona.amethyst.commons.relays.index
 
+import com.vitorpamplona.amethyst.commons.defaults.Constants
 import com.vitorpamplona.quartz.nip01Core.relay.normalizer.NormalizedRelayUrl
 import com.vitorpamplona.quartz.nip01Core.relay.normalizer.RelayUrlNormalizer
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -93,12 +94,7 @@ class PreferencesIndexRelays(
          */
         val DEFAULT_INDEX_RELAYS: Set<NormalizedRelayUrl> =
             listOf(
-                "wss://desktop-r082364.tail4b3c94.ts.net/",
-                "wss://purplepag.es",
-                "wss://indexer.coracle.social",
-                "wss://user.kindpag.es",
-                "wss://directory.yabu.me",
-                "wss://profiles.nostr1.com",
+                Constants.amethystHome.url,
             ).mapNotNull { RelayUrlNormalizer.normalizeOrNull(it) }
                 .toSet()
 

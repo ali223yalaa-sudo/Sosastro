@@ -76,7 +76,7 @@ val QuoteBorder = RoundedCornerShape(15.dp)
 
 val ButtonBorder = RoundedCornerShape(20.dp)
 val LeftHalfCircleButtonBorder = ButtonBorder.copy(topEnd = CornerSize(0f), bottomEnd = CornerSize(0f))
-val EditFieldBorder = RoundedCornerShape(25.dp)
+val EditFieldBorder = RoundedCornerShape(26.dp)
 
 val ChatBubbleShapeMe = RoundedCornerShape(15.dp, 15.dp, 3.dp, 15.dp)
 val ChatBubbleShapeThem = RoundedCornerShape(3.dp, 15.dp, 15.dp, 15.dp)
@@ -239,7 +239,7 @@ val NIP05IconSize = Modifier.size(13.dp).padding(top = 1.dp, start = 1.dp, end =
 val CashuCardBorders = Modifier.fillMaxWidth().padding(10.dp).clip(shape = QuoteBorder)
 
 val EditFieldModifier =
-    Modifier.padding(start = 10.dp, end = 10.dp, bottom = 10.dp, top = 5.dp).fillMaxWidth()
+    Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp, top = 6.dp).fillMaxWidth()
 val EditFieldTrailingIconModifier = Modifier.padding(start = 5.dp, end = 0.dp)
 
 val ZeroPadding = PaddingValues(0.dp)
@@ -316,7 +316,7 @@ val chatAuthorImage = Modifier.size(20.dp).clip(shape = CircleShape)
 val AuthorInfoVideoFeed = Modifier.width(75.dp).padding(end = 15.dp)
 
 val messageDetailsModifier = Modifier.height(Size25dp)
-val messageBubbleLimits = Modifier.padding(start = 10.dp, end = 10.dp, top = 7.dp, bottom = 6.dp)
+val messageBubbleLimits = Modifier.padding(start = 13.dp, end = 13.dp, top = 9.dp, bottom = 8.dp)
 
 val inlinePlaceholder =
     Placeholder(

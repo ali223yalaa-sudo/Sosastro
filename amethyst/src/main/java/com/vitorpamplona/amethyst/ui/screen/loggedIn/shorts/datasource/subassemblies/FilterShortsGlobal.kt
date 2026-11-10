@@ -22,6 +22,7 @@ package com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts.datasource.subassem
 
 import com.vitorpamplona.amethyst.model.topNavFeeds.global.GlobalTopNavPerRelayFilterSet
 import com.vitorpamplona.amethyst.service.relays.SincePerRelayMap
+import com.vitorpamplona.amethyst.ui.dal.astroRegionHashtagFilter
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts.datasource.ShortsRelayKinds
 import com.vitorpamplona.quartz.nip01Core.relay.client.pool.RelayBasedFilter
 import com.vitorpamplona.quartz.nip01Core.relay.filters.Filter
@@ -34,16 +35,24 @@ fun filterShortsGlobal(
 ): List<RelayBasedFilter> {
     if (relays.set.isEmpty()) return emptyList()
 
-    return relays.set.map {
+    return relays.set.flatMap {
         val since = since?.get(it.key)?.time ?: defaultSince ?: TimeUtils.oneWeekAgo()
-        RelayBasedFilter(
-            relay = it.key,
-            filter =
-                Filter(
-                    kinds = ShortsRelayKinds,
-                    limit = 200,
-                    since = since,
-                ),
+        listOf(
+            RelayBasedFilter(
+                relay = it.key,
+                filter =
+                    Filter(
+                        kinds = ShortsRelayKinds,
+                        limit = 200,
+                        since = since,
+                    ),
+            ),
+            astroRegionHashtagFilter(
+                relay = it.key,
+                kinds = ShortsRelayKinds,
+                since = since,
+                limit = 200,
+            ),
         )
     }
 }

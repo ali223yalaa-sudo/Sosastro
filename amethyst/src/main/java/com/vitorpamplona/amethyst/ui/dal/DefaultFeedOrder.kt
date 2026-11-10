@@ -50,7 +50,9 @@ fun Iterable<Note>.sortedByInterestOrDefault(
     meLiveRelay: NormalizedRelayUrl? = null,
 ): List<Note> {
     if (!useInterestOrder) {
-        return sortedByDefaultFeedOrder().diversifyByAuthor()
+        // Astro: Instagram-style auto-ranking by location/language (Iraq → Arab → world),
+        // stably re-tiered on top of chronology so local media is promoted without shuffling.
+        return sortedByDefaultFeedOrder().diversifyByAuthor().astroRegionRanked()
     }
     val all = this.toList()
     val ranked =
@@ -83,7 +85,7 @@ fun Iterable<Note>.sortedByInterestOrDefault(
             ranked.diversifyByAuthor() +
                 ownUnranked.diversifyByAuthor() +
                 otherUnranked.diversifyByAuthor()
-        ).distinctBy { it.idHex }
+        ).distinctBy { it.idHex }.astroRegionRanked()
     }
     // Cold start / no similar yet: chronological ME (or all) without recommendation badges.
     val meOnly =
@@ -122,6 +124,13 @@ fun List<Note>.diversifyByAuthor(): List<Note> {
     return out
 }
 
+/**
+ * Astro: whether a feed tab uses the algo-relay ("trends") ordering. The algo relay
+ * lives on the owner's desktop and is unreachable for end users, so this stays off
+ * for the tabs the user can actually pick ("For You" = [TopFilter.Global], "Following"
+ * = [TopFilter.AllFollows]). Those fall through to the client-side Iraq → Arab → world
+ * region tier in [sortedByInterestOrDefault], which needs no server.
+ */
 fun TopFilter.usesAstroInterestOrder(): Boolean = this == TopFilter.MiddleEast || this == TopFilter.Trending
 
 /** Keep the author's own uploads visible in Stories/Posts while algo batches rotate. */

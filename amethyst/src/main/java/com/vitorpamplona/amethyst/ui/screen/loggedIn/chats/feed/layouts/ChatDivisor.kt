@@ -20,34 +20,40 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.feed.layouts
 
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import com.vitorpamplona.amethyst.ui.theme.DividerThickness
-import com.vitorpamplona.amethyst.ui.theme.Font14SP
-import com.vitorpamplona.amethyst.ui.theme.HalfPadding
-import com.vitorpamplona.amethyst.ui.theme.StdPadding
+import androidx.compose.ui.unit.dp
+import com.vitorpamplona.amethyst.ui.theme.Font12SP
+import com.vitorpamplona.amethyst.ui.theme.placeholderText
 
+// Modern date/subject separator: a centered, translucent pill instead of a hairline
+// rule with floating bold text — the same pattern the big messenger apps use.
 @Composable
 fun ChatDivisor(info: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = StdPadding) {
-        HorizontalDivider(
-            modifier = Modifier.weight(1f),
-            thickness = DividerThickness,
-        )
+    Box(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+        contentAlignment = Alignment.Center,
+    ) {
         Text(
             text = info,
-            fontWeight = FontWeight.Bold,
-            fontSize = Font14SP,
-            modifier = HalfPadding,
-        )
-        HorizontalDivider(
-            modifier = Modifier.weight(1f),
-            thickness = DividerThickness,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = Font12SP,
+            color = MaterialTheme.colorScheme.placeholderText,
+            modifier =
+                Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.72f))
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
         )
     }
 }

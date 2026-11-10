@@ -39,42 +39,22 @@ import com.vitorpamplona.quartz.nip65RelayList.tags.AdvertisedRelayType
  */
 val DefaultChannels = emptyList<ChannelTag>()
 
-val DefaultNIP65RelaySet =
-    setOf(Constants.amethystHome, Constants.mom, Constants.nos, Constants.bitcoiner)
+// Island mode: every default list below collapses to the single owned relay.
+val DefaultNIP65RelaySet = setOf(Constants.amethystHome)
 
 val DefaultNIP65List =
     listOf(
         AdvertisedRelayInfo(Constants.amethystHome, AdvertisedRelayType.BOTH),
-        AdvertisedRelayInfo(Constants.mom, AdvertisedRelayType.BOTH),
-        AdvertisedRelayInfo(Constants.nos, AdvertisedRelayType.BOTH),
-        AdvertisedRelayInfo(Constants.bitcoiner, AdvertisedRelayType.BOTH),
     )
 
-val DefaultGlobalRelays = listOf(Constants.wine, Constants.news, Constants.amethystHome)
+val DefaultGlobalRelays = listOf(Constants.amethystHome)
 
 /**
- * DM inbox (kind 10050): ME first so both Astro users land on the same relay
- * without manual inbox setup; public DM relays remain as secondary.
+ * DM inbox (kind 10050): only the owned relay, so Astro users land on the same
+ * relay without manual inbox setup and no DMs leak to public relays.
  */
-val DefaultDMRelayList =
-    listOf(Constants.amethystHome, Constants.auth, Constants.oxchat, Constants.nos)
+val DefaultDMRelayList = listOf(Constants.amethystHome)
 
-val DefaultSearchRelayList =
-    setOf(
-        Constants.amethystHome,
-        Constants.wine,
-        Constants.where,
-        Constants.nostoday,
-        Constants.antiprimal,
-        Constants.ditto,
-    )
+val DefaultSearchRelayList = setOf(Constants.amethystHome)
 
-val DefaultIndexerRelayList =
-    setOf(
-        Constants.amethystHome,
-        Constants.purplepages,
-        Constants.coracle,
-        Constants.userkinds,
-        Constants.yabu,
-        Constants.nostr1,
-    )
+val DefaultIndexerRelayList = setOf(Constants.amethystHome)

@@ -30,6 +30,7 @@ import com.vitorpamplona.quartz.nip98HttpAuth.tags.PayloadHashTag
 import com.vitorpamplona.quartz.nip98HttpAuth.tags.UrlTag
 import com.vitorpamplona.quartz.utils.TimeUtils
 import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 @Immutable
 class HTTPAuthorizationEvent(
@@ -46,7 +47,13 @@ class HTTPAuthorizationEvent(
 
     fun url() = tags.firstNotNullOfOrNull(UrlTag::parse)
 
-    fun rawToken() = Base64.encode(toJson().encodeToByteArray())
+    /**
+     * Base64url (unpadded) of this event's JSON, as carried in the `Authorization` header.
+     * NIP-98 / BUD-01 specify base64url without padding; strict servers reject a padded or
+     * standard-alphabet token as "invalid authorization token".
+     */
+    @OptIn(ExperimentalEncodingApi::class)
+    fun rawToken() = Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT).encode(toJson().encodeToByteArray())
 
     fun toAuthToken() = "Nostr ${rawToken()}"
 

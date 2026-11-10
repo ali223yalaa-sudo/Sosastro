@@ -81,6 +81,29 @@ data class ReelVideoMeta(
 
 fun Event.isReelPlayableVideo(): Boolean = firstReelVideoMeta() != null
 
+/**
+ * Instagram-style split between Reels and the Home feed.
+ *
+ * Reels are the immersive portrait videos, so only a *vertical* video belongs there; the
+ * Home feed keeps photos plus landscape/square videos. This is what stops the same clips
+ * from showing up in both surfaces.
+ *
+ * A video is "vertical" when its NIP-71 kind says so (vertical/short) or, failing an
+ * explicit kind, when its declared dimensions are portrait (height >= width). Landscape
+ * NIP-71 videos (horizontal/normal) are never reels. A kind:1 post whose video has no
+ * dimensions defaults to reels, since short-form portrait is the common case for posted
+ * clips; an explicit landscape dimension sends it back to the feed instead.
+ */
+fun Event.isVerticalReelVideo(): Boolean =
+    when (this) {
+        is VideoVerticalEvent, is VideoShortEvent -> true
+        is VideoHorizontalEvent -> false
+        is VideoNormalEvent -> firstReelVideoMeta()?.dim?.let { it.height >= it.width } ?: false
+        is TextNoteEvent -> firstReelVideoMeta()?.dim?.let { it.height >= it.width } ?: true
+        is EphemeralStoryEvent -> firstReelVideoMeta()?.dim?.let { it.height >= it.width } ?: true
+        else -> false
+    }
+
 fun Event.firstReelVideoMeta(): ReelVideoMeta? {
     when (this) {
         is VideoEvent -> {

@@ -20,6 +20,7 @@
  */
 package com.vitorpamplona.amethyst.ui.actions.mediaServers
 
+import com.vitorpamplona.amethyst.commons.defaults.Constants
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -35,16 +36,9 @@ enum class ServerType {
     NIP96,
 }
 
+// Island mode: the owner's Blossom server is the only media host.
+// No public media servers — all uploads and reads stay on the owned R2 bucket.
 val DEFAULT_MEDIA_SERVERS: List<ServerName> =
     listOf(
-        ServerName("Nostr.Build", "https://blossom.band/", ServerType.Blossom),
-        ServerName("Nostrcheck.me", "https://cdn.nostrcheck.me", ServerType.Blossom),
-        ServerName("24242.io", "https://24242.io/", ServerType.Blossom),
-        ServerName("Azzamo", "https://blossom.azzamo.media", ServerType.Blossom),
-        ServerName("YakiHonne", "https://blossom.yakihonne.com/", ServerType.Blossom),
-        ServerName("Primal", "https://blossom.primal.net/", ServerType.Blossom),
-        ServerName("Sovbit", "https://cdn.sovbit.host", ServerType.Blossom),
-        ServerName("Nostr.Download", "https://nostr.download", ServerType.Blossom),
-        ServerName("Satellite (Paid)", "https://cdn.satellite.earth", ServerType.Blossom),
-        ServerName("NostrMedia (Paid)", "https://nostrmedia.com", ServerType.Blossom),
+        ServerName("Astro Media", Constants.ASTRO_MEDIA_BASE, ServerType.Blossom),
     )

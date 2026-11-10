@@ -46,6 +46,9 @@ docs/superpowers
 *.ap_
 *.aab
 
+# Vendored JitPack artifact (see gradle/libs.versions.toml) — must be committed.
+!gradle/local-maven/**/*.aar
+
 # Files for the ART/Dalvik VM
 *.dex
 
@@ -198,3 +201,6 @@ benchmark/src/main/jniLibs/
 # Cloudflare Worker local dependencies and state
 node_modules/
 .wrangler/
+
+# Astro: local APK download page (large binaries, not for VCS)
+dist/
