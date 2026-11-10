@@ -112,6 +112,11 @@ fun DmHistoryLoadingCard(
     formatReachDate: (epochSeconds: Long) -> String,
     modifier: Modifier = Modifier,
 ) {
+    // Astro: this status card ("Some relays didn't respond", "Older … messages", per-relay
+    // history) is hidden from every chat surface — relay reach and paging state are internal
+    // and must never be shown to users.
+    return
+
     // Exhausted ("nothing more reachable right now") splits two ways and must NOT read the same:
     //  - caughtUp: every relay genuinely bottomed out (empty page). This is the real "all caught up".
     //  - incomplete: we stopped only because some relays are stalled (auth-walled / offline / silent),

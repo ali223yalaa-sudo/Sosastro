@@ -80,7 +80,7 @@ class Nip98AuthVerifier(
         val token = authorizationHeader.substring(SCHEME.length).trim()
         val json =
             try {
-                Base64.decode(token).decodeToString()
+                decodeToken(token)
             } catch (_: IllegalArgumentException) {
                 return Result.Malformed("token is not valid base64")
             }
@@ -171,6 +171,18 @@ class Nip98AuthVerifier(
 
     companion object {
         const val SCHEME = "Nostr "
+
+        /**
+         * Decodes a `Nostr <token>` body. NIP-98 / BUD-01 tokens are base64url without
+         * padding, but earlier clients emitted standard base64; normalize the alphabet and
+         * let padding be optional so both are accepted.
+         */
+        @OptIn(ExperimentalEncodingApi::class)
+        private fun decodeToken(token: String): String =
+            Base64.UrlSafe
+                .withPadding(Base64.PaddingOption.PRESENT_OPTIONAL)
+                .decode(token.replace('+', '-').replace('/', '_'))
+                .decodeToString()
 
         /**
          * Cap on the in-memory replay-cache size. With a 60s tolerance

@@ -32,6 +32,7 @@ import com.vitorpamplona.amethyst.ui.dal.astroRegionRanked
 import com.vitorpamplona.amethyst.ui.dal.diversifyByAuthor
 import com.vitorpamplona.amethyst.ui.dal.sortedByDefaultFeedOrder
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts.datasource.isReelPlayableVideo
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts.datasource.isVerticalReelVideo
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts.datasource.reelPrimaryVideoUrl
 import com.vitorpamplona.quartz.nip01Core.core.AddressableEvent
 import com.vitorpamplona.quartz.nip10Notes.TextNoteEvent
@@ -108,7 +109,11 @@ class ShortsFeedFilter(
                 else -> false
             }
 
-        return playable &&
+        // Reels are portrait-only, so a landscape clip stays in the Home feed instead of
+        // appearing in both surfaces.
+        val vertical = playable && noteEvent.isVerticalReelVideo()
+
+        return vertical &&
             params.match(noteEvent, note.relays) &&
             (params.isHiddenList || account.isAcceptable(note))
     }

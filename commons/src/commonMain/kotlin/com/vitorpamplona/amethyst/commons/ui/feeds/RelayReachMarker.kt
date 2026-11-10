@@ -192,6 +192,10 @@ fun RelayReachMarkers(
     // back, per protocol). Null leaves the marker a passive, non-interactive divider.
     onShowDetail: ((List<RelayReachCursor>) -> Unit)? = null,
 ) {
+    // Astro: the per-relay reach divider ("1 relay · loaded since …", "Loading:"/"Fully loaded:")
+    // is hidden from every chat surface — relay paging state is internal and must not be shown.
+    return
+
     val here =
         remember(limits, newerCreatedAt, olderCreatedAt) {
             limits.filter {

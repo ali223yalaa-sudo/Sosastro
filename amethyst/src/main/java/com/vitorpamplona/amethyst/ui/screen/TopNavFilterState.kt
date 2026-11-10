@@ -41,13 +41,16 @@ import com.vitorpamplona.quartz.nip51Lists.peopleList.PeopleListEvent
 import com.vitorpamplona.quartz.nip72ModCommunities.definition.CommunityDefinitionEvent
 import com.vitorpamplona.quartz.nip89AppHandlers.definition.AppDefinitionEvent
 import com.vitorpamplona.quartz.utils.Log
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.flowOn
@@ -63,7 +66,7 @@ class TopNavFilterState(
     val allFollows =
         FeedDefinition(
             code = TopFilter.AllFollows,
-            name = ResourceName(R.string.follow_list_kind3follows),
+            name = ResourceName(R.string.follow_list_following),
         )
 
     val userFollows =
@@ -81,7 +84,7 @@ class TopNavFilterState(
     val globalFollow =
         FeedDefinition(
             code = TopFilter.Global,
-            name = ResourceName(R.string.follow_list_global),
+            name = ResourceName(R.string.follow_list_for_you),
         )
 
     val europeFollow =
@@ -140,9 +143,18 @@ class TopNavFilterState(
             name = ResourceName(R.string.follow_list_all_favorite_dvms),
         )
 
-    val defaultLists = persistentListOf(allFollows, userFollows, kind3Follows, aroundMe, trendingFollow, europeFollow, middleEastFollow, globalFollow, muteListFollow)
+    val defaultLists = persistentListOf(allFollows, userFollows, kind3Follows, globalFollow, muteListFollow)
 
     val defaultNotificationLists = persistentListOf(allFollows, userFollows, kind3Follows, aroundMe, selectedFollow, globalFollow, muteListFollow)
+
+    /**
+     * Astro: the ONLY feed options shown in Home and Reels. Instagram-style — a single
+     * ranked feed ("For You") plus the user's follows ("Following"). Every relay/region
+     * chip (Europe, Middle East, Global, Around Me, Trending, …) is deliberately omitted
+     * because the whole app runs on one owner relay and the user must never see relays.
+     */
+    val astroOnlyRoutes: StateFlow<ImmutableList<FeedDefinition>> =
+        MutableStateFlow(persistentListOf(globalFollow, allFollows))
 
     fun mergePeopleLists(
         peopleLists: List<AddressableNote>,
@@ -288,7 +300,7 @@ class TopNavFilterState(
             checkNotInMainThread()
             emit(
                 listOf(
-                    listOf(allFollows, userFollows, kind3Follows, aroundMe, trendingFollow, europeFollow, middleEastFollow, globalFollow),
+                    listOf(allFollows, userFollows, kind3Follows, globalFollow),
                     peopleLists,
                     interests,
                     listOf(muteListFollow),
@@ -330,7 +342,7 @@ class TopNavFilterState(
                 listOf(
                     // Same content-style catalog as kind3GlobalPeopleRoutes, plus "Mine" so the
                     // music + playlists screens can show only the user's own published items.
-                    listOf(allFollows, userFollows, kind3Follows, aroundMe, trendingFollow, europeFollow, middleEastFollow, globalFollow, mineFollow),
+                    listOf(allFollows, userFollows, kind3Follows, globalFollow, mineFollow),
                     peopleLists,
                     interests,
                     listOf(muteListFollow),
@@ -348,7 +360,7 @@ class TopNavFilterState(
                 listOf(
                     // Git repository announcements can be narrowed by author, hashtag and geohash,
                     // so this mirrors the kind3 catalog plus "Mine" — the user's own repositories.
-                    listOf(allFollows, userFollows, kind3Follows, aroundMe, trendingFollow, europeFollow, middleEastFollow, globalFollow, mineFollow),
+                    listOf(allFollows, userFollows, kind3Follows, globalFollow, mineFollow),
                     peopleLists,
                     interests,
                     listOf(muteListFollow),
@@ -383,7 +395,7 @@ class TopNavFilterState(
                     // Relay-group discovery routes to relays by author, hashtag and geohash, plus
                     // favorited + joined-group relay chips; "Mine" (the joined-groups view) sits last
                     // in the base group to match the ordering every other feed uses.
-                    listOf(allFollows, userFollows, kind3Follows, aroundMe, trendingFollow, europeFollow, middleEastFollow, globalFollow, mineFollow),
+                    listOf(allFollows, userFollows, kind3Follows, globalFollow, mineFollow),
                     peopleLists,
                     interests,
                     joinedRelayChips,
@@ -402,7 +414,7 @@ class TopNavFilterState(
                 listOf(
                     // Same content-style catalog as kind3GlobalPeopleRoutes, plus "Mine" so the
                     // podcasts + episodes screens can show only the user's own published shows/episodes.
-                    listOf(allFollows, userFollows, kind3Follows, aroundMe, trendingFollow, europeFollow, middleEastFollow, globalFollow, mineFollow),
+                    listOf(allFollows, userFollows, kind3Follows, globalFollow, mineFollow),
                     peopleLists,
                     interests,
                     listOf(muteListFollow),
@@ -415,7 +427,7 @@ class TopNavFilterState(
             checkNotInMainThread()
             emit(
                 listOf(
-                    listOf(allFollows, userFollows, kind3Follows, aroundMe, trendingFollow, europeFollow, middleEastFollow, globalFollow),
+                    listOf(allFollows, userFollows, kind3Follows, globalFollow),
                     peopleLists,
                     listOf(muteListFollow),
                 ).flatten().toImmutableList(),
@@ -483,22 +495,22 @@ class TopNavFilterState(
     val musicRoutes =
         _musicRoutes
             .flowOn(Dispatchers.IO)
-            .stateIn(scope, SharingStarted.Eagerly, persistentListOf(allFollows, userFollows, kind3Follows, aroundMe, europeFollow, middleEastFollow, globalFollow, mineFollow, muteListFollow))
+            .stateIn(scope, SharingStarted.Eagerly, persistentListOf(allFollows, userFollows, kind3Follows, globalFollow, mineFollow, muteListFollow))
 
     val gitRepositoryRoutes =
         _gitRepositoryRoutes
             .flowOn(Dispatchers.IO)
-            .stateIn(scope, SharingStarted.Eagerly, persistentListOf(allFollows, userFollows, kind3Follows, aroundMe, europeFollow, middleEastFollow, globalFollow, mineFollow, muteListFollow))
+            .stateIn(scope, SharingStarted.Eagerly, persistentListOf(allFollows, userFollows, kind3Follows, globalFollow, mineFollow, muteListFollow))
 
     val relayGroupsDiscoveryRoutes =
         _relayGroupsDiscoveryRoutes
             .flowOn(Dispatchers.IO)
-            .stateIn(scope, SharingStarted.Eagerly, persistentListOf(allFollows, userFollows, kind3Follows, aroundMe, europeFollow, middleEastFollow, globalFollow, mineFollow, muteListFollow))
+            .stateIn(scope, SharingStarted.Eagerly, persistentListOf(allFollows, userFollows, kind3Follows, globalFollow, mineFollow, muteListFollow))
 
     val podcastRoutes =
         _podcastRoutes
             .flowOn(Dispatchers.IO)
-            .stateIn(scope, SharingStarted.Eagerly, persistentListOf(allFollows, userFollows, kind3Follows, aroundMe, europeFollow, middleEastFollow, globalFollow, mineFollow, muteListFollow))
+            .stateIn(scope, SharingStarted.Eagerly, persistentListOf(allFollows, userFollows, kind3Follows, globalFollow, mineFollow, muteListFollow))
 
     fun destroy() {
         Log.d("Init") { "OnCleared: ${this.javaClass.simpleName}" }

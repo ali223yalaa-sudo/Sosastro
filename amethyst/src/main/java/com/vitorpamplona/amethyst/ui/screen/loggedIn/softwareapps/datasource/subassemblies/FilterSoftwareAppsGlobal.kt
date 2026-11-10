@@ -22,17 +22,15 @@ package com.vitorpamplona.amethyst.ui.screen.loggedIn.softwareapps.datasource.su
 
 import com.vitorpamplona.amethyst.model.topNavFeeds.global.GlobalTopNavPerRelayFilterSet
 import com.vitorpamplona.amethyst.service.relays.SincePerRelayMap
+import com.vitorpamplona.amethyst.commons.defaults.Constants
 import com.vitorpamplona.quartz.experimental.nip82SoftwareApps.application.SoftwareApplicationEvent
 import com.vitorpamplona.quartz.experimental.nip82SoftwareApps.release.SoftwareReleaseEvent
 import com.vitorpamplona.quartz.nip01Core.relay.client.pool.RelayBasedFilter
 import com.vitorpamplona.quartz.nip01Core.relay.filters.Filter
 import com.vitorpamplona.quartz.nip01Core.relay.normalizer.NormalizedRelayUrl
-import com.vitorpamplona.quartz.nip01Core.relay.normalizer.normalizeRelayUrl
 
-// zapstore's relay indexes the entire software-app catalog (NIP-82), so the
-// global Apps feed always queries it in addition to the user's own relays —
-// unless the user has explicitly added it to their blocked relay list.
-val ZAPSTORE_APP_RELAY: NormalizedRelayUrl = "wss://relay.zapstore.dev".normalizeRelayUrl()
+// Island mode: the Apps catalog is served by the owner's relay, never zapstore.
+val ZAPSTORE_APP_RELAY: NormalizedRelayUrl = Constants.amethystHome
 
 fun filterSoftwareAppsGlobal(
     relays: GlobalTopNavPerRelayFilterSet,

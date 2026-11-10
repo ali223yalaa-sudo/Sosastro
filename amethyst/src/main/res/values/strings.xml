@@ -1461,6 +1461,8 @@
     <string name="follow_list_middle_east">Middle East</string>
     <string name="follow_list_trending">Trending</string>
     <string name="follow_list_texts">Texts</string>
+    <string name="follow_list_for_you">For You</string>
+    <string name="follow_list_following">Following</string>
     <string name="follow_list_curated">Curated</string>
     <string name="follow_list_mine">Mine</string>
     <string name="follow_list_mute_list">Mute List</string>

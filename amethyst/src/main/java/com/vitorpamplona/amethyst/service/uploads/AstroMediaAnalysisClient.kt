@@ -20,19 +20,9 @@
  */
 package com.vitorpamplona.amethyst.service.uploads
 
-import com.vitorpamplona.amethyst.Amethyst
-import com.vitorpamplona.amethyst.commons.defaults.Constants
-import com.vitorpamplona.quartz.utils.Log
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.coroutines.executeAsync
 
 /**
  * Asks AstroRecommend (`algo-relay`) to analyze an uploaded media URL and returns
@@ -68,35 +58,8 @@ object AstroMediaAnalysisClient {
         mime: String?,
         caption: String? = null,
     ): Response =
-        withContext(Dispatchers.IO) {
-            val endpoint = Constants.ASTRO_ALGO_HTTP_BASE + "/api/analyze-media"
-            val payload =
-                json.encodeToString(
-                    RequestBody(
-                        url = mediaUrl,
-                        mime = mime.orEmpty(),
-                        caption = caption.orEmpty(),
-                    ),
-                )
-            val request =
-                Request
-                    .Builder()
-                    .url(endpoint)
-                    .post(payload.toRequestBody("application/json; charset=utf-8".toMediaType()))
-                    .build()
-            val client = Amethyst.instance.okHttpClients.getHttpClient(false)
-            try {
-                client.newCall(request).executeAsync().use { response ->
-                    val text = response.body.string()
-                    if (!response.isSuccessful) {
-                        Log.w("AstroAnalyze") { "analyze HTTP ${response.code}: $text" }
-                        return@withContext Response(status = "failed", error = "http ${response.code}")
-                    }
-                    json.decodeFromString<Response>(text)
-                }
-            } catch (e: Exception) {
-                Log.w("AstroAnalyze") { "analyze failed: ${e.message}" }
-                Response(status = "failed", error = e.message)
-            }
-        }
+        // Island mode: media analysis used to call the owner's desktop algo server over
+        // Tailscale, which end users can never reach. Return a neutral local result so
+        // uploads never depend on that host.
+        Response(status = "done", noteId = null)
 }

@@ -560,13 +560,8 @@ fun ListContent(
         }
 
         CollapsibleSection(title = R.string.drawer_section_system) {
-            IconRowRelays(
-                accountViewModel = accountViewModel,
-                onClick = {
-                    nav.closeDrawer()
-                    nav.nav(Route.EditRelays)
-                },
-            )
+            // Island mode: relay management is hidden — users always stay on the
+            // owner's relay and cannot add or switch to any other.
 
             NavBarCatalog[NavBarItem.SETTINGS]?.let {
                 CatalogNavigationRow(it, MaterialTheme.colorScheme.onBackground, accountViewModel, nav)

@@ -34,19 +34,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-// Chat bubble corners — the single source of truth for every front end. The
-// small 4dp corner is the "tail" pointing at the author's side. A grouped run
-// reads as one continuous unit: full rounding only at the very top and bottom
-// of the group, edges that touch a neighboring message of the same run stay
-// sharp (Top = visually first / oldest, Bottom = visually last).
-val ChatBubbleShapeMe = RoundedCornerShape(18.dp, 18.dp, 4.dp, 18.dp)
-val ChatBubbleShapeMeTop = RoundedCornerShape(18.dp, 18.dp, 6.dp, 6.dp)
+// Chat bubble corners — the single source of truth for every front end. Values follow
+// the Material 3 shape scale (large-increased = 20dp) with a tight 6dp "cluster edge"
+// where a bubble touches its neighbour in the same author run, and a 6dp tail corner
+// pointing at the author's side — the modern Messenger/WhatsApp look. A grouped run
+// reads as one continuous unit: full rounding only at the very top and bottom of the
+// group (Top = visually first / oldest, Bottom = visually last).
+val ChatBubbleShapeMe = RoundedCornerShape(20.dp, 20.dp, 6.dp, 20.dp)
+val ChatBubbleShapeMeTop = RoundedCornerShape(20.dp, 20.dp, 6.dp, 6.dp)
 val ChatBubbleShapeMeMiddle = RoundedCornerShape(6.dp, 6.dp, 6.dp, 6.dp)
-val ChatBubbleShapeMeBottom = RoundedCornerShape(6.dp, 6.dp, 4.dp, 18.dp)
-val ChatBubbleShapeThem = RoundedCornerShape(4.dp, 18.dp, 18.dp, 18.dp)
-val ChatBubbleShapeThemTop = RoundedCornerShape(4.dp, 18.dp, 6.dp, 6.dp)
+val ChatBubbleShapeMeBottom = RoundedCornerShape(6.dp, 6.dp, 6.dp, 20.dp)
+val ChatBubbleShapeThem = RoundedCornerShape(6.dp, 20.dp, 20.dp, 20.dp)
+val ChatBubbleShapeThemTop = RoundedCornerShape(6.dp, 20.dp, 6.dp, 6.dp)
 val ChatBubbleShapeThemMiddle = RoundedCornerShape(6.dp, 6.dp, 6.dp, 6.dp)
-val ChatBubbleShapeThemBottom = RoundedCornerShape(6.dp, 6.dp, 18.dp, 18.dp)
+val ChatBubbleShapeThemBottom = RoundedCornerShape(6.dp, 6.dp, 20.dp, 20.dp)
 
 // Chat bubble modifiers
 val ChatBubbleMaxSizeModifier = Modifier.fillMaxWidth(0.85f)

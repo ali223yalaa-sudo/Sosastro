@@ -35,6 +35,7 @@ import com.vitorpamplona.amethyst.ui.dal.FilterByListParams
 import com.vitorpamplona.amethyst.ui.dal.sortedByInterestOrDefault
 import com.vitorpamplona.amethyst.ui.dal.usesAstroInterestOrder
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts.datasource.isReelPlayableVideo
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts.datasource.isVerticalReelVideo
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.SUPPORTED_VIDEO_FEED_MIME_TYPES_SET
 import com.vitorpamplona.quartz.experimental.ephemeralStory.EphemeralStoryEvent
 import com.vitorpamplona.quartz.nip01Core.core.AddressableEvent
@@ -137,6 +138,16 @@ class VideoFeedFilter(
         val isMine = noteEvent.pubKey == account.userProfile().pubkeyHex
         val textsOnly = followList() == TopFilter.Texts
         val isAnimatedImage = isAnimatedImageNote(noteEvent)
+        // Astro: portrait videos belong to Reels, not the Home feed. Keeping them out here
+        // is the other half of the split — without it the same clips would show in both.
+        // Pictures, file headers and ephemeral stories are unaffected.
+        val isReelOnly =
+            when (noteEvent) {
+                is VideoVerticalEvent, is VideoShortEvent, is VideoNormalEvent, is VideoHorizontalEvent ->
+                    noteEvent.isVerticalReelVideo()
+                is TextNoteEvent -> noteEvent.isReelPlayableVideo() && noteEvent.isVerticalReelVideo()
+                else -> false
+            }
         val matchesContent =
             if (textsOnly) {
                 isAnimatedImage ||
@@ -145,7 +156,8 @@ class VideoFeedFilter(
                 // Astro: Instagram-style Home — media only (photos + videos). Animated
                 // images (GIF) and audio/music posts are intentionally excluded, and
                 // text-only notes are dropped here (they stay reachable via the Texts chip).
-                !isAnimatedImage &&
+                !isReelOnly &&
+                    !isAnimatedImage &&
                     (
                         (noteEvent is FileHeaderEvent && acceptanceEvent(noteEvent)) ||
                             (noteEvent is VideoVerticalEvent && acceptanceEvent(noteEvent)) ||

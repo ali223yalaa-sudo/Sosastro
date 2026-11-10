@@ -57,9 +57,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -190,6 +192,24 @@ fun ChatBubbleLayout(
         label = "highlightAnimation",
     )
 
+    // 2027 refresh: own messages get a soft top-lit gradient so the bubble reads as a
+    // modern surface instead of a flat fill. Incoming bubbles stay flat to keep the two
+    // sides visually distinct. Jumbo emoji and drafts keep their existing treatment.
+    val bubbleBrush =
+        remember(animatedColor, isLoggedInUser, transparentBubble, isDraft) {
+            if (isLoggedInUser && !transparentBubble && !isDraft) {
+                Brush.verticalGradient(
+                    listOf(
+                        lerp(animatedColor, Color.White, 0.12f),
+                        animatedColor,
+                        lerp(animatedColor, Color.Black, 0.06f),
+                    ),
+                )
+            } else {
+                null
+            }
+        }
+
     val haptic = LocalHapticFeedback.current
 
     // Plain state during the drag (a coroutine per pointer frame is wasted work);
@@ -310,6 +330,7 @@ fun ChatBubbleLayout(
                     groupPosition = groupPosition,
                     transparentBubble = transparentBubble,
                     animatedColor = animatedColor,
+                    bubbleBrush = bubbleBrush,
                     highlightActive = highlightActive.value,
                     bgColor = bgColor,
                     onClick = onClick,
@@ -341,6 +362,7 @@ private fun InnerChatBubble(
     groupPosition: ChatGroupPosition,
     transparentBubble: Boolean,
     animatedColor: Color,
+    bubbleBrush: Brush?,
     highlightActive: Boolean,
     bgColor: MutableState<Color>,
     onClick: () -> Boolean,
@@ -390,15 +412,27 @@ private fun InnerChatBubble(
         verticalArrangement = if (reactionsRow != null) ChatChipOverlapArrangement else Arrangement.Top,
         modifier = if (innerQuote) Modifier else ChatBubbleMaxSizeModifier,
     ) {
+        val bubbleShape = chatBubbleShapeFor(isLoggedInUser, if (innerQuote) ChatGroupPosition.SINGLE else groupPosition)
+        val useBrush = bubbleBrush != null && !highlightActive && !transparentBubble
         Surface(
-            // Jumbo emoji show bare; the scroll-to highlight still tints them.
-            color = if (transparentBubble && !highlightActive) Color.Transparent else animatedColor,
-            shape = chatBubbleShapeFor(isLoggedInUser, if (innerQuote) ChatGroupPosition.SINGLE else groupPosition),
+            // Jumbo emoji show bare; the scroll-to highlight still tints them. When the
+            // gradient is active the Surface is transparent and the clipped brush below
+            // supplies the fill (Surface draws its own color on top of the modifier).
+            color = if (useBrush || (transparentBubble && !highlightActive)) Color.Transparent else animatedColor,
+            shape = bubbleShape,
             modifier =
-                clickableModifier.graphicsLayer {
-                    scaleX = pressScale
-                    scaleY = pressScale
-                },
+                clickableModifier
+                    .then(
+                        if (useBrush) {
+                            Modifier.clip(bubbleShape).background(bubbleBrush)
+                        } else {
+                            Modifier
+                        },
+                    )
+                    .graphicsLayer {
+                        scaleX = pressScale
+                        scaleY = pressScale
+                    },
         ) {
             Column(modifier = messageBubbleLimits, verticalArrangement = RowColSpacing5dp) {
                 if (drawAuthorInfo) {

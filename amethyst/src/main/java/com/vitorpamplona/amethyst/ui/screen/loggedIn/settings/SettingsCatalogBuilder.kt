@@ -58,11 +58,7 @@ fun buildSettingsCatalog(
             titleRes = R.string.account_settings,
             entries =
                 listOf(
-                    SettingsEntry(
-                        titleRes = R.string.relay_setup,
-                        icon = SettingsIcon.Painter(R.drawable.relays, 4),
-                        keywordsRes = R.string.relay_setup_search_keywords,
-                    ) { nav.nav(Route.EditRelays) },
+                    // Island mode: relay setup hidden — users cannot add or switch relays.
                     symEntry(R.string.event_sync_title, MaterialSymbols.Sync, R.string.event_sync_search_keywords, Route.EventSync),
                     symEntry(R.string.route_import_follows, MaterialSymbols.GroupAdd, R.string.import_follows_search_keywords, Route.ImportFollowsSelectUser),
                     symEntry(R.string.media_servers, MaterialSymbols.CloudUpload, R.string.media_servers_search_keywords, Route.EditMediaServers),
@@ -75,7 +71,7 @@ fun buildSettingsCatalog(
                     symEntry(R.string.profile_badges_title, MaterialSymbols.MilitaryTech, R.string.profile_badges_search_keywords, Route.ProfileBadges),
                     symEntry(R.string.payment_targets, MaterialSymbols.Payment, R.string.payment_targets_search_keywords, Route.EditPaymentTargets),
                     symEntry(R.string.napplet_permissions_title, MaterialSymbols.Apps, R.string.napplet_connected_apps_search_keywords, Route.ConnectedApps),
-                    symEntry(R.string.relay_auth_settings_title, MaterialSymbols.Lock, R.string.relay_auth_search_keywords, Route.RelayAuthSettings),
+                    // Island mode: relay auth settings hidden too — the relay is invisible to users.
                     symEntry(R.string.security_filters, MaterialSymbols.Security, R.string.security_filters_search_keywords, Route.SecurityFilters),
                     symEntry(R.string.call_settings, MaterialSymbols.Phone, R.string.call_settings_search_keywords, Route.CallSettings),
                     symEntry(R.string.translations, MaterialSymbols.Translate, R.string.translations_search_keywords, Route.UserSettings),

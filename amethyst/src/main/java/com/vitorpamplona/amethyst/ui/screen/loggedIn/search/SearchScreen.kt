@@ -69,7 +69,6 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.vitorpamplona.amethyst.Amethyst
 import com.vitorpamplona.amethyst.R
 import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
 import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
@@ -93,7 +92,6 @@ import com.vitorpamplona.amethyst.ui.note.SearchIcon
 import com.vitorpamplona.amethyst.ui.note.UserCompose
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.rooms.ChannelName
-import com.vitorpamplona.amethyst.ui.screen.loggedIn.relays.common.BasicRelaySetupInfoClickableRow
 import com.vitorpamplona.amethyst.ui.stringRes
 import com.vitorpamplona.amethyst.ui.theme.DividerThickness
 import com.vitorpamplona.amethyst.ui.theme.FeedPadding
@@ -363,30 +361,7 @@ private fun SearchFiltersSheet(
                 style = MaterialTheme.typography.titleMedium,
             )
 
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = stringRes(R.string.search_filters_section_source),
-                    style = MaterialTheme.typography.labelLarge,
-                )
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    val sources = listOf(SearchSource.LOCAL, SearchSource.RELAYS)
-                    sources.forEachIndexed { index, s ->
-                        SegmentedButton(
-                            selected = source == s,
-                            onClick = { onSourceChange(s) },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = sources.size),
-                        ) {
-                            Text(
-                                text =
-                                    when (s) {
-                                        SearchSource.LOCAL -> stringRes(R.string.search_source_local)
-                                        SearchSource.RELAYS -> stringRes(R.string.search_source_relays)
-                                    },
-                            )
-                        }
-                    }
-                }
-            }
+            // Island mode: the LOCAL/RELAYS source toggle is hidden — relay search is gone.
 
             Row(
                 modifier =
@@ -517,7 +492,7 @@ private fun DisplaySearchResults(
 ) {
     val isRefreshing by searchBarViewModel.isRefreshing
     val hashTags by searchBarViewModel.hashtagResults.collectAsStateWithLifecycle()
-    val relays by searchBarViewModel.relayResults.collectAsStateWithLifecycle()
+    // Island mode: relay results are no longer rendered (see below).
     val users by searchBarViewModel.searchResultsUsers.collectAsStateWithLifecycle()
     val publicChatChannels by searchBarViewModel.searchResultsPublicChatChannels.collectAsStateWithLifecycle()
     val ephemeralChannels by searchBarViewModel.searchResultsEphemeralChannels.collectAsStateWithLifecycle()
@@ -556,22 +531,7 @@ private fun DisplaySearchResults(
             )
         }
 
-        itemsIndexed(
-            relays,
-            key = { _, item -> "relay${item.relay.url}" },
-        ) { _, relayInfo ->
-            BasicRelaySetupInfoClickableRow(
-                item = relayInfo,
-                loadProfilePicture = accountViewModel.settings.showProfilePictures(),
-                loadRobohash = accountViewModel.settings.isNotPerformanceMode(),
-                onClick = { nav.nav(Route.RelayInfo(relayInfo.relay.url)) },
-                onDelete = null,
-                nip11CachedRetriever = Amethyst.instance.nip11Cache,
-                modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp),
-                accountViewModel = accountViewModel,
-                nav = nav,
-            )
-        }
+        // Island mode: relay search results are hidden — the relay is invisible to users.
 
         itemsIndexed(
             publicChatChannels,

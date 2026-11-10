@@ -1393,15 +1393,11 @@ class AccountViewModel(
     fun broadcast(note: Note) = launchSigner { account.broadcast(note) }
 
     /**
-     * Broadcast republishes public events directly and rumors as their
-     * delivering kind-1059 wrap. A rumor whose wrap is unknown can't be
-     * broadcast at all — publishing the unsigned event would disclose the
-     * private content.
+     * Island mode: broadcasting republishes an event to other relays, which the
+     * app never does — everything lives on the owner's single relay. Disabled
+     * app-wide so the "Broadcast" action never appears.
      */
-    fun canBroadcast(note: Note): Boolean {
-        val event = note.event ?: return false
-        return event.sig.isNotEmpty() || note.rumorHost != null
-    }
+    fun canBroadcast(note: Note): Boolean = false
 
     fun timestamp(note: Note) = launchSigner { account.otsState.timestamp(note) }
 

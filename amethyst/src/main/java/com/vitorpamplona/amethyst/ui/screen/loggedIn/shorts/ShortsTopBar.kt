@@ -67,7 +67,7 @@ private fun ShortsTopNavFilterBar(
     accountViewModel: AccountViewModel,
     onChange: (FeedDefinition) -> Unit,
 ) {
-    val allLists by followListsModel.kind3GlobalPeopleRoutes.collectAsStateWithLifecycle()
+    val allLists by followListsModel.astroOnlyRoutes.collectAsStateWithLifecycle()
 
     FeedFilterSpinner(
         placeholderCode = listName,

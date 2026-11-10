@@ -37,8 +37,16 @@ import com.vitorpamplona.quartz.nip32Labeling.labelNamespace
  * in bootstrap / DM / outbox defaults alongside public (Europe) relays.
  */
 object Constants {
-    /** Middle-East primary relay (PC strfry via Tailscale Funnel). */
-    val amethystHome = RelayUrlNormalizer.normalize("wss://desktop-r082364.tail4b3c94.ts.net/")
+    /**
+     * Astro owned relay — the ONLY relay this app uses.
+     * Self-hosted on the owner's Cloudflare account (nosflare on Workers + D1).
+     * Every other constant below points here too, so the whole app is an
+     * isolated island: no public Nostr relays are contacted.
+     */
+    val amethystHome = RelayUrlNormalizer.normalize("wss://astro-relay.hmzzhproxy29127.workers.dev/gw-4ahaAskmWXBPABsWDUzW0E9FTUBmeaSz")
+
+    /** Astro owned media (Blossom) server — images/videos live on the owner's R2. */
+    const val ASTRO_MEDIA_BASE = "https://astro-media.hmzzhproxy29127.workers.dev"
 
     /**
      * Astro algorithmic / trending relay (algo-relay on the PC).
@@ -51,10 +59,11 @@ object Constants {
     const val ASTRO_ALGO_HTTP_BASE = "https://desktop-r082364.tail4b3c94.ts.net:8443"
 
     /**
-     * Legacy kill-switch. Must stay false so public relays work as EU backup.
-     * Kept for call sites in [homeRelayOnly] / [homeRelayOnlyMap].
+     * Island mode: ON. The app only ever talks to [amethystHome].
+     * All the legacy public-relay constants above already resolve to it, and this
+     * switch collapses every aggregated relay set down to the owned relay too.
      */
-    const val TEMP_HOME_RELAY_ONLY = false
+    const val TEMP_HOME_RELAY_ONLY = true
 
     fun homeRelayOnly(relays: Set<NormalizedRelayUrl>): Set<NormalizedRelayUrl> = if (TEMP_HOME_RELAY_ONLY) setOf(amethystHome) else relays
 
@@ -65,32 +74,34 @@ object Constants {
             mapOf(amethystHome to filters.values.flatten().distinct())
         }
 
-    // —— Public / Europe defaults (upstream Amethyst) ——
-    val nos = RelayUrlNormalizer.normalize("wss://nos.lol")
-    val mom = RelayUrlNormalizer.normalize("wss://nostr.mom")
-    val primal = RelayUrlNormalizer.normalize("wss://relay.primal.net")
-    val wine = RelayUrlNormalizer.normalize("wss://nostr.wine")
+    // —— Owned island: all former public relays now resolve to [amethystHome] ——
+    // Keeping the names means every call site (120+ across the app) automatically
+    // points at the owner's relay without further edits.
+    val nos = amethystHome
+    val mom = amethystHome
+    val primal = amethystHome
+    val wine = amethystHome
 
-    val where = RelayUrlNormalizer.normalize("wss://relay.noswhere.com")
-    val elites = RelayUrlNormalizer.normalize("wss://nostrelites.org")
+    val where = amethystHome
+    val elites = amethystHome
 
-    val bitcoiner = RelayUrlNormalizer.normalize("wss://nostr.bitcoiner.social")
-    val oxtr = RelayUrlNormalizer.normalize("wss://nostr.oxtr.dev")
+    val bitcoiner = amethystHome
+    val oxtr = amethystHome
 
-    val nostoday = RelayUrlNormalizer.normalize("wss://search.nos.today")
-    val antiprimal = RelayUrlNormalizer.normalize("wss://antiprimal.net")
-    val ditto = RelayUrlNormalizer.normalize("wss://relay.ditto.pub")
+    val nostoday = amethystHome
+    val antiprimal = amethystHome
+    val ditto = amethystHome
 
-    val auth = RelayUrlNormalizer.normalize("wss://auth.nostr1.com")
-    val oxchat = RelayUrlNormalizer.normalize("wss://relay.0xchat.com")
+    val auth = amethystHome
+    val oxchat = amethystHome
 
-    val news = RelayUrlNormalizer.normalize("wss://news.utxo.one")
+    val news = amethystHome
 
-    val purplepages = RelayUrlNormalizer.normalize("wss://purplepag.es")
-    val coracle = RelayUrlNormalizer.normalize("wss://indexer.coracle.social")
-    val userkinds = RelayUrlNormalizer.normalize("wss://user.kindpag.es")
-    val yabu = RelayUrlNormalizer.normalize("wss://directory.yabu.me")
-    val nostr1 = RelayUrlNormalizer.normalize("wss://profiles.nostr1.com")
+    val purplepages = amethystHome
+    val coracle = amethystHome
+    val userkinds = amethystHome
+    val yabu = amethystHome
+    val nostr1 = amethystHome
 
     /** Alias: Middle-East primary. */
     val middleEastRelay: NormalizedRelayUrl = amethystHome

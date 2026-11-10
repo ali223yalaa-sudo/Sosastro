@@ -124,6 +124,13 @@ fun List<Note>.diversifyByAuthor(): List<Note> {
     return out
 }
 
+/**
+ * Astro: whether a feed tab uses the algo-relay ("trends") ordering. The algo relay
+ * lives on the owner's desktop and is unreachable for end users, so this stays off
+ * for the tabs the user can actually pick ("For You" = [TopFilter.Global], "Following"
+ * = [TopFilter.AllFollows]). Those fall through to the client-side Iraq → Arab → world
+ * region tier in [sortedByInterestOrDefault], which needs no server.
+ */
 fun TopFilter.usesAstroInterestOrder(): Boolean = this == TopFilter.MiddleEast || this == TopFilter.Trending
 
 /** Keep the author's own uploads visible in Stories/Posts while algo batches rotate. */

@@ -26,6 +26,7 @@ import com.vitorpamplona.quartz.nip01Core.core.HexKey
 import com.vitorpamplona.quartz.nip01Core.signers.NostrSigner
 import com.vitorpamplona.quartz.utils.TimeUtils
 import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 @Immutable
 class BlossomAuthorizationEvent(
@@ -36,8 +37,13 @@ class BlossomAuthorizationEvent(
     content: String,
     sig: HexKey,
 ) : Event(id, pubKey, createdAt, KIND, tags, content, sig) {
-    /** Base64 of this event's JSON, as carried in the `Authorization` header value. */
-    fun rawToken() = Base64.encode(toJson().encodeToByteArray())
+    /**
+     * Base64url (unpadded) of this event's JSON, as carried in the `Authorization` header.
+     * BUD-01/BUD-02 specify base64url without padding; a padded or standard-alphabet token
+     * is rejected by strict servers (e.g. blossomflare) as "invalid authorization token".
+     */
+    @OptIn(ExperimentalEncodingApi::class)
+    fun rawToken() = Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT).encode(toJson().encodeToByteArray())
 
     /**
      * The full `Authorization` header value for a BUD-01/BUD-02 request:

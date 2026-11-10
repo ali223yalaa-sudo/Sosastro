@@ -29,7 +29,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
@@ -46,7 +48,6 @@ import com.vitorpamplona.amethyst.ui.painterRes
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.rooms.NewItemsBubble
 import com.vitorpamplona.amethyst.ui.stringRes
 import com.vitorpamplona.amethyst.ui.theme.DividerThickness
-import com.vitorpamplona.amethyst.ui.theme.DoubleHorzSpacer
 import com.vitorpamplona.amethyst.ui.theme.Height4dpModifier
 import com.vitorpamplona.amethyst.ui.theme.Size55Modifier
 import com.vitorpamplona.amethyst.ui.theme.ThemeComparisonColumn
@@ -148,12 +149,12 @@ fun ChatHeaderLayout(
         modifier =
             Modifier
                 .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-                .padding(10.dp),
+                .padding(horizontal = 14.dp, vertical = 11.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Size55Modifier) { channelPicture() }
 
-        Spacer(modifier = DoubleHorzSpacer)
+        Spacer(modifier = Modifier.width(14.dp))
 
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -164,7 +165,7 @@ fun ChatHeaderLayout(
                 firstRow()
             }
 
-            Spacer(modifier = Height4dpModifier)
+            Spacer(modifier = Modifier.height(5.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
