@@ -157,11 +157,22 @@ cp amethyst/build/outputs/apk/play/debug/amethyst-play-universal-debug.apk      
 /workspace/apk-download/start.sh          # idempotent restart of the :12000 server
 ```
 
-Public URL: https://work-1-mdelmuvyygotiksw.prod-runtime.all-hands.dev/ (→ `/Astro.apk`,
-`/Astro-play.apk`).
+`/workspace/apk-download/index.html` is a small Arabic download landing page
+(links to both APKs). Public URL: https://work-1-sjgrvfcdashedalw.prod-runtime.all-hands.dev/
+(→ `/Astro.apk`, `/Astro-play.apk`, or `/` for the landing page).
 
-- Prefer disabling at the single source (e.g. `canBroadcast`) over editing every call site.
-- Do NOT change feed ordering / interest / what-shows-where without asking the user first.
+### Build environment caveats (learned the hard way)
+
+- The container **root filesystem is wiped on restart** (e.g. after an OOM). Only
+  `/workspace` survives. So: install the JDK (it lives under `/usr/lib/jvm`, which is
+  on `/`) *after* any restart, but keep the Android SDK and `GRADLE_USER_HOME` inside
+  `/workspace` so they persist.
+- `gradle.properties` asks for `-Xmx6g` (Gradle) + `-Xmx8g` (Kotlin daemon) = 14 GB,
+  which OOMs a 15 GB box and triggers the restart. Override on the command line:
+  `--max-workers=2 -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g" -Pkotlin.daemon.jvmargs="-Xmx3g"`.
+- `JAVA_HOME`/`ANDROID_HOME` must be exported **inside** the backgrounded script, not
+  on the interactive command line — a `nohup ... &` child does not inherit them otherwise.
+- `/workspace/build.sh` wraps all of the above; run it and tail `/workspace/build2.log`.
 
 ## Chat surfaces: no relay/paging status text
 
