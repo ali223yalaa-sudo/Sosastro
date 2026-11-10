@@ -24,6 +24,10 @@ dependencyResolutionManagement {
         mavenLocal()
         google()
         mavenCentral()
+        // Vendored copy of the one artifact JitPack failed to publish for the
+        // pinned compose-richtext commit (see gradle/libs.versions.toml). Must be
+        // listed before jitpack.io so the local copy wins for that coordinate.
+        maven { url = uri("${rootDir}/gradle/local-maven") }
         maven { url = uri("https://jitpack.io") }
         maven { url = uri("https://raw.githubusercontent.com/guardianproject/gpmaven/master") }
     }

@@ -50,7 +50,9 @@ fun Iterable<Note>.sortedByInterestOrDefault(
     meLiveRelay: NormalizedRelayUrl? = null,
 ): List<Note> {
     if (!useInterestOrder) {
-        return sortedByDefaultFeedOrder().diversifyByAuthor()
+        // Astro: Instagram-style auto-ranking by location/language (Iraq → Arab → world),
+        // stably re-tiered on top of chronology so local media is promoted without shuffling.
+        return sortedByDefaultFeedOrder().diversifyByAuthor().astroRegionRanked()
     }
     val all = this.toList()
     val ranked =

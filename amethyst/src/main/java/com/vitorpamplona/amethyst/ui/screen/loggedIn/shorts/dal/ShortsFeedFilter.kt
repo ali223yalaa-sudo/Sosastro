@@ -28,6 +28,7 @@ import com.vitorpamplona.amethyst.model.TopFilter
 import com.vitorpamplona.amethyst.model.filterIntoSet
 import com.vitorpamplona.amethyst.ui.dal.AdditiveFeedFilter
 import com.vitorpamplona.amethyst.ui.dal.FilterByListParams
+import com.vitorpamplona.amethyst.ui.dal.astroRegionRanked
 import com.vitorpamplona.amethyst.ui.dal.diversifyByAuthor
 import com.vitorpamplona.amethyst.ui.dal.sortedByDefaultFeedOrder
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts.datasource.isReelPlayableVideo
@@ -132,6 +133,9 @@ class ShortsFeedFilter(
             }
         }
 
-        return byUrl.values.sortedByDefaultFeedOrder().diversifyByAuthor()
+        return byUrl.values
+            .sortedByDefaultFeedOrder()
+            .diversifyByAuthor()
+            .astroRegionRanked()
     }
 }

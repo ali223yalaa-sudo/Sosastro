@@ -20,22 +20,27 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.video
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vitorpamplona.amethyst.R
 import com.vitorpamplona.amethyst.model.TopFilter
 import com.vitorpamplona.amethyst.ui.navigation.navs.INav
+import com.vitorpamplona.amethyst.ui.navigation.topbars.AstroWordmark
 import com.vitorpamplona.amethyst.ui.navigation.topbars.FeedFilterSpinner
 import com.vitorpamplona.amethyst.ui.navigation.topbars.UserDrawerSearchTopBar
 import com.vitorpamplona.amethyst.ui.screen.FeedDefinition
 import com.vitorpamplona.amethyst.ui.screen.TopNavFilterState
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.amethyst.ui.stringRes
+import com.vitorpamplona.amethyst.ui.theme.Size20Modifier
 import kotlinx.collections.immutable.toImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,14 +64,18 @@ fun StoriesTopBar(
         val list by accountViewModel.account.settings.defaultStoriesFollowList
             .collectAsStateWithLifecycle()
 
-        TopNavFilterBar(
-            followListsModel = accountViewModel.feedStates.feedListOptions,
-            listName = list,
-            accountViewModel = accountViewModel,
-        ) { listName ->
-            accountViewModel.account.settings.changeDefaultStoriesFollowList(listName.code)
-            if (alsoUpdateHomeFollowList) {
-                accountViewModel.account.settings.changeDefaultHomeFollowList(listName.code)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AstroWordmark()
+            Spacer(modifier = Size20Modifier)
+            TopNavFilterBar(
+                followListsModel = accountViewModel.feedStates.feedListOptions,
+                listName = list,
+                accountViewModel = accountViewModel,
+            ) { listName ->
+                accountViewModel.account.settings.changeDefaultStoriesFollowList(listName.code)
+                if (alsoUpdateHomeFollowList) {
+                    accountViewModel.account.settings.changeDefaultHomeFollowList(listName.code)
+                }
             }
         }
     }
