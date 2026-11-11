@@ -254,18 +254,21 @@ Design tokens are grounded in the Material 3 shape scale (authoritative source:
 Large 16dp, LargeIncreased 20dp, ExtraLarge 28dp, ExtraExtraLarge 48dp. Chat bubbles use
 LargeIncreased (20dp) for the open corners and Small (8dp→6dp cluster edge) for the tight ones.
 
-## Known issue: Home feed and Reels show the same videos
+## Reels vs Home: the publisher decides, not the aspect ratio
 
 Both screens build their candidate list from the same cache (`LocalCache.notes` +
-`LocalCache.addressables` for `VideoVerticalEvent`/`VideoHorizontalEvent`) and used the
-same acceptance rule (playable video), so every video in the Home feed also qualified for
-Reels.
+`LocalCache.addressables` for `VideoVerticalEvent`/`VideoHorizontalEvent`), so the split has
+to be explicit. The rule is the **user's choice at publish time**, not the clip's shape:
 
-Fix (applied): split by orientation. `Event.isVerticalReelVideo()` (ShortsFeedBasis.kt)
-classifies a video as portrait; `ShortsFeedFilter` keeps only portrait videos, and
-`VideoFeedFilter` drops them (`isReelOnly`). NIP-71 vertical/short kinds are always reels,
-horizontal is never, normal/kind:1 use the declared `dim` (portrait when unknown for
-kind:1). Pictures, file headers and ephemeral stories stay Home-only.
+- A feed post is always NIP-71 normal video (kind 21, `VideoNormalEvent`), whatever the
+  orientation. `sendHeader` used to emit kind 22 (`VideoShortEvent`) for any portrait clip,
+  which made a portrait *post* a reel and hid it from the feed. Now only `sendReel` creates
+  a reel (kind 34236, `VideoVerticalEvent`), and only when the user picks Reel.
+- `Event.isVerticalReelVideo()` (ShortsFeedBasis.kt) returns true for kind 34236/22 only;
+  kind 21 and 34235 are never reels. A kind:1 post with no declared `dim` still defaults to
+  reels (short-form portrait is the common case), but an explicit `dim` decides: portrait →
+  Reels, landscape/square → Home. `ShortsFeedFilter` keeps reels, `VideoFeedFilter` drops
+  them (`isReelOnly`). Pictures, file headers and ephemeral stories stay Home-only.
 
 ## Media uploads: the server enforces an allowlist
 
