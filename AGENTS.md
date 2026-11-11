@@ -161,6 +161,28 @@ cp amethyst/build/outputs/apk/play/debug/amethyst-play-universal-debug.apk      
 (links to both APKs). Public URL: https://work-1-sjgrvfcdashedalw.prod-runtime.all-hands.dev/
 (→ `/Astro.apk`, `/Astro-play.apk`, or `/` for the landing page).
 
+### The download server must survive restarts
+
+Do **not** use `python -m http.server` here. It does not support HTTP Range
+requests (a 200 MB APK on a mobile network that gets interrupted has to start
+over, and clients often give up) and one `ConnectionResetError` kills the whole
+process — which is exactly how the link went dead once.
+
+Instead:
+
+```bash
+/workspace/apk-download/start.sh     # starts server.py on :12000 (Range-capable)
+setsid nohup /workspace/apk-download/watchdog.sh &   # keeps it alive
+```
+
+- `server.py` — threaded, Range-aware, ignores client disconnects.
+- `watchdog.sh` — polls the *port* every 5 s (not a PID file: PIDs get reused
+  after a sandbox restart, which once made a PID check report "alive" while the
+  server was dead) and restarts the server when it stops answering.
+- Both live in `/workspace`, so they survive a root-fs wipe; only the running
+  processes are lost, and the watchdog restarts the server. After a full sandbox
+  restart, start the watchdog again (processes do not come back by themselves).
+
 ### Build environment caveats (learned the hard way)
 
 - The container **root filesystem is wiped on restart** (e.g. after an OOM). Only
