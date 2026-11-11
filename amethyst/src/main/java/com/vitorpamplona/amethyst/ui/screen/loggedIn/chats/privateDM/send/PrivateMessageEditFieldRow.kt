@@ -21,6 +21,7 @@
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.send
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vitorpamplona.amethyst.R
+import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
+import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
 import com.vitorpamplona.amethyst.model.LocalCache
 import com.vitorpamplona.amethyst.model.User
 import com.vitorpamplona.amethyst.ui.actions.MentionPreservingInputTransformation
@@ -229,16 +232,41 @@ fun EditField(
         },
         trailingIcon = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ThinSendButton(
-                    isActive = channelScreenModel.canPost(),
-                    modifier = EditFieldTrailingIconModifier,
-                ) {
-                    accountViewModel.launchSigner {
-                        channelScreenModel.sendPostSync()
-                        onSendNewMessage()
+                val messengerStyle = LocalMessengerDmStyle.current
+                if (messengerStyle) {
+                    // Reference template (JetMessenger, AppBars.kt): the send affordance is a
+                    // plain icon at the pill's edge, not a filled circular button.
+                    Icon(
+                        symbol = MaterialSymbols.AutoMirrored.Send,
+                        contentDescription = stringRes(R.string.accessibility_send),
+                        tint =
+                            if (channelScreenModel.canPost()) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.placeholderText
+                            },
+                        modifier =
+                            Modifier
+                                .padding(start = 4.dp, end = 6.dp)
+                                .size(24.dp)
+                                .clickable(enabled = channelScreenModel.canPost()) {
+                                    accountViewModel.launchSigner {
+                                        channelScreenModel.sendPostSync()
+                                        onSendNewMessage()
+                                    }
+                                },
+                    )
+                } else {
+                    ThinSendButton(
+                        isActive = channelScreenModel.canPost(),
+                        modifier = EditFieldTrailingIconModifier,
+                    ) {
+                        accountViewModel.launchSigner {
+                            channelScreenModel.sendPostSync()
+                            onSendNewMessage()
+                        }
                     }
                 }
-                val messengerStyle = LocalMessengerDmStyle.current
                 val likeEmoji = LocalMessengerLikeReaction.current
                 if (messengerStyle) {
                     IconButton(

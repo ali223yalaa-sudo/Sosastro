@@ -122,6 +122,7 @@ val Size25dp = 25.dp
 val Size27dp = 27.dp
 val Size30dp = 30.dp
 val Size34dp = 34.dp
+val Size38dp = 38.dp
 val Size35dp = 35.dp
 val Size40dp = 40.dp
 val Size50dp = 50.dp

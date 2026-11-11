@@ -45,6 +45,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -61,7 +62,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -87,6 +87,7 @@ import com.vitorpamplona.amethyst.ui.theme.chatBubbleThem
 import com.vitorpamplona.amethyst.ui.theme.chatDraftBackground
 import com.vitorpamplona.amethyst.ui.theme.messageBubbleLimits
 import com.vitorpamplona.amethyst.ui.theme.messengerBubbleMe
+import com.vitorpamplona.amethyst.ui.theme.messengerBubbleMeText
 import com.vitorpamplona.amethyst.ui.theme.messengerBubbleThem
 import com.vitorpamplona.amethyst.ui.theme.placeholderText
 import kotlinx.coroutines.Job
@@ -192,23 +193,11 @@ fun ChatBubbleLayout(
         label = "highlightAnimation",
     )
 
-    // 2027 refresh: own messages get a soft top-lit gradient so the bubble reads as a
-    // modern surface instead of a flat fill. Incoming bubbles stay flat to keep the two
-    // sides visually distinct. Jumbo emoji and drafts keep their existing treatment.
-    val bubbleBrush =
-        remember(animatedColor, isLoggedInUser, transparentBubble, isDraft) {
-            if (isLoggedInUser && !transparentBubble && !isDraft) {
-                Brush.verticalGradient(
-                    listOf(
-                        lerp(animatedColor, Color.White, 0.12f),
-                        animatedColor,
-                        lerp(animatedColor, Color.Black, 0.06f),
-                    ),
-                )
-            } else {
-                null
-            }
-        }
+    // Copied from the reference template (JetMessenger): the bubble is a flat fill,
+    // with no gradient. The logged-in user's bubble is the solid blue above; the
+    // incoming bubble is the flat gray. Jumbo emoji and drafts keep their existing
+    // treatment.
+    val bubbleBrush: Brush? = null
 
     val haptic = LocalHapticFeedback.current
 
@@ -419,6 +408,14 @@ private fun InnerChatBubble(
             // gradient is active the Surface is transparent and the clipped brush below
             // supplies the fill (Surface draws its own color on top of the modifier).
             color = if (useBrush || (transparentBubble && !highlightActive)) Color.Transparent else animatedColor,
+            // In the Messenger 1:1 layout the logged-in user's bubble is solid blue, so
+            // its text flips to white — matching the template's own-message bubble.
+            contentColor =
+                if (LocalMessengerDmStyle.current && isLoggedInUser && !transparentBubble) {
+                    MaterialTheme.colorScheme.messengerBubbleMeText
+                } else {
+                    contentColorFor(animatedColor)
+                },
             shape = bubbleShape,
             modifier =
                 clickableModifier

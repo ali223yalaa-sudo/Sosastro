@@ -64,7 +64,7 @@ private data class MessengerThemeSpec(
 
 private val Catalog =
     listOf(
-        MessengerThemeSpec("classic", R.string.chat_theme_classic, Color(0xFFF0F2F5), Color(0xFF121212), Color(0xFF0084FF).copy(alpha = 0.22f), Color(0xFF0084FF).copy(alpha = 0.40f), Color(0xFFE4E6EB), Color(0xFF3A3B3C), Color(0xFF0084FF), R.drawable.chat_bg_classic),
+        MessengerThemeSpec("classic", R.string.chat_theme_classic, Color(0xFFFFFFFF), Color(0xFF000000), Color(0xFF0078FF), Color(0xFF0078FF), Color(0xFFE6E6E6), Color(0xFF2F2F2F), Color(0xFF0078FF), R.drawable.chat_bg_classic),
         MessengerThemeSpec("midnight", R.string.chat_theme_midnight, Color(0xFFE8EAF0), Color(0xFF0B1020), Color(0xFF5B6CFF).copy(alpha = 0.28f), Color(0xFF5B6CFF).copy(alpha = 0.42f), Color(0xFFD5DAE8), Color(0xFF1C2438), Color(0xFF7C8CFF), R.drawable.chat_bg_midnight),
         MessengerThemeSpec("ocean", R.string.chat_theme_ocean, Color(0xFFE4F4F8), Color(0xFF062028), Color(0xFF00A8C6).copy(alpha = 0.28f), Color(0xFF00A8C6).copy(alpha = 0.42f), Color(0xFFD2E8EE), Color(0xFF14343C), Color(0xFF00B4D8), R.drawable.chat_bg_ocean),
         MessengerThemeSpec("sunset", R.string.chat_theme_sunset, Color(0xFFFFF1E6), Color(0xFF24140C), Color(0xFFFF7A45).copy(alpha = 0.28f), Color(0xFFFF7A45).copy(alpha = 0.40f), Color(0xFFFFE0CC), Color(0xFF3A2418), Color(0xFFFF7A45), R.drawable.chat_bg_sunset),

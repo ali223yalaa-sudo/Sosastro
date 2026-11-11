@@ -160,11 +160,13 @@ private val LightChatBackground = LightColorPalette.onSurface.copy(alpha = 0.08f
 private val DarkChatBubbleThem = DarkColorPalette.onSurface.copy(alpha = 0.18f)
 private val LightChatBubbleThem = LightColorPalette.onSurface.copy(alpha = 0.11f)
 
-// Messenger 1:1 bubble fills. Own messages stay a readable blue wash so existing
-// onBackground rich text remains legible; incoming uses Messenger's gray chips.
-private val MessengerBlue = Color(0xFF0084FF)
-private val LightMessengerBubbleThem = Color(0xFFE4E6EB)
-private val DarkMessengerBubbleThem = Color(0xFF3A3B3C)
+// Messenger 1:1 bubble fills, copied verbatim from the reference template
+// (JetMessenger, ui/theme/Color.kt): the logged-in user's own bubble is a solid
+// Messenger blue with white text, and the incoming bubble is the template's flat
+// gray (#E6E6E6 light / #2F2F2F dark). No alpha wash — the template is flat.
+private val MessengerBlue = Color(0xFF0078FF)
+private val LightMessengerBubbleThem = Color(0xFFE6E6E6)
+private val DarkMessengerBubbleThem = Color(0xFF2F2F2F)
 
 private val DarkChatDraftBackground = DarkSurfaceElevated
 private val LightChatDraftBackground = LightColorPalette.onSurface.copy(alpha = 0.15f)
@@ -508,11 +510,19 @@ val ColorScheme.chatBubbleMe: Color
 val ColorScheme.chatBubbleThem: Color
     get() = if (isLight) LightChatBubbleThem else DarkChatBubbleThem
 
+// Messenger 1:1 bubble fills, copied verbatim from the reference template
+// (JetMessenger): the logged-in user's own bubble is a solid Messenger blue with
+// white text, and the incoming bubble is the template's flat gray.
 val ColorScheme.messengerBubbleMe: Color
-    get() = MessengerBlue.copy(alpha = if (isLight) 0.22f else 0.40f)
+    get() = MessengerBlue
 
 val ColorScheme.messengerBubbleThem: Color
     get() = if (isLight) LightMessengerBubbleThem else DarkMessengerBubbleThem
+
+// Text colour for the blue "me" bubble in the Messenger 1:1 layout — white, as in
+// the template's own-message bubble.
+val ColorScheme.messengerBubbleMeText: Color
+    get() = Color.White
 
 val ColorScheme.chatDraftBackground: Color
     get() = if (isLight) LightChatDraftBackground else DarkChatDraftBackground

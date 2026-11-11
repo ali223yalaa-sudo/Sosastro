@@ -34,20 +34,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-// Chat bubble corners — the single source of truth for every front end. Values follow
-// the Material 3 shape scale (large-increased = 20dp) with a tight 6dp "cluster edge"
-// where a bubble touches its neighbour in the same author run, and a 6dp tail corner
-// pointing at the author's side — the modern Messenger/WhatsApp look. A grouped run
-// reads as one continuous unit: full rounding only at the very top and bottom of the
-// group (Top = visually first / oldest, Bottom = visually last).
-val ChatBubbleShapeMe = RoundedCornerShape(20.dp, 20.dp, 6.dp, 20.dp)
-val ChatBubbleShapeMeTop = RoundedCornerShape(20.dp, 20.dp, 6.dp, 6.dp)
-val ChatBubbleShapeMeMiddle = RoundedCornerShape(6.dp, 6.dp, 6.dp, 6.dp)
-val ChatBubbleShapeMeBottom = RoundedCornerShape(6.dp, 6.dp, 6.dp, 20.dp)
-val ChatBubbleShapeThem = RoundedCornerShape(6.dp, 20.dp, 20.dp, 20.dp)
-val ChatBubbleShapeThemTop = RoundedCornerShape(6.dp, 20.dp, 6.dp, 6.dp)
-val ChatBubbleShapeThemMiddle = RoundedCornerShape(6.dp, 6.dp, 6.dp, 6.dp)
-val ChatBubbleShapeThemBottom = RoundedCornerShape(6.dp, 6.dp, 20.dp, 20.dp)
+// Chat bubble corners — copied verbatim from the reference template (JetMessenger,
+// Conversation.kt `TextMessageItem`). The edge on the far side from the author's tail
+// is always fully rounded (18dp); only the tail edge tightens to 3dp where a bubble
+// meets its neighbour in the same author run. An isolated message is fully rounded.
+// Top = visually first / oldest in the run, Bottom = visually last.
+val ChatBubbleShapeMe = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
+val ChatBubbleShapeMeTop = RoundedCornerShape(18.dp, 18.dp, 3.dp, 18.dp)
+val ChatBubbleShapeMeMiddle = RoundedCornerShape(18.dp, 3.dp, 3.dp, 18.dp)
+val ChatBubbleShapeMeBottom = RoundedCornerShape(18.dp, 3.dp, 18.dp, 18.dp)
+val ChatBubbleShapeThem = RoundedCornerShape(18.dp, 18.dp, 18.dp, 18.dp)
+val ChatBubbleShapeThemTop = RoundedCornerShape(18.dp, 18.dp, 18.dp, 3.dp)
+val ChatBubbleShapeThemMiddle = RoundedCornerShape(3.dp, 18.dp, 18.dp, 3.dp)
+val ChatBubbleShapeThemBottom = RoundedCornerShape(3.dp, 18.dp, 18.dp, 18.dp)
 
 // Chat bubble modifiers
 val ChatBubbleMaxSizeModifier = Modifier.fillMaxWidth(0.85f)
@@ -62,8 +61,9 @@ val ChatPaddingModifier =
             bottom = 3.dp,
         )
 
-// Message bubble internal padding
-val MessageBubbleLimits = Modifier.padding(start = 10.dp, end = 10.dp, top = 7.dp, bottom = 6.dp)
+// Message bubble internal padding — copied from the reference template
+// (JetMessenger, Conversation.kt `TextMessage` default paddingValues).
+val MessageBubbleLimits = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 8.dp)
 
 // Chat author area
 val ChatAuthorBox = Modifier.size(20.dp)

@@ -230,7 +230,7 @@ private fun FeedLoaded(
 
             HorizontalDivider(
                 thickness = DividerThickness,
-                modifier = Modifier.padding(start = 83.dp),
+                modifier = Modifier.padding(start = 68.dp),
             )
 
             // Rendered unconditionally at the protocol's oldest room so the card can run its own

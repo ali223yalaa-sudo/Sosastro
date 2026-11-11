@@ -76,7 +76,7 @@ import com.vitorpamplona.amethyst.ui.stringRes
 import com.vitorpamplona.amethyst.ui.theme.DividerThickness
 import com.vitorpamplona.amethyst.ui.theme.DoubleHorzSpacer
 import com.vitorpamplona.amethyst.ui.theme.Size34dp
-import com.vitorpamplona.amethyst.ui.theme.Size40dp
+import com.vitorpamplona.amethyst.ui.theme.Size38dp
 import com.vitorpamplona.amethyst.ui.theme.StdPadding
 import com.vitorpamplona.amethyst.ui.theme.ZeroPadding
 import com.vitorpamplona.amethyst.ui.theme.isLight
@@ -175,7 +175,7 @@ private fun MessengerPeerTopBar(
                             ClickableUserPicture(
                                 baseUser = baseUser,
                                 accountViewModel = accountViewModel,
-                                size = Size40dp,
+                                size = Size38dp,
                             )
                             Spacer(modifier = DoubleHorzSpacer)
                             UsernameDisplay(
@@ -183,7 +183,7 @@ private fun MessengerPeerTopBar(
                                 Modifier
                                     .weight(1f)
                                     .clickable { showStrip = !showStrip },
-                                fontWeight = FontWeight.SemiBold,
+                                fontWeight = FontWeight.Normal,
                                 accountViewModel = accountViewModel,
                             )
                             if (onVideoCallClick != null) {
