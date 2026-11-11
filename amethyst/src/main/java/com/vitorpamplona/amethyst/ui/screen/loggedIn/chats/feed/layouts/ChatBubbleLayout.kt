@@ -298,13 +298,14 @@ fun ChatBubbleLayout(
             verticalAlignment = Alignment.Bottom,
         ) {
             if (startGutter != null) {
+                // Reference template (JetMessenger, Conversation.kt): the incoming avatar is a
+                // 24dp circle with 8dp horizontal breathing room, bottom-aligned to the bubble.
                 Box(
-                    modifier = Modifier.size(28.dp),
+                    modifier = Modifier.padding(horizontal = 8.dp).size(24.dp),
                     contentAlignment = Alignment.BottomCenter,
                 ) {
                     startGutter()
                 }
-                Spacer(Modifier.size(6.dp))
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (isLoggedInUser && speakOutside != null) {

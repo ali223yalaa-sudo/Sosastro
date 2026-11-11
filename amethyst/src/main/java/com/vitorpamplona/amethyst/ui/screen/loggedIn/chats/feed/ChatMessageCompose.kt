@@ -362,7 +362,7 @@ fun NormalChatNote(
                             note.author?.let { author ->
                                 UserPicture(
                                     user = author,
-                                    size = 28.dp,
+                                    size = 24.dp,
                                     accountViewModel = accountViewModel,
                                     nav = nav,
                                 )

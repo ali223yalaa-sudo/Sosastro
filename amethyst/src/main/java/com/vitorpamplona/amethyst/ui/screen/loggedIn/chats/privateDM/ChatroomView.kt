@@ -20,7 +20,6 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,10 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -332,14 +328,10 @@ fun ChatroomViewUI(
         LocalMessengerChatPalette provides palette,
     ) {
         Box(Modifier.fillMaxHeight()) {
+            // Reference template (JetMessenger) paints the conversation on a single flat
+            // background colour — no photographic wallpaper and no scrim. Match it exactly.
             if (palette != null) {
-                Image(
-                    painter = painterResource(palette.wallpaper),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                )
-                Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.28f)))
+                Box(Modifier.fillMaxSize().background(palette.background))
             }
             Column(
                 Modifier.fillMaxHeight(),
