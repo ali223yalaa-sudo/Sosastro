@@ -182,6 +182,10 @@ setsid nohup /workspace/apk-download/watchdog.sh &   # keeps it alive
 - Both live in `/workspace`, so they survive a root-fs wipe; only the running
   processes are lost, and the watchdog restarts the server. After a full sandbox
   restart, start the watchdog again (processes do not come back by themselves).
+- `start.sh` serves **two** ports: `:12000` and `:12001` (backup). The watchdog
+  checks both and restarts them together. Public URLs:
+  https://work-1-sjgrvfcdashedalw.prod-runtime.all-hands.dev/ (12000) and
+  https://work-2-sjgrvfcdashedalw.prod-runtime.all-hands.dev/ (12001).
 
 ### Build environment caveats (learned the hard way)
 
