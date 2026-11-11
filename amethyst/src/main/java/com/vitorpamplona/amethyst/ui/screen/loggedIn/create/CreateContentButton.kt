@@ -27,6 +27,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vitorpamplona.amethyst.R
 import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
@@ -34,10 +36,9 @@ import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
 import com.vitorpamplona.amethyst.ui.actions.ComposeContentType
 import com.vitorpamplona.amethyst.ui.actions.NewMediaModel
 import com.vitorpamplona.amethyst.ui.actions.NewMediaView
+import com.vitorpamplona.amethyst.ui.actions.uploads.CameraCaptureScreen
 import com.vitorpamplona.amethyst.ui.actions.uploads.GallerySelect
 import com.vitorpamplona.amethyst.ui.actions.uploads.SelectedMedia
-import com.vitorpamplona.amethyst.ui.actions.uploads.TakePicture
-import com.vitorpamplona.amethyst.ui.actions.uploads.TakeVideo
 import com.vitorpamplona.amethyst.ui.navigation.navs.INav
 import com.vitorpamplona.amethyst.ui.navigation.routes.Route
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
@@ -68,9 +69,9 @@ fun CreateContentButton(
     var showSheet by remember { mutableStateOf(false) }
     var wantsGallery by remember { mutableStateOf(false) }
     var wantsCamera by remember { mutableStateOf(false) }
-    var wantsVideo by remember { mutableStateOf(false) }
     var pendingType by remember { mutableStateOf(ComposeContentType.FEED) }
     var pickedURIs by remember { mutableStateOf<ImmutableList<SelectedMedia>>(persistentListOf()) }
+    var editedURIs by remember { mutableStateOf<ImmutableList<SelectedMedia>>(persistentListOf()) }
 
     val postViewModel: NewMediaModel = viewModel()
 
@@ -139,31 +140,56 @@ fun CreateContentButton(
     }
 
     if (wantsCamera) {
-        TakePicture(
-            onPictureTaken = { uri ->
-                wantsCamera = false
-                pickedURIs = uri
-            },
-        )
-    }
-
-    if (wantsVideo) {
-        TakeVideo(
-            onVideoTaken = { uri ->
-                wantsVideo = false
-                pickedURIs = uri
-            },
-        )
+        FullScreenDialog(onDismiss = { wantsCamera = false }) {
+            CameraCaptureScreen(
+                onMediaCaptured = { uri ->
+                    wantsCamera = false
+                    pickedURIs = uri
+                },
+                onClose = { wantsCamera = false },
+            )
+        }
     }
 
     if (pickedURIs.isNotEmpty()) {
+        FullScreenDialog(onDismiss = { pickedURIs = persistentListOf() }) {
+            MediaEditorScreen(
+                uris = pickedURIs,
+                onBack = { pickedURIs = persistentListOf() },
+                onDone = { edited ->
+                    editedURIs = edited
+                    pickedURIs = persistentListOf()
+                },
+            )
+        }
+    }
+
+    if (editedURIs.isNotEmpty()) {
         postViewModel.contentType = pendingType
         NewMediaView(
-            uris = pickedURIs,
-            onClose = { pickedURIs = persistentListOf() },
+            uris = editedURIs,
+            onClose = { editedURIs = persistentListOf() },
             postViewModel = postViewModel,
             accountViewModel = accountViewModel,
             nav = nav,
         )
+    }
+}
+
+/** A borderless full-screen dialog used to host the camera and editor surfaces. */
+@Composable
+private fun FullScreenDialog(
+    onDismiss: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties =
+            DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false,
+            ),
+    ) {
+        content()
     }
 }
