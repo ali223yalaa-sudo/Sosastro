@@ -322,6 +322,33 @@ add `accountViewModel` when you wire a new entry point.
 `ShareReaction` in `ReactionsRow.kt` gained an `accountViewModel` parameter;
 update its call sites when you move it.
 
+## Creating content: one "+" that opens camera, editor and composer
+
+The Home top bar has a small `+` (`CreateContentButton` in
+`amethyst/.../ui/screen/loggedIn/create/`) at the far right — `extraActions` is
+placed **after** the search action in `UserDrawerSearchTopBar`'s `actions` row,
+so it is the last item. Tapping it opens `CreateContentSheet`, which routes every
+entry point to a real flow:
+
+- Post / Reel / Story / Instant → gallery pick → editor → composer, pre-set to the
+  matching `ComposeContentType` (`ui/actions/ComposeContentType.kt`). Reels publish
+  as NIP-71 vertical video (kind 34236) via `Account.sendReel`; stories/instant use
+  `sendEphemeralStory`.
+- Live → `Route.NewHlsVideo`. Text post → `Route.NewShortNote`. Drafts → `Route.Drafts`.
+
+The in-app camera and the gallery both feed the same editor and then the shared
+`NewMediaView` composer, so there is one edit/publish surface regardless of source.
+
+- `ui/actions/uploads/CameraCaptureScreen.kt` — full-screen CameraX preview with
+  photo/video modes, front/back switch, flash (photo) / torch (video) and a
+  countdown timer. Needs `androidx.camera:camera-video` (already in
+  `gradle/libs.versions.toml`). Captures land in the app's external files dir and
+  come back as `SelectedMedia`.
+- `ui/screen/loggedIn/create/MediaEditorScreen.kt` — crop (aspect presets),
+  rotate, flip, colour filters and draggable text overlays. Photos render to a new
+  cache JPEG on "next"; videos pass through unchanged. Both the camera and the
+  editor are hosted in a borderless full-screen `Dialog` (`FullScreenDialog`).
+
 ## Tests: `nestsClient` `NestsAuthTest` fails on purpose-built padding
 
 `nestsClient:jvmTest` has two pre-existing failures unrelated to `amethyst`:
