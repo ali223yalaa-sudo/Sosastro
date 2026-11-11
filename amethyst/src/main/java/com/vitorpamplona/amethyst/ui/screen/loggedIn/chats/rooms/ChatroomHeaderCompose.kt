@@ -601,7 +601,6 @@ private fun UserRoomCompose(
                 )
                 Spacer(modifier = StdHorzSpacer)
             }
-            TimeAgo(lastMessage.createdAt())
         },
         secondRow = {
             LoadDecryptedContentOrNull(lastMessage, accountViewModel) { content ->
@@ -636,6 +635,13 @@ private fun UserRoomCompose(
             if (!countsAsRead && (lastMessage.createdAt() ?: Long.MIN_VALUE) > lastReadTime) {
                 Spacer(modifier = Height4dpModifier)
                 NewItemsBubble()
+            }
+
+            // Reference template (JetMessenger, main/Chats.kt `LastMessageWithDateTime`): the time
+            // trails the last message on its own row, after the unread dot.
+            lastMessage.createdAt()?.let {
+                Spacer(modifier = StdHorzSpacer)
+                TimeAgo(it)
             }
         },
         onClick = { nav.nav(Route.Room(room)) },

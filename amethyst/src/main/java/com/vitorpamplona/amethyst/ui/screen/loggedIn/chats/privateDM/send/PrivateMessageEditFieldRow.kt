@@ -32,7 +32,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -73,7 +72,6 @@ import com.vitorpamplona.amethyst.ui.note.showCount
 import com.vitorpamplona.amethyst.ui.note.timeAheadNoDot
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.feed.LocalMessengerDmStyle
-import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.feed.LocalMessengerLikeReaction
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.send.upload.RoomChatFileUploadDialog
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.utils.DisplayReplyingToNote
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.utils.ThinSendButton
@@ -214,94 +212,69 @@ fun EditField(
     onSendNewMessage: () -> Unit,
     accountViewModel: AccountViewModel,
 ) {
-    val messengerStyle = LocalMessengerDmStyle.current
-    val likeEmoji = LocalMessengerLikeReaction.current
-
-    // Reference template (JetMessenger, conversation/AppBars.kt `BottomBarLowerContent`): the
-    // send affordance is a plain icon OUTSIDE the rounded composer pill, not a trailing button
-    // inside it. Non-messenger chats keep the original single-field layout untouched.
-    Row(
+    ThinPaddingTextField(
+        state = channelScreenModel.message,
+        onTextChanged = { channelScreenModel.onMessageChanged() },
+        onContentReceived = { uri, mimeType ->
+            channelScreenModel.pickedMedia(persistentListOf(SelectedMedia(uri, mimeType)))
+        },
+        inputTransformation = MentionPreservingInputTransformation,
+        keyboardOptions = PostKeyboard,
+        shape = EditFieldBorder,
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Bottom,
-    ) {
-        ThinPaddingTextField(
-            state = channelScreenModel.message,
-            onTextChanged = { channelScreenModel.onMessageChanged() },
-            onContentReceived = { uri, mimeType ->
-                channelScreenModel.pickedMedia(persistentListOf(SelectedMedia(uri, mimeType)))
-            },
-            inputTransformation = MentionPreservingInputTransformation,
-            keyboardOptions = PostKeyboard,
-            shape = EditFieldBorder,
-            modifier = if (messengerStyle) Modifier.weight(1f) else Modifier.fillMaxWidth(),
-            placeholder = {
-                Text(
-                    text = stringRes(R.string.reply_here),
-                    color = MaterialTheme.colorScheme.placeholderText,
-                )
-            },
-            trailingIcon =
-                if (messengerStyle) {
-                    {
-                        IconButton(
-                            enabled = accountViewModel.isWriteable(),
-                            onClick = {
+        placeholder = {
+            Text(
+                text = stringRes(R.string.reply_here),
+                color = MaterialTheme.colorScheme.placeholderText,
+            )
+        },
+        trailingIcon = {
+            val messengerStyle = LocalMessengerDmStyle.current
+            if (messengerStyle) {
+                // Reference template (JetMessenger, AppBars.kt): a plain send icon, no
+                // filled circular button and no trailing emoji affordance.
+                Icon(
+                    symbol = MaterialSymbols.AutoMirrored.Send,
+                    contentDescription = stringRes(R.string.accessibility_send),
+                    tint =
+                        if (channelScreenModel.canPost()) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.placeholderText
+                        },
+                    modifier =
+                        Modifier
+                            .padding(start = 4.dp, end = 6.dp)
+                            .size(24.dp)
+                            .clickable(enabled = channelScreenModel.canPost()) {
                                 accountViewModel.launchSigner {
-                                    channelScreenModel.sendQuickEmoji(likeEmoji)
+                                    channelScreenModel.sendPostSync()
                                     onSendNewMessage()
                                 }
                             },
-                        ) {
-                            Text(text = likeEmoji, fontSize = 18.sp)
-                        }
+                )
+            } else {
+                ThinSendButton(
+                    isActive = channelScreenModel.canPost(),
+                    modifier = EditFieldTrailingIconModifier,
+                ) {
+                    accountViewModel.launchSigner {
+                        channelScreenModel.sendPostSync()
+                        onSendNewMessage()
                     }
-                } else {
-                    {
-                        ThinSendButton(
-                            isActive = channelScreenModel.canPost(),
-                            modifier = EditFieldTrailingIconModifier,
-                        ) {
-                            accountViewModel.launchSigner {
-                                channelScreenModel.sendPostSync()
-                                onSendNewMessage()
-                            }
-                        }
-                    }
-                },
-            leadingIcon = {
-                KeyboardLeadingIcon(channelScreenModel, accountViewModel)
-            },
-            colors =
-                TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                ),
-            outputTransformation = UrlUserTagOutputTransformation(MaterialTheme.colorScheme.primary),
-        )
-
-        if (messengerStyle) {
-            Icon(
-                symbol = MaterialSymbols.AutoMirrored.Send,
-                contentDescription = stringRes(R.string.accessibility_send),
-                tint =
-                    if (channelScreenModel.canPost()) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.placeholderText
-                    },
-                modifier =
-                    Modifier
-                        .padding(horizontal = 8.dp, vertical = 14.dp)
-                        .size(24.dp)
-                        .clickable(enabled = channelScreenModel.canPost()) {
-                            accountViewModel.launchSigner {
-                                channelScreenModel.sendPostSync()
-                                onSendNewMessage()
-                            }
-                        },
-            )
-        }
-    }
+                }
+            }
+        },
+        leadingIcon = {
+            KeyboardLeadingIcon(channelScreenModel, accountViewModel)
+        },
+        colors =
+            TextFieldDefaults.colors(
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+            ),
+        outputTransformation = UrlUserTagOutputTransformation(MaterialTheme.colorScheme.primary),
+    )
 }
 
 @Preview
