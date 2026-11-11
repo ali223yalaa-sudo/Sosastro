@@ -979,8 +979,7 @@ object LocalPreferences {
      * offered. Any value persisted by an older build (Europe, Middle East, Trending, Around Me,
      * a relay chip, …) would leave the spinner with no matching option, so fold it to "For You".
      */
-    private fun migrateAstroFilter(current: TopFilter): TopFilter =
-        if (current is TopFilter.Global || current is TopFilter.AllFollows) current else TopFilter.Global
+    private fun migrateAstroFilter(current: TopFilter): TopFilter = if (current is TopFilter.Global || current is TopFilter.AllFollows) current else TopFilter.Global
 
     private fun SharedPreferences.loadFollowListPrefs(): FollowListPrefs =
         FollowListPrefs(

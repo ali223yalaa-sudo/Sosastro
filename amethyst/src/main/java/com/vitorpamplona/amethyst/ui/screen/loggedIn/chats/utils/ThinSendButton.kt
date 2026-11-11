@@ -62,7 +62,14 @@ fun ThinSendButton(
     val isPressed by interactionSource.collectIsPressedAsState()
     val haptic = LocalHapticFeedback.current
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.86f else if (isActive) 1f else 0.92f,
+        targetValue =
+            if (isPressed) {
+                0.86f
+            } else if (isActive) {
+                1f
+            } else {
+                0.92f
+            },
         label = "sendButtonScale",
     )
     val scheme = MaterialTheme.colorScheme
@@ -80,8 +87,7 @@ fun ThinSendButton(
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
-                }
-                .then(
+                }.then(
                     if (isActive) {
                         Modifier.shadow(
                             elevation = 8.dp,
@@ -92,8 +98,7 @@ fun ThinSendButton(
                     } else {
                         Modifier
                     },
-                )
-                .clip(CircleShape)
+                ).clip(CircleShape)
                 .background(fill)
                 .clickable(
                     interactionSource = interactionSource,

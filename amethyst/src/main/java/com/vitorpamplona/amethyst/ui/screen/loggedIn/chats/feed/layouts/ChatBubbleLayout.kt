@@ -428,8 +428,7 @@ private fun InnerChatBubble(
                         } else {
                             Modifier
                         },
-                    )
-                    .graphicsLayer {
+                    ).graphicsLayer {
                         scaleX = pressScale
                         scaleY = pressScale
                     },
