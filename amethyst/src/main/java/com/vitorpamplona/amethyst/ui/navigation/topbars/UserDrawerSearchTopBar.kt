@@ -68,12 +68,12 @@ fun UserDrawerSearchTopBar(
             }
         },
         actions = {
-            extraActions()
             StarsTopBarChip(accountViewModel) { nav.nav(Route.Wallet) }
             MemoryUsageChip()
             IconButton(onClick = { nav.nav(Route.Search) }) {
                 SearchIcon(modifier = Size22Modifier, MaterialTheme.colorScheme.placeholderText)
             }
+            extraActions()
         },
         windowInsets = windowInsets,
     )

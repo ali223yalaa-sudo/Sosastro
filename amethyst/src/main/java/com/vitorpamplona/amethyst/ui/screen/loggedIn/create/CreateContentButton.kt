@@ -58,8 +58,9 @@ import kotlinx.collections.immutable.persistentListOf
  * - Text post opens the short-note composer.
  * - Drafts opens the drafts list.
  *
- * The gallery and the (system) camera both feed the same [NewMediaView] composer, so
- * there is one editor regardless of where the media came from.
+ * The in-app camera and the gallery both feed the same [MediaEditorScreen] and then the
+ * shared [NewMediaView] composer, so there is one edit/publish surface regardless of
+ * where the media came from.
  */
 @Composable
 fun CreateContentButton(
