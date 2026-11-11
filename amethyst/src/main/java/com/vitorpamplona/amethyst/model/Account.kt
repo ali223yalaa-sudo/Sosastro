@@ -271,7 +271,6 @@ import com.vitorpamplona.quartz.nip68Picture.PictureMeta
 import com.vitorpamplona.quartz.nip68Picture.pictureIMeta
 import com.vitorpamplona.quartz.nip71Video.VideoMeta
 import com.vitorpamplona.quartz.nip71Video.VideoNormalEvent
-import com.vitorpamplona.quartz.nip71Video.VideoShortEvent
 import com.vitorpamplona.quartz.nip71Video.VideoVerticalEvent
 import com.vitorpamplona.quartz.nip72ModCommunities.approval.CommunityPostApprovalEvent
 import com.vitorpamplona.quartz.nip72ModCommunities.definition.CommunityDefinitionEvent
@@ -2490,14 +2489,13 @@ class Account(
                         thumbhash = headerInfo.thumbHash?.thumbhash,
                     )
 
-                if (headerInfo.dim.height > headerInfo.dim.width) {
-                    VideoShortEvent.build(videoMeta, alt ?: "") {
-                        contentWarningReason?.let { contentWarning(contentWarningReason) }
-                    }
-                } else {
-                    VideoNormalEvent.build(videoMeta, alt ?: "") {
-                        contentWarningReason?.let { contentWarning(contentWarningReason) }
-                    }
+                // A feed post is a *normal* video (kind 21) whatever its orientation, so it
+                // lands in Home and never in Reels. Portrait clips only become reels when the
+                // user explicitly picks Reel, which publishes kind 34236 via [sendReel]. Keying
+                // this off the aspect ratio (kind 22 for portrait) was why a portrait video
+                // post showed up in Reels instead of the feed.
+                VideoNormalEvent.build(videoMeta, alt ?: "") {
+                    contentWarningReason?.let { contentWarning(contentWarningReason) }
                 }
             } else {
                 FileHeaderEvent.build(url, alt) {
