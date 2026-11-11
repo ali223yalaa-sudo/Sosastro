@@ -4335,4 +4335,27 @@
     <string name="stars_daily_done">Claimed</string>
     <string name="stars_daily_claimed">Daily stars added</string>
     <string name="stars_daily_already">Already claimed today</string>
+
+    <!-- Reels/video share sheet (Instagram-style) -->
+    <string name="share_sheet_title">Share</string>
+    <string name="share_search_people">Search people</string>
+    <string name="share_no_friends">You are not following anyone yet</string>
+    <string name="share_no_results">No results</string>
+    <string name="share_add_people">Add people</string>
+    <string name="share_selected">Selected</string>
+    <string name="share_send">Send</string>
+    <string name="share_send_to_count">Send to %1$s</string>
+    <string name="share_sending">Sending\u2026</string>
+    <string name="share_sent_title">Sent</string>
+    <string name="share_sent_message">Shared with your friends</string>
+    <string name="share_failed_title">Couldn\u2019t share</string>
+    <string name="share_whatsapp">WhatsApp</string>
+    <string name="share_system">Share</string>
+    <string name="share_download">Download</string>
+    <string name="share_copy_link">Copy link</string>
+    <string name="share_add_to_story">Add to story</string>
+    <string name="share_link_copied">Link copied</string>
+    <string name="share_no_video">This post has no video to share</string>
+    <string name="share_app_not_found">No app available for this action</string>
+    <string name="share_story_published">Added to your story</string>
 </resources>

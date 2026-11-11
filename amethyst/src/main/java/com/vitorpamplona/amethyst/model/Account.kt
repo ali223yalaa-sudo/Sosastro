@@ -2411,6 +2411,34 @@ class Account(
         signAndComputeBroadcast(template)
     }
 
+    /**
+     * Publishes a story that points at an already-hosted media URL (e.g. an existing
+     * reel) instead of re-uploading the bytes. Used by the share sheet's "Add to story".
+     */
+    suspend fun sendEphemeralStoryFromUrl(
+        url: String,
+        mimeType: String?,
+        hash: String?,
+        caption: String?,
+    ) {
+        if (!isWriteable()) return
+
+        val now = TimeUtils.now()
+        val dTag = "story-$now-${(100000..999999).random()}"
+        val template =
+            EphemeralStoryEvent.build(
+                url = url,
+                mimeType = mimeType,
+                hash = hash,
+                caption = caption ?: "",
+                dTag = dTag,
+                expirationAt = TimeUtils.oneDayAhead(),
+                createdAt = now,
+            )
+
+        signAndComputeBroadcast(template)
+    }
+
     suspend fun sendHeader(
         url: String,
         magnetUri: String?,

@@ -126,6 +126,7 @@ fun NoteDropDownMenu(
     if (showShareSheet) {
         ShareOptionsBottomSheet(
             note = note,
+            accountViewModel = accountViewModel,
             nav = nav,
             onDismiss = {
                 showShareSheet = false

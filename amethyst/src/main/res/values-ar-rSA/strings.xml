@@ -3503,4 +3503,27 @@
     <string name="stars_daily_done">تم الاستلام</string>
     <string name="stars_daily_claimed">أُضيفت نجوم اليوم</string>
     <string name="stars_daily_already">استُلمت اليوم مسبقاً</string>
+
+    <!-- نافذة مشاركة الريلز والفيديو (بنمط إنستغرام) -->
+    <string name="share_sheet_title">مشاركة</string>
+    <string name="share_search_people">ابحث عن أشخاص</string>
+    <string name="share_no_friends">لا تتابع أي شخص بعد</string>
+    <string name="share_no_results">لا توجد نتائج</string>
+    <string name="share_add_people">إضافة أشخاص</string>
+    <string name="share_selected">المحددون</string>
+    <string name="share_send">إرسال</string>
+    <string name="share_send_to_count">إرسال إلى %1$s</string>
+    <string name="share_sending">جارٍ الإرسال\u2026</string>
+    <string name="share_sent_title">تم الإرسال</string>
+    <string name="share_sent_message">تمت المشاركة مع أصدقائك</string>
+    <string name="share_failed_title">تعذّر الإرسال</string>
+    <string name="share_whatsapp">واتساب</string>
+    <string name="share_system">مشاركة</string>
+    <string name="share_download">تنزيل</string>
+    <string name="share_copy_link">نسخ الرابط</string>
+    <string name="share_add_to_story">إضافة إلى القصة</string>
+    <string name="share_link_copied">تم نسخ الرابط</string>
+    <string name="share_no_video">لا يحتوي هذا المنشور على فيديو للمشاركة</string>
+    <string name="share_app_not_found">لا يوجد تطبيق متاح لهذا الإجراء</string>
+    <string name="share_story_published">تمت الإضافة إلى قصتك</string>
 </resources>

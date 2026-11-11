@@ -309,6 +309,7 @@ private fun InstagramFeedReactionRow(
             }
             ShareReaction(
                 note = baseNote,
+                accountViewModel = accountViewModel,
                 nav = nav,
                 grayTint = grayTint,
                 barChartModifier = iconMod,
@@ -437,6 +438,7 @@ fun ShortsReelsSideReactions(
         if (!isPrivateRumor) {
             ShareReaction(
                 note = baseNote,
+                accountViewModel = accountViewModel,
                 nav = nav,
                 grayTint = tint,
                 barChartModifier = iconMod,
@@ -549,6 +551,7 @@ private fun InnerReactionRow(
                     if (!isPrivateRumor) {
                         ShareReaction(
                             note = baseNote,
+                            accountViewModel = accountViewModel,
                             nav = nav,
                             grayTint = MaterialTheme.colorScheme.placeholderText,
                         )
@@ -570,6 +573,7 @@ private fun InnerReactionRow(
 @Composable
 fun ShareReaction(
     note: Note,
+    accountViewModel: AccountViewModel,
     nav: INav,
     grayTint: Color,
     barChartModifier: Modifier = Size19Modifier,
@@ -596,6 +600,7 @@ fun ShareReaction(
     if (showShareSheet) {
         ShareOptionsBottomSheet(
             note = note,
+            accountViewModel = accountViewModel,
             nav = nav,
             onDismiss = { showShareSheet = false },
         )
