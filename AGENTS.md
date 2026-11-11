@@ -187,6 +187,21 @@ setsid nohup /workspace/apk-download/watchdog.sh &   # keeps it alive
   https://work-1-sjgrvfcdashedalw.prod-runtime.all-hands.dev/ (12000) and
   https://work-2-sjgrvfcdashedalw.prod-runtime.all-hands.dev/ (12001).
 
+
+### Why the link can still look dead
+
+- The sandbox **idles out after 20 min** (`OH_RUNTIME_IDLE_TIMEOUT_SECONDS=1200`)
+  and every process is killed. The watchdog only survives while the sandbox is
+  alive, so after a long idle the link needs `start.sh` + the watchdog again.
+- `server.py` must send `Content-Disposition: attachment` **only for `.apk`**.
+  Sending it for `index.html` makes the browser save the page as a file instead
+  of rendering it — the link looks broken even though the server answers 200.
+- Files served: `Astro-arm64.apk` (101 MB, recommended), `Astro.apk`
+  (universal, 192 MB), `Astro-play.apk` (238 MB).
+- A durable fallback is the GitHub release `astro-v1.12.6` on the repo, but the
+  repo is **private**, so those asset URLs need authentication (HTTP 404 for
+  anonymous users). Keep that in mind before sharing release links.
+
 ### Build environment caveats (learned the hard way)
 
 - The container **root filesystem is wiped on restart** (e.g. after an OOM). Only
