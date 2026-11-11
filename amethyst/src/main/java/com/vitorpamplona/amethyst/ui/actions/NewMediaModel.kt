@@ -60,6 +60,14 @@ open class NewMediaModel : ViewModel() {
     /** When true, uploads publish as kind-30923 ephemeral stories (24h) instead of permanent media notes. */
     var publishAsEphemeralStory by mutableStateOf(false)
 
+    /**
+     * The kind of content being composed. Drives which publish path [uploadUnsafe]
+     * takes: FEED keeps the existing picture/video behaviour, REEL emits a NIP-71
+     * vertical video (kind 34236) so the clip lands in the reels surface, and
+     * STORY/INSTANT publish a 24h ephemeral story.
+     */
+    var contentType by mutableStateOf(ComposeContentType.FEED)
+
     // Images and Videos
     var multiOrchestrator by mutableStateOf<MultiOrchestrator?>(null)
     var onceUploaded: () -> Unit = {}
@@ -161,7 +169,7 @@ open class NewMediaModel : ViewModel() {
                             }
                         }.toMap()
 
-                if (publishAsEphemeralStory) {
+                if (publishAsEphemeralStory || contentType.isEphemeral) {
                     val storyJobs =
                         results.successful.mapNotNull {
                             val map = it.result as? UploadOrchestrator.OrchestratorResult.ServerResult ?: return@mapNotNull null
@@ -174,6 +182,22 @@ open class NewMediaModel : ViewModel() {
                             }
                         }
                     storyJobs.joinAll()
+                } else if (contentType == ComposeContentType.REEL) {
+                    // Reels publish each file as its own NIP-71 vertical video (kind 34236),
+                    // which is the kind the reels/shorts surface reads back.
+                    val reelJobs =
+                        results.successful.mapNotNull {
+                            val map = it.result as? UploadOrchestrator.OrchestratorResult.ServerResult ?: return@mapNotNull null
+                            accountViewModel.launchSigner {
+                                myAccount.sendReel(
+                                    url = map.url,
+                                    headerInfo = map.fileHeader,
+                                    caption = caption.ifBlank { null },
+                                    contentWarningReason = if (sensitiveContent) "" else null,
+                                )
+                            }
+                        }
+                    reelJobs.joinAll()
                 } else {
                     // Sign + publish via launchSigner so SignerExceptions surface
                     // through the standard toastManager pipeline (and timed-out /
@@ -237,6 +261,7 @@ open class NewMediaModel : ViewModel() {
         isUploadingImage = false
         caption = ""
         publishAsEphemeralStory = false
+        contentType = ComposeContentType.FEED
         selectedServer = defaultServer()
     }
 

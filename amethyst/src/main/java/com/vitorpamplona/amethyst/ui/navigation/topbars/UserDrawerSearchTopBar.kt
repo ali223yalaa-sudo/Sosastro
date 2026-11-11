@@ -22,6 +22,7 @@ package com.vitorpamplona.amethyst.ui.navigation.topbars
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,6 +47,7 @@ fun UserDrawerSearchTopBar(
     accountViewModel: AccountViewModel,
     nav: INav,
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
+    extraActions: @Composable RowScope.() -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     ShorterTopAppBar(
@@ -66,6 +68,7 @@ fun UserDrawerSearchTopBar(
             }
         },
         actions = {
+            extraActions()
             StarsTopBarChip(accountViewModel) { nav.nav(Route.Wallet) }
             MemoryUsageChip()
             IconButton(onClick = { nav.nav(Route.Search) }) {

@@ -2645,6 +2645,24 @@
 
     <string name="new_post">New Post</string>
     <string name="new_short">New Shorts: images or videos</string>
+    <string name="create_content_title">Create</string>
+    <string name="create_content_post">Post</string>
+    <string name="create_content_post_desc">Share photos or videos to your feed</string>
+    <string name="create_content_reel">Reel</string>
+    <string name="create_content_reel_desc">Short vertical video with sound</string>
+    <string name="create_content_story">Story</string>
+    <string name="create_content_story_desc">Disappears after 24 hours</string>
+    <string name="create_content_instant">Instant</string>
+    <string name="create_content_instant_desc">A quick moment for close friends</string>
+    <string name="create_content_live">Live</string>
+    <string name="create_content_live_desc">Broadcast in real time</string>
+    <string name="create_content_camera">Camera</string>
+    <string name="create_content_gallery">Gallery</string>
+    <string name="create_content_text_post">Text post</string>
+    <string name="create_content_drafts">Drafts</string>
+    <string name="create_content_more">More</string>
+    <string name="create_new_post">New post</string>
+    <string name="create_close">Close</string>
     <string name="new_community_note">New Community Note</string>
     <string name="new_product">New Product</string>
     <string name="new_long_form_post">New Article</string>

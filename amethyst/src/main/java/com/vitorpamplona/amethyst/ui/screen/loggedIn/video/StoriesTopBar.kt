@@ -39,6 +39,7 @@ import com.vitorpamplona.amethyst.ui.navigation.topbars.UserDrawerSearchTopBar
 import com.vitorpamplona.amethyst.ui.screen.FeedDefinition
 import com.vitorpamplona.amethyst.ui.screen.TopNavFilterState
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.create.CreateContentButton
 import com.vitorpamplona.amethyst.ui.stringRes
 import com.vitorpamplona.amethyst.ui.theme.Size20Modifier
 import kotlinx.collections.immutable.toImmutableList
@@ -50,6 +51,7 @@ fun StoriesTopBar(
     nav: INav,
     alsoUpdateHomeFollowList: Boolean = false,
     applyStatusBarInsets: Boolean = true,
+    showCreateButton: Boolean = false,
 ) {
     UserDrawerSearchTopBar(
         accountViewModel = accountViewModel,
@@ -60,6 +62,11 @@ fun StoriesTopBar(
             } else {
                 WindowInsets(0, 0, 0, 0)
             },
+        extraActions = {
+            if (showCreateButton) {
+                CreateContentButton(accountViewModel, nav)
+            }
+        },
     ) {
         val list by accountViewModel.account.settings.defaultStoriesFollowList
             .collectAsStateWithLifecycle()

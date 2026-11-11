@@ -71,7 +71,6 @@ import com.vitorpamplona.amethyst.ui.feeds.WatchLifecycleAndUpdateModel
 import com.vitorpamplona.amethyst.ui.layouts.DisappearingScaffold
 import com.vitorpamplona.amethyst.ui.layouts.WatchRevealChromeAtFeedTop
 import com.vitorpamplona.amethyst.ui.navigation.bottombars.AppBottomBar
-import com.vitorpamplona.amethyst.ui.navigation.bottombars.FabBottomBarPadded
 import com.vitorpamplona.amethyst.ui.navigation.navs.INav
 import com.vitorpamplona.amethyst.ui.navigation.routes.Route
 import com.vitorpamplona.amethyst.ui.note.NoteCompose
@@ -82,7 +81,6 @@ import com.vitorpamplona.amethyst.ui.screen.loggedIn.home.datasource.HomeFilterA
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.home.live.RenderEphemeralBubble
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.home.live.RenderLiveActivityBubble
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.home.stories.HomeEphemeralStoryRings
-import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.NewImageButton
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.StoriesTopBar
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.VideoFeedBody
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.WatchAccountForVideoScreen
@@ -136,16 +134,7 @@ fun HomeScreen(
                 }
             }
         },
-        floatingButton = {
-            FabBottomBarPadded(nav) {
-                NewImageButton(
-                    accountViewModel,
-                    nav,
-                    videoFeedState::sendToTop,
-                    includeTextPost = true,
-                )
-            }
-        },
+        floatingButton = {},
         accountViewModel = accountViewModel,
     ) {
         VideoFeedBody(
@@ -165,6 +154,7 @@ fun HomeScreen(
                         nav = nav,
                         alsoUpdateHomeFollowList = true,
                         applyStatusBarInsets = false,
+                        showCreateButton = true,
                     )
                     HomeEphemeralStoryRings(accountViewModel, nav)
                     HorizontalDivider(thickness = DividerThickness)

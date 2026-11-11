@@ -272,6 +272,7 @@ import com.vitorpamplona.quartz.nip68Picture.pictureIMeta
 import com.vitorpamplona.quartz.nip71Video.VideoMeta
 import com.vitorpamplona.quartz.nip71Video.VideoNormalEvent
 import com.vitorpamplona.quartz.nip71Video.VideoShortEvent
+import com.vitorpamplona.quartz.nip71Video.VideoVerticalEvent
 import com.vitorpamplona.quartz.nip72ModCommunities.approval.CommunityPostApprovalEvent
 import com.vitorpamplona.quartz.nip72ModCommunities.definition.CommunityDefinitionEvent
 import com.vitorpamplona.quartz.nip72ModCommunities.definition.tags.ModeratorTag
@@ -2511,6 +2512,69 @@ class Account(
                     originalHash?.let { originalHash(it) }
                     magnetUri?.let { magnet(it) }
 
+                    contentWarningReason?.let { contentWarning(contentWarningReason) }
+                }
+            }
+
+        signAndComputeBroadcast(template)
+    }
+
+    /**
+     * Publishes a vertical "reel" as a NIP-71 addressable video (kind 34236), the kind
+     * the Shorts/reels feed consumes. Unlike [sendHeader]'s portrait branch (which emits
+     * kind 22), this makes the clip show up in the reels surface. Images passed here are
+     * published as a normal picture event so a reel can also be a still.
+     */
+    suspend fun sendReel(
+        url: String,
+        headerInfo: FileHeader,
+        caption: String?,
+        contentWarningReason: String? = null,
+    ) {
+        if (!isWriteable()) return
+
+        val isImage = headerInfo.mimeType?.startsWith("image/") == true || RichTextParser.isImageUrl(url)
+
+        val template =
+            if (isImage) {
+                PictureEvent.build(caption ?: "") {
+                    caption?.let {
+                        hashtags(findHashtags(it))
+                        references(findURLs(it))
+                        quotes(findNostrUris(it))
+                    }
+                    pictureIMeta(
+                        url = url,
+                        mimeType = headerInfo.mimeType,
+                        blurhash = headerInfo.blurHash?.blurhash,
+                        dimension = headerInfo.dim,
+                        hash = headerInfo.hash,
+                        size = headerInfo.size,
+                        alt = caption,
+                        thumbhash = headerInfo.thumbHash?.thumbhash,
+                    )
+                    contentWarningReason?.let { contentWarning(contentWarningReason) }
+                }
+            } else {
+                VideoVerticalEvent.build(
+                    video =
+                        VideoMeta(
+                            url = url,
+                            hash = headerInfo.hash,
+                            size = headerInfo.size,
+                            mimeType = headerInfo.mimeType,
+                            dimension = headerInfo.dim,
+                            blurhash = headerInfo.blurHash?.blurhash,
+                            alt = caption,
+                            thumbhash = headerInfo.thumbHash?.thumbhash,
+                        ),
+                    description = caption ?: "",
+                ) {
+                    caption?.let {
+                        hashtags(findHashtags(it))
+                        references(findURLs(it))
+                        quotes(findNostrUris(it))
+                    }
                     contentWarningReason?.let { contentWarning(contentWarningReason) }
                 }
             }
