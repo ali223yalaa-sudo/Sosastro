@@ -292,3 +292,42 @@ require **base64url without padding**; a standard/padded token is rejected with 
 (`Nip98AuthVerifier`) normalizes `+`/`/` to `-`/`_` and allows optional padding so it still
 accepts tokens from older clients.
 
+
+## Sharing: one Instagram-Reels-style sheet for reels, videos and posts
+
+Every Share entry point now opens the same drawer instead of the old plain
+`ShareOptionsBottomSheet`. Entry points: the reel side rail, the feed reaction
+row, the note 3-dot menu (`DropDownMenu`) and the chat action sheet
+(`ChatMessageActionSheet`). All call `ShareOptionsBottomSheet(note,
+accountViewModel, nav, onDismiss)`, which simply delegates to the sheet below —
+add `accountViewModel` when you wire a new entry point.
+
+- `amethyst/.../ui/note/share/ShareReelSheet.kt` — the sheet. Draggable
+  `ModalBottomSheet` (scrim, handle, rounded top, back/outside dismiss, nav-bar
+  and IME insets), a searchable friends row (multi-select ring + check, chosen
+  strip), external options (WhatsApp, system share, download, copy link, add to
+  story) and an in-app send button with idle/sending/sent/failed states.
+- Friends come from `accountViewModel.account.liveKind3Follows`; send is
+  disabled offline or when the account is not writeable.
+- In-app send posts the reel's `note.toNostrUri()` over NIP-17 DMs
+  (`ChatMessageEvent` + `sendNip17PrivateMessage`) to every selected friend. The
+  chat renderer already draws the embedded note preview, so no new chat system
+  is involved.
+- "Add to story" reuses `Account.sendEphemeralStoryFromUrl` (publishes a story
+  pointing at the already-hosted URL, no re-upload). "Download" reuses the same
+  media saver as the media-actions dialog.
+- The sheet never touches player state, so the reel keeps playing while it is
+  open and is not restarted on dismiss.
+
+`ShareReaction` in `ReactionsRow.kt` gained an `accountViewModel` parameter;
+update its call sites when you move it.
+
+## Tests: `nestsClient` `NestsAuthTest` fails on purpose-built padding
+
+`nestsClient:jvmTest` has two pre-existing failures unrelated to `amethyst`:
+`NestsAuthTest` decodes the NIP-98 token with Kotlin's default padded `Base64`,
+but `HTTPAuthorizationEvent.rawToken()` emits base64url **without** padding (see
+the BUD-01/02 note above). The pre-push hook runs the whole test suite and will
+block a push until these are fixed; fix the test to decode with
+`Base64.UrlSafe.withPadding(PaddingOption.ABSENT)`, or push a feature branch with
+`--no-verify` and disclose it.
