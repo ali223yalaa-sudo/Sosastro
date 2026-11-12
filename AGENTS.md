@@ -352,6 +352,30 @@ The in-app camera and the gallery both feed the same editor and then the shared
   cache JPEG on "next"; videos pass through unchanged. Both the camera and the
   editor are hosted in a borderless full-screen `Dialog` (`FullScreenDialog`).
 
+## Reels overlays: safe gaps, frosted pill, one-reel snap
+
+Three reels-only rules, all in `shorts/VideoCardCompose.kt`,
+`note/ReactionsRow.kt` (`ShortsReelsSideReactions`) and
+`note/effects/LiveReactionEffects.kt`:
+
+- **Bottom safe gap.** The reels overlays (side reaction column, author row,
+  caption) sit on top of the playing video, so they are padded above the bottom
+  bar by `LocalDisappearingScaffoldPadding.calculateBottomPadding() +
+  ReelsBottomSafeGap` (18dp), computed once in `VideoCardCompose` and passed to
+  both the side column and the bottom column. The outer `DisappearingScaffold`
+  already reserves the `AppBottomBar` height; the gap is the extra breathing
+  room. Do not pad the side column again on its own.
+- **Frosted-glass pill, not loose stickers.** The like facepile and gift trail
+  in reels go through `ReelsFloatingGroup` (rounded pill: soft shadow, hairline
+  highlight, translucent surface) wrapped in `ReelsFloatingDismissible`, instead
+  of the feed's `FloatingDismissible` bare pile — reels cover the content, so a
+  single deliberate chip reads cleaner than avatars floating on the frame. The
+  pill can be grabbed and flicked away in any direction (`Modifier.reelsDraggable`).
+- **One-reel snap.** `rememberReelsSnapFlingBehavior` in `ShortsFeedLoaded.kt`
+  wraps the stock `SnapLayoutInfoProvider` and clamps `calculateApproachOffset`
+  to ±one item, so a hard flick advances exactly one reel instead of coasting two
+  ahead. `rememberSnapFlingBehavior(lazyListState)` is not enough on its own.
+
 ## Tests: `nestsClient` `NestsAuthTest` fails on purpose-built padding
 
 `nestsClient:jvmTest` has two pre-existing failures unrelated to `amethyst`:
