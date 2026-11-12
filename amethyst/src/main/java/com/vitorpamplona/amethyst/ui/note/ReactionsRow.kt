@@ -101,6 +101,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.vitorpamplona.amethyst.R
@@ -150,6 +151,7 @@ import com.vitorpamplona.amethyst.ui.note.effects.FriendReactionChip
 import com.vitorpamplona.amethyst.ui.note.effects.FriendReactionFacepile
 import com.vitorpamplona.amethyst.ui.note.effects.GiftLaunchBurst
 import com.vitorpamplona.amethyst.ui.note.effects.ReceivedGiftTrail
+import com.vitorpamplona.amethyst.ui.note.effects.floatingOverlay
 import com.vitorpamplona.amethyst.ui.note.elements.MoreOptionsButton
 import com.vitorpamplona.amethyst.ui.note.elements.ShareOptionsBottomSheet
 import com.vitorpamplona.amethyst.ui.note.types.EditState
@@ -269,6 +271,7 @@ private fun InstagramFeedReactionRow(
                 iconSize = Size24dp,
                 heartSizeModifier = iconMod,
                 showCounter = true,
+                floatingFacepile = true,
             )
         }
         Row(verticalAlignment = CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -296,17 +299,6 @@ private fun InstagramFeedReactionRow(
             }
         }
         if (!isPrivateRumor) {
-            Row(verticalAlignment = CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                ZapReaction(
-                    baseNote,
-                    grayTint,
-                    accountViewModel,
-                    iconSize = Size24dp,
-                    iconSizeModifier = iconMod,
-                    nav = nav,
-                    showCounter = true,
-                )
-            }
             ShareReaction(
                 note = baseNote,
                 accountViewModel = accountViewModel,
@@ -317,6 +309,19 @@ private fun InstagramFeedReactionRow(
             )
         }
         Spacer(modifier = Modifier.weight(1f))
+        // Gift stars live on the trailing edge — never in the leading cluster.
+        if (!isPrivateRumor) {
+            ZapReaction(
+                baseNote,
+                grayTint,
+                accountViewModel,
+                iconSize = Size24dp,
+                iconSizeModifier = iconMod,
+                nav = nav,
+                showCounter = true,
+                floatingTrail = true,
+            )
+        }
         InstagramBookmarkButton(baseNote, accountViewModel, iconMod, grayTint)
     }
 }
@@ -1249,6 +1254,7 @@ fun LikeReaction(
     heartSizeModifier: Modifier = Size18Modifier,
     iconFontSize: TextUnit = Font14SP,
     showCounter: Boolean = true,
+    floatingFacepile: Boolean = false,
 ) {
     var wantsToReact by remember { mutableStateOf(false) }
     val reactionsState by observeNoteReactions(baseNote, accountViewModel)
@@ -1263,42 +1269,55 @@ fun LikeReaction(
             )
         }
 
-    ClickableBox(
-        onClick = {
-            likeClick(
-                accountViewModel,
-                baseNote,
-                onMultipleChoices = { accountViewModel.reactToOrDelete(baseNote, "+") },
-                onWantsToSignReaction = { accountViewModel.reactToOrDelete(baseNote, "+") },
-            )
-        },
-        onLongClick = { wantsToReact = true },
-    ) {
-        ObserveLikeIcon(baseNote, accountViewModel) { reactionType ->
-            CrossfadeIfEnabled(targetState = reactionType, contentAlignment = Center, label = "LikeIcon", accountViewModel = accountViewModel) {
-                if (reactionType != null) {
-                    RenderReactionType(reactionType, heartSizeModifier, iconFontSize)
-                } else {
-                    LikeIcon(heartSizeModifier, grayTint)
+    Box {
+        ClickableBox(
+            onClick = {
+                likeClick(
+                    accountViewModel,
+                    baseNote,
+                    onMultipleChoices = { accountViewModel.reactToOrDelete(baseNote, "+") },
+                    onWantsToSignReaction = { accountViewModel.reactToOrDelete(baseNote, "+") },
+                )
+            },
+            onLongClick = { wantsToReact = true },
+        ) {
+            ObserveLikeIcon(baseNote, accountViewModel) { reactionType ->
+                CrossfadeIfEnabled(targetState = reactionType, contentAlignment = Center, label = "LikeIcon", accountViewModel = accountViewModel) {
+                    if (reactionType != null) {
+                        RenderReactionType(reactionType, heartSizeModifier, iconFontSize)
+                    } else {
+                        LikeIcon(heartSizeModifier, grayTint)
+                    }
                 }
+            }
+
+            if (wantsToReact) {
+                ReactionChoicePopup(
+                    baseNote,
+                    iconSize,
+                    accountViewModel,
+                    onDismiss = { wantsToReact = false },
+                    onChangeAmount = {
+                        wantsToReact = false
+                        nav.nav(Route.UpdateReactionType)
+                    },
+                )
             }
         }
 
-        if (wantsToReact) {
-            ReactionChoicePopup(
-                baseNote,
-                iconSize,
-                accountViewModel,
-                onDismiss = { wantsToReact = false },
-                onChangeAmount = {
-                    wantsToReact = false
-                    nav.nav(Route.UpdateReactionType)
-                },
+        // Instagram feed: the faces of people you follow who liked this drift just above the
+        // like icon, overlapping the post instead of taking a slot beside it.
+        if (floatingFacepile && friendChips.isNotEmpty()) {
+            FriendReactionFacepile(
+                chips = friendChips,
+                accountViewModel = accountViewModel,
+                floating = true,
+                modifier = Modifier.floatingOverlay(offsetYDp = -26f).zIndex(10f),
             )
         }
     }
 
-    if (friendChips.isNotEmpty()) {
+    if (!floatingFacepile && friendChips.isNotEmpty()) {
         FriendReactionFacepile(
             chips = friendChips,
             accountViewModel = accountViewModel,
@@ -1490,6 +1509,7 @@ fun ZapReaction(
     animationModifier: Modifier = Size14Modifier,
     showCounter: Boolean = true,
     nav: INav,
+    floatingTrail: Boolean = false,
 ) {
     var openSheet by remember { mutableStateOf(false) }
     var giftTotal by remember(baseNote.idHex) { mutableIntStateOf(0) }
@@ -1552,9 +1572,18 @@ fun ZapReaction(
                         onLongClick = { nav.nav(Route.Wallet) },
                     ),
             )
-            if (giftEmojis.isNotEmpty()) {
+            if (!floatingTrail && giftEmojis.isNotEmpty()) {
                 ReceivedGiftTrail(emojis = giftEmojis)
             }
+        }
+
+        // Gift stickers drift just above the star, overlapping the post rather than widening the row.
+        if (floatingTrail && giftEmojis.isNotEmpty()) {
+            ReceivedGiftTrail(
+                emojis = giftEmojis,
+                floating = true,
+                modifier = Modifier.floatingOverlay(offsetYDp = -26f).zIndex(10f),
+            )
         }
     }
 
