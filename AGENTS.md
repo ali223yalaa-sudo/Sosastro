@@ -376,15 +376,52 @@ Three reels-only rules, all in `shorts/VideoCardCompose.kt`,
   to ±one item, so a hard flick advances exactly one reel instead of coasting two
   ahead. `rememberSnapFlingBehavior(lazyListState)` is not enough on its own.
 
-## Tests: `nestsClient` `NestsAuthTest` fails on purpose-built padding
+## Tests: `nestsClient` `NestsAuthTest` decoded with the wrong Base64 alphabet
 
-`nestsClient:jvmTest` has two pre-existing failures unrelated to `amethyst`:
-`NestsAuthTest` decodes the NIP-98 token with Kotlin's default padded `Base64`,
-but `HTTPAuthorizationEvent.rawToken()` emits base64url **without** padding (see
-the BUD-01/02 note above). The pre-push hook runs the whole test suite and will
-block a push until these are fixed; fix the test to decode with
-`Base64.UrlSafe.withPadding(PaddingOption.ABSENT)`, or push a feature branch with
-`--no-verify` and disclose it.
+`nestsClient:jvmTest` used to fail with two errors in `NestsAuthTest`:
+it decoded the NIP-98 token with Kotlin's default padded `Base64`, but
+`HTTPAuthorizationEvent.rawToken()` emits base64url **without** padding (see
+the BUD-01/02 note above). Fixed by decoding with
+`Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT)`. The pre-push hook
+runs the whole suite, so any new mismatch here blocks a push.
+
+## Island-mode test drift (fixed once; do not re-introduce)
+
+`Constants.TEMP_HOME_RELAY_ONLY = true` collapses every aggregated relay set
+onto the single owned relay (`amethystHome`). Two tests were written against
+the pre-island passthrough behaviour and had drifted red:
+
+- `BlockedRelayFilteringClientTest` asserted raw relay keys pass through. In
+  island mode `subscribe`/`count`/`publish` all land on `amethystHome`; the
+  blocked relay's *filters* are still stripped first. `Constants.homeRelayOnly`
+  now guards the empty set (mirroring `homeRelayOnlyMap`) so an all-blocked
+  publish yields no relays instead of falling through to home.
+- `NestViewModelTest` asserted `onStageNow` defaults to `true`; the seat-driven
+  model defaults it to `false` (a fresh joiner is audience).
+
+## Calls (NIP-AC WebRTC): glare and headless delivery
+
+Beyond TURN (below), two things made calls flaky:
+
+- **Initial-call glare** — both peers dial each other at the same instant.
+  `CallManager.onSignalingEvent` used to reject the incoming offer with "busy"
+  whenever it was already `Offering`, killing both half-calls. It now resolves
+  the collision deterministically (lower pubkey wins): the winner keeps its own
+  offer and rejects the peer's; the loser abandons its offer, adopts the
+  incoming one, and emits `CallSessionEvent.AutoAcceptIncomingOffer`, which the
+  Activity-scoped `CallSession` turns into `accept(sdpOffer)`. `CallSession.accept()`
+  disposes any stale `PeerConnection` to that caller first so the abandoned
+  outgoing offer does not leak native resources. `SIGNAL_RETRANSMIT_COUNT`/
+  `_DELAY_MS` are sized (12 × 2.5s ≈ 27.5s) to cover the whole caller invite
+  window so an offline/asleep callee still gets a copy on reconnect.
+- **Headless delivery** — keeping the relay socket alive (`NotificationRelayService`)
+  is not enough. The only gift-wrap REQ was the Compose-tree
+  `AccountFilterAssemblerSubscription`, torn down with the Activity, so with no
+  foreground screen nothing was ever requested and neither the call ring nor the
+  DM notification could fire. `AlwaysOnGiftWrapSubscription` (kinds 1059/21059 on
+  the account's DM relays, re-issued when the relay set changes) supplies the
+  missing REQ, wired into `AlwaysOnNotificationServiceManager`; the settings
+  default for `alwaysOnNotificationService` is now `true`.
 
 ## Calls (NIP-AC WebRTC): TURN is the reliability bottleneck
 
