@@ -212,7 +212,7 @@ class EventNotificationConsumer(
         account: Account,
     ) {
         // Calls and wake-ups are high-priority and always notify, even when MainActivity is visible.
-        // They have their own freshness rules (CallManager.MAX_EVENT_AGE_SECONDS = 20s) and
+        // They have their own freshness rules (CallManager.MAX_EVENT_AGE_SECONDS = 60s) and
         // author-identity semantics (caller pubkey is the other party), so they bypass the
         // shared gates below.
         when (event) {
