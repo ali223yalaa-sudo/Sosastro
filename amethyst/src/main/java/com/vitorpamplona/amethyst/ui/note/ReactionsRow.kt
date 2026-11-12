@@ -152,6 +152,8 @@ import com.vitorpamplona.amethyst.ui.note.effects.FriendReactionChip
 import com.vitorpamplona.amethyst.ui.note.effects.FriendReactionFacepile
 import com.vitorpamplona.amethyst.ui.note.effects.GiftLaunchBurst
 import com.vitorpamplona.amethyst.ui.note.effects.ReceivedGiftTrail
+import com.vitorpamplona.amethyst.ui.note.effects.ReelsFloatingDismissible
+import com.vitorpamplona.amethyst.ui.note.effects.ReelsFloatingGroup
 import com.vitorpamplona.amethyst.ui.note.elements.MoreOptionsButton
 import com.vitorpamplona.amethyst.ui.note.elements.ShareOptionsBottomSheet
 import com.vitorpamplona.amethyst.ui.note.types.EditState
@@ -384,7 +386,7 @@ fun ShortsReelsSideReactions(
     val iconMod = Size30Modifier
 
     Column(
-        modifier = modifier.padding(start = 8.dp, bottom = bottomContentPadding + 12.dp),
+        modifier = modifier.padding(start = 8.dp, bottom = bottomContentPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -397,6 +399,7 @@ fun ShortsReelsSideReactions(
                 iconSize = Size30dp,
                 heartSizeModifier = iconMod,
                 showCounter = true,
+                reelsFacepile = true,
             )
         }
 
@@ -410,6 +413,7 @@ fun ShortsReelsSideReactions(
                 animationModifier = Size14Modifier,
                 showCounter = true,
                 nav = nav,
+                reelsTrail = true,
             )
         }
 
@@ -1255,6 +1259,7 @@ fun LikeReaction(
     iconFontSize: TextUnit = Font14SP,
     showCounter: Boolean = true,
     floatingFacepile: Boolean = false,
+    reelsFacepile: Boolean = false,
 ) {
     var wantsToReact by remember { mutableStateOf(false) }
     val reactionsState by observeNoteReactions(baseNote, accountViewModel)
@@ -1302,6 +1307,20 @@ fun LikeReaction(
                         nav.nav(Route.UpdateReactionType)
                     },
                 )
+            }
+        }
+
+        // Reels: the pile would sit straight on the playing video, so it goes in a frosted-glass
+        // pill instead of loose stickers, and can be grabbed and flicked away in any direction.
+        if (reelsFacepile && friendChips.isNotEmpty()) {
+            ReelsFloatingDismissible(modifier = Modifier.zIndex(10f)) {
+                ReelsFloatingGroup {
+                    FriendReactionFacepile(
+                        chips = friendChips,
+                        accountViewModel = accountViewModel,
+                        floating = true,
+                    )
+                }
             }
         }
 
@@ -1515,6 +1534,7 @@ fun ZapReaction(
     showCounter: Boolean = true,
     nav: INav,
     floatingTrail: Boolean = false,
+    reelsTrail: Boolean = false,
 ) {
     var openSheet by remember { mutableStateOf(false) }
     var giftTotal by remember(baseNote.idHex) { mutableIntStateOf(0) }
@@ -1579,6 +1599,19 @@ fun ZapReaction(
             )
             if (!floatingTrail && giftEmojis.isNotEmpty()) {
                 ReceivedGiftTrail(emojis = giftEmojis)
+            }
+        }
+
+        // Reels: same frosted-glass pill treatment as the like pile, so gift stickers read as one
+        // deliberate overlay on the video and can be flicked away.
+        if (reelsTrail && giftEmojis.isNotEmpty()) {
+            ReelsFloatingDismissible(modifier = Modifier.zIndex(10f)) {
+                ReelsFloatingGroup {
+                    ReceivedGiftTrail(
+                        emojis = giftEmojis,
+                        floating = true,
+                    )
+                }
             }
         }
 

@@ -77,6 +77,13 @@ import kotlinx.coroutines.delay
 
 private val ReelsOverlayWhite = Color.White
 
+/**
+ * Breathing room between the reels overlays (author row, caption, reaction column) and the
+ * bottom bar, so nothing ever touches the bottom edge of the screen. The scaffold already
+ * reserves the bar; this is the extra, deliberately small gap on top of it.
+ */
+private val ReelsBottomSafeGap = 18.dp
+
 @Composable
 fun VideoCardCompose(
     baseNote: Note,
@@ -92,7 +99,7 @@ fun VideoCardCompose(
 
     if (reelsLayout) {
         val scaffoldPadding = LocalDisappearingScaffoldPadding.current
-        val bottomOverlayPadding = scaffoldPadding.calculateBottomPadding() + 10.dp
+        val bottomOverlayPadding = scaffoldPadding.calculateBottomPadding() + ReelsBottomSafeGap
         val showHeartState = remember(baseNote.idHex) { mutableStateOf(false) }
         LaunchedEffect(showHeartState.value) {
             if (showHeartState.value) {

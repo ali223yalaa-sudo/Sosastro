@@ -20,6 +20,8 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts
 
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -52,7 +54,7 @@ fun ShortsFeedLoaded(
         remember(items) {
             items.list.filter { it.event?.isReelPlayableVideo() == true }
         }
-    val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
+    val flingBehavior = rememberReelsSnapFlingBehavior(listState)
     val focusedIndex by remember {
         derivedStateOf {
             val info = listState.layoutInfo
@@ -90,4 +92,36 @@ fun ShortsFeedLoaded(
             )
         }
     }
+}
+
+/**
+ * Snap fling for the reels pager. The stock [rememberSnapFlingBehavior] lets a hard flick coast
+ * several items before it snaps, so one fast swipe can land two reels ahead — disorienting on a
+ * full-screen feed. This clamps the coast to a single item: a flick advances exactly one reel,
+ * however hard it is thrown, while a slow drag still settles on whichever reel is closest.
+ */
+@Composable
+private fun rememberReelsSnapFlingBehavior(listState: LazyListState): FlingBehavior {
+    val provider =
+        remember(listState) {
+            object : SnapLayoutInfoProvider {
+                private val base = SnapLayoutInfoProvider(listState)
+
+                override fun calculateApproachOffset(
+                    velocity: Float,
+                    decayOffset: Float,
+                ): Float {
+                    val itemSize =
+                        listState.layoutInfo.visibleItemsInfo
+                            .firstOrNull()
+                            ?.size ?: 0
+                    if (itemSize == 0) return base.calculateApproachOffset(velocity, decayOffset)
+                    // Never coast past one full item, so a hard flick cannot skip the next reel.
+                    return decayOffset.coerceIn(-itemSize.toFloat(), itemSize.toFloat())
+                }
+
+                override fun calculateSnapOffset(velocity: Float): Float = base.calculateSnapOffset(velocity)
+            }
+        }
+    return rememberSnapFlingBehavior(snapLayoutInfoProvider = provider)
 }
