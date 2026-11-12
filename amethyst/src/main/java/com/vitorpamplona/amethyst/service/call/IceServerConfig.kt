@@ -34,59 +34,73 @@ object IceServerConfig {
             PeerConnection.IceServer.builder("stun:stun.cloudflare.com:3478").createIceServer(),
         )
 
+    private const val METERED_TURN_USERNAME = "9fcc657d6a0265a8d28ffb0f"
+    private const val METERED_TURN_CREDENTIAL = "LirDeJ1gwYg/AsNS"
+
     /**
-     * Built-in TURN fallback. NOTE: `openrelay.metered.ca` (the old Metered
-     * free relay) is defunct — its DNS now resolves to the reserved TEST-NET
-     * address 192.0.2.1 and it never answers. These entries are therefore
-     * inert: with no working TURN, calls succeed only when both peers can
-     * reach each other directly (same network, or a non-symmetric NAT that
-     * STUN can traverse) and silently fail to connect across symmetric NATs
-     * or restrictive firewalls. A real TURN server must be configured in
-     * Settings → Calls → Custom TURN servers for reliable calling; see
-     * [buildIceServers], which warns when it falls back to these defaults.
+     * Built-in TURN fallback, used only when the dynamic fetch in
+     * [MeteredTurnProvider] fails (offline at call start, Metered outage).
+     * These point at Metered's shared relay with the app's static credential;
+     * port 80 and 443 both carry `?transport=tcp` variants because restrictive
+     * mobile/corporate networks routinely block outbound UDP.
      */
     val defaultTurnServers =
         listOf(
             PeerConnection.IceServer
-                .builder("turn:openrelay.metered.ca:80")
-                .setUsername("openrelayproject")
-                .setPassword("openrelayproject")
+                .builder("turn:standard.relay.metered.ca:80")
+                .setUsername(METERED_TURN_USERNAME)
+                .setPassword(METERED_TURN_CREDENTIAL)
                 .createIceServer(),
             PeerConnection.IceServer
-                .builder("turn:openrelay.metered.ca:443")
-                .setUsername("openrelayproject")
-                .setPassword("openrelayproject")
+                .builder("turn:standard.relay.metered.ca:80?transport=tcp")
+                .setUsername(METERED_TURN_USERNAME)
+                .setPassword(METERED_TURN_CREDENTIAL)
                 .createIceServer(),
             PeerConnection.IceServer
-                .builder("turn:openrelay.metered.ca:443?transport=tcp")
-                .setUsername("openrelayproject")
-                .setPassword("openrelayproject")
+                .builder("turn:standard.relay.metered.ca:443")
+                .setUsername(METERED_TURN_USERNAME)
+                .setPassword(METERED_TURN_CREDENTIAL)
+                .createIceServer(),
+            PeerConnection.IceServer
+                .builder("turns:standard.relay.metered.ca:443?transport=tcp")
+                .setUsername(METERED_TURN_USERNAME)
+                .setPassword(METERED_TURN_CREDENTIAL)
                 .createIceServer(),
         )
 
     /**
-     * Builds the ICE server list.  If the user has configured custom TURN
-     * servers they replace the built-in OpenRelay defaults so that
-     * credentials can be rotated without an app update.  STUN servers
-     * are always included.
+     * Resolves the ICE server list for a call, preferring, in order:
+     *
+     *  1. user-configured TURN servers (Settings → Calls),
+     *  2. freshly fetched Metered credentials ([MeteredTurnProvider]),
+     *  3. the static [defaultTurnServers] fallback.
+     *
+     * STUN servers are always included.  Never throws: a failed dynamic fetch
+     * degrades to the static fallback so a call can still attempt to connect.
      */
-    fun buildIceServers(userTurnServers: List<CallTurnServer> = emptyList()): List<PeerConnection.IceServer> {
+    suspend fun buildIceServers(userTurnServers: List<CallTurnServer> = emptyList()): List<PeerConnection.IceServer> {
         val turnServers =
-            if (userTurnServers.isNotEmpty()) {
-                userTurnServers.map { turn ->
-                    PeerConnection.IceServer
-                        .builder(turn.url)
-                        .setUsername(turn.username)
-                        .setPassword(turn.credential)
-                        .createIceServer()
+            when {
+                userTurnServers.isNotEmpty() ->
+                    userTurnServers.map { turn ->
+                        PeerConnection.IceServer
+                            .builder(turn.url)
+                            .setUsername(turn.username)
+                            .setPassword(turn.credential)
+                            .createIceServer()
+                    }
+
+                else -> {
+                    val fetched = MeteredTurnProvider.fetch()
+                    if (fetched.isNullOrEmpty()) {
+                        Log.w(TAG) {
+                            "Dynamic TURN fetch unavailable — using static Metered fallback."
+                        }
+                        defaultTurnServers
+                    } else {
+                        fetched
+                    }
                 }
-            } else {
-                Log.w(TAG) {
-                    "No custom TURN configured — falling back to the defunct OpenRelay defaults. " +
-                        "Relayed calls across symmetric NATs will fail to connect. " +
-                        "Configure a TURN server in Settings → Calls."
-                }
-                defaultTurnServers
             }
         return defaultStunServers + turnServers
     }

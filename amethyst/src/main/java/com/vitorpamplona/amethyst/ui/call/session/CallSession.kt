@@ -606,7 +606,7 @@ class CallSession(
 
     // ---- Per-peer PeerConnection creation ----
 
-    private fun createWebRtcSession(peerPubKey: HexKey): WebRtcCallSession {
+    private suspend fun createWebRtcSession(peerPubKey: HexKey): WebRtcCallSession {
         val factory = mediaManager.peerConnectionFactory ?: throw IllegalStateException("PeerConnectionFactory not initialized")
         val session =
             WebRtcCallSession(
