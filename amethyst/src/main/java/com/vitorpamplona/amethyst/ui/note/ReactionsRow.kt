@@ -147,11 +147,11 @@ import com.vitorpamplona.amethyst.ui.navigation.navs.INav
 import com.vitorpamplona.amethyst.ui.navigation.routes.Route
 import com.vitorpamplona.amethyst.ui.navigation.routes.routeCommentOnNote
 import com.vitorpamplona.amethyst.ui.note.comments.CommentsBottomSheet
+import com.vitorpamplona.amethyst.ui.note.effects.FloatingDismissible
 import com.vitorpamplona.amethyst.ui.note.effects.FriendReactionChip
 import com.vitorpamplona.amethyst.ui.note.effects.FriendReactionFacepile
 import com.vitorpamplona.amethyst.ui.note.effects.GiftLaunchBurst
 import com.vitorpamplona.amethyst.ui.note.effects.ReceivedGiftTrail
-import com.vitorpamplona.amethyst.ui.note.effects.floatingOverlay
 import com.vitorpamplona.amethyst.ui.note.elements.MoreOptionsButton
 import com.vitorpamplona.amethyst.ui.note.elements.ShareOptionsBottomSheet
 import com.vitorpamplona.amethyst.ui.note.types.EditState
@@ -1306,14 +1306,19 @@ fun LikeReaction(
         }
 
         // Instagram feed: the faces of people you follow who liked this drift just above the
-        // like icon, overlapping the post instead of taking a slot beside it.
+        // like icon, overlapping the post instead of taking a slot beside it. Grab and drag to
+        // flick them away when they cover the media.
         if (floatingFacepile && friendChips.isNotEmpty()) {
-            FriendReactionFacepile(
-                chips = friendChips,
-                accountViewModel = accountViewModel,
-                floating = true,
-                modifier = Modifier.floatingOverlay(offsetYDp = -26f).zIndex(10f),
-            )
+            FloatingDismissible(
+                liftDp = 34f,
+                modifier = Modifier.zIndex(10f),
+            ) {
+                FriendReactionFacepile(
+                    chips = friendChips,
+                    accountViewModel = accountViewModel,
+                    floating = true,
+                )
+            }
         }
     }
 
@@ -1579,11 +1584,15 @@ fun ZapReaction(
 
         // Gift stickers drift just above the star, overlapping the post rather than widening the row.
         if (floatingTrail && giftEmojis.isNotEmpty()) {
-            ReceivedGiftTrail(
-                emojis = giftEmojis,
-                floating = true,
-                modifier = Modifier.floatingOverlay(offsetYDp = -26f).zIndex(10f),
-            )
+            FloatingDismissible(
+                liftDp = 34f,
+                modifier = Modifier.zIndex(10f),
+            ) {
+                ReceivedGiftTrail(
+                    emojis = giftEmojis,
+                    floating = true,
+                )
+            }
         }
     }
 

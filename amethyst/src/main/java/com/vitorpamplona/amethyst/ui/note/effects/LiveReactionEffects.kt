@@ -24,12 +24,15 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -42,14 +45,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.layout
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.Dp
@@ -65,6 +71,8 @@ import com.vitorpamplona.amethyst.ui.note.ObserveAndDrawInnerUserPicture
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.quartz.nip30CustomEmoji.CustomEmoji
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 private val InstagramLikeRed = Color(0xFFED4956)
 
@@ -77,16 +85,59 @@ data class FriendReactionChip(
 )
 
 /**
- * Measures the content but reports a 0×0 size, placing it [offsetYDp] above its slot. Lets a
- * decoration overlap the note above it without shifting any sibling — the parent Box sizes
- * itself from the real icon, and the decoration draws on top (the reactions slot is drawn last).
+ * Wraps a decoration so it floats [liftDp] above its slot and can be grabbed. Dragging moves it
+ * freely; letting go past [dismissThresholdDp] fades it out and it stays gone, otherwise it
+ * springs back. The offset is read inside [graphicsLayer], so a drag repaints a layer without
+ * recomposing the note, and only a real drag is consumed — a plain tap still reaches the post.
  */
-fun Modifier.floatingOverlay(offsetYDp: Float): Modifier =
-    layout { measurable, constraints ->
-        val placeable = measurable.measure(constraints.copy(minWidth = 0, minHeight = 0))
-        val liftPx = offsetYDp.dp.roundToPx()
-        layout(0, 0) { placeable.place(0, -liftPx) }
+@Composable
+fun FloatingDismissible(
+    liftDp: Float,
+    modifier: Modifier = Modifier,
+    dismissThresholdDp: Float = 56f,
+    content: @Composable () -> Unit,
+) {
+    var dismissed by remember { mutableStateOf(false) }
+    if (dismissed) return
+    val dragX = remember { Animatable(0f) }
+    val alpha = remember { Animatable(1f) }
+    val scope = rememberCoroutineScope()
+    val thresholdPx = with(LocalDensity.current) { dismissThresholdDp.dp.toPx() }
+    Box(
+        modifier =
+            modifier
+                // A real offset (not a zero-size overlay) so the group keeps a hit area and can
+                // be grabbed; the lift parks it over the media above the reactions row.
+                .offset(y = (-liftDp).dp)
+                .graphicsLayer {
+                    translationX = dragX.value
+                    this.alpha = alpha.value
+                }.pointerInput(Unit) {
+                    // Horizontal only: a vertical drag must fall through to the feed scroll.
+                    detectHorizontalDragGestures(
+                        onHorizontalDrag = { change, amount ->
+                            change.consume()
+                            scope.launch { dragX.snapTo(dragX.value + amount) }
+                        },
+                        onDragEnd = {
+                            if (abs(dragX.value) > thresholdPx) {
+                                scope.launch {
+                                    alpha.animateTo(0f, tween(durationMillis = 180, easing = FastOutSlowInEasing))
+                                    dismissed = true
+                                }
+                            } else {
+                                scope.launch { dragX.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow)) }
+                            }
+                        },
+                        onDragCancel = {
+                            scope.launch { dragX.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow)) }
+                        },
+                    )
+                },
+    ) {
+        content()
     }
+}
 
 /**
  * A barely-there vertical drift, phase-shifted per [phaseIndex] so a row of avatars breathes
