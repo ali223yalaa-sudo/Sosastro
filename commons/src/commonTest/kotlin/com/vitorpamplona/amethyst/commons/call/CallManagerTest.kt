@@ -89,6 +89,10 @@ class CallManagerTest {
         localPubKey: HexKey = bob,
         followedKeys: Set<HexKey> = setOf(alice, carol),
         isCallsEnabled: () -> Boolean = { true },
+        signalRetransmitCount: Int = 1,
+        terminalRetransmitCount: Int = 1,
+        isKnownCaller: (HexKey) -> Boolean = { false },
+        allowKnownCallers: () -> Boolean = { true },
     ): Pair<CallManager, MutableList<EphemeralGiftWrapEvent>> {
         val published = mutableListOf<EphemeralGiftWrapEvent>()
         val signer = signers[localPubKey] ?: error("Unknown test identity: $localPubKey")
@@ -99,6 +103,12 @@ class CallManagerTest {
                 isFollowing = { it in followedKeys },
                 publishEvent = { published.add(it) },
                 isCallsEnabled = isCallsEnabled,
+                isKnownCaller = isKnownCaller,
+                allowKnownCallers = allowKnownCallers,
+                // Most tests assert exact publish counts, so retransmission is
+                // off by default here; the retransmit tests opt in explicitly.
+                signalRetransmitCount = signalRetransmitCount,
+                terminalRetransmitCount = terminalRetransmitCount,
             )
         return manager to published
     }
@@ -425,11 +435,11 @@ class CallManagerTest {
         runTest {
             val (manager, _) = createManager(localPubKey = bob)
 
-            // Event from 30 seconds ago (beyond 20s threshold)
-            val staleOffer = makeOffer(from = alice, to = bob, createdAt = TimeUtils.now() - 30)
+            // Event from 120 s ago (beyond the 60 s threshold)
+            val staleOffer = makeOffer(from = alice, to = bob, createdAt = TimeUtils.now() - 120)
             manager.onSignalingEvent(staleOffer)
 
-            assertIs<CallState.Idle>(manager.state.value, "Stale events (>20s old) MUST be discarded")
+            assertIs<CallState.Idle>(manager.state.value, "Stale events (>60s old) MUST be discarded")
         }
 
     @Test
@@ -2037,5 +2047,178 @@ class CallManagerTest {
             // Now the offer finally arrives.  We must NOT start ringing.
             manager.onSignalingEvent(makeOffer(from = alice, to = bob))
             assertIs<CallState.Idle>(manager.state.value)
+        }
+
+    // ========================================================================
+    // 19. Handshake retransmission (dropped ephemeral wrap recovery)
+    // ========================================================================
+
+    /**
+     * A single ephemeral offer wrap can be dropped by a briefly unreachable
+     * relay, which would leave the call stuck "Offering" and never ringing the
+     * callee. The offer must be re-published while we stay in Offering.
+     */
+    @Test
+    fun offerIsRetransmittedWhileOffering() =
+        runTest {
+            val (manager, published) =
+                createManager(
+                    localPubKey = alice,
+                    followedKeys = setOf(bob),
+                    signalRetransmitCount = CallManager.SIGNAL_RETRANSMIT_COUNT,
+                )
+
+            manager.initiateCall(bob, CallType.VOICE, callId, sdpOffer)
+            assertIs<CallState.Offering>(manager.state.value)
+            assertEquals(1, published.size, "First offer copy is published immediately")
+
+            advanceTimeBy(CallManager.SIGNAL_RETRANSMIT_DELAY_MS * CallManager.SIGNAL_RETRANSMIT_COUNT)
+
+            assertEquals(
+                CallManager.SIGNAL_RETRANSMIT_COUNT,
+                published.size,
+                "Offer must be re-published while still Offering",
+            )
+            // Every copy is the same signed inner event, so receivers dedup.
+            assertEquals(1, published.map { it.id }.distinct().size, "All copies share one wrap id")
+        }
+
+    /**
+     * Once the callee answers, the offer must stop being replayed: a long call
+     * must not keep re-sending a stale handshake.
+     */
+    @Test
+    fun offerRetransmitStopsOnceAnswered() =
+        runTest {
+            val (manager, published) =
+                createManager(
+                    localPubKey = alice,
+                    followedKeys = setOf(bob),
+                    signalRetransmitCount = CallManager.SIGNAL_RETRANSMIT_COUNT,
+                )
+
+            manager.initiateCall(bob, CallType.VOICE, callId, sdpOffer)
+            val afterFirst = published.size
+            // Bob answers before the first retransmit fires.
+            manager.onSignalingEvent(makeAnswer(from = bob, to = alice))
+            assertIs<CallState.Connecting>(manager.state.value)
+
+            advanceTimeBy(CallManager.SIGNAL_RETRANSMIT_DELAY_MS * CallManager.SIGNAL_RETRANSMIT_COUNT)
+
+            assertEquals(
+                afterFirst,
+                published.size,
+                "No further offer copies once the call left Offering",
+            )
+        }
+
+    /**
+     * The answer is the single point of failure for the callee side: if the
+     * caller never receives it the call stays "Connecting" forever. It must be
+     * re-published while we are still Connecting.
+     */
+    @Test
+    fun answerIsRetransmittedWhileConnecting() =
+        runTest {
+            val (manager, published) =
+                createManager(
+                    localPubKey = bob,
+                    followedKeys = setOf(alice),
+                    signalRetransmitCount = CallManager.SIGNAL_RETRANSMIT_COUNT,
+                )
+
+            manager.onSignalingEvent(makeOffer(from = alice, to = bob))
+            assertIs<CallState.IncomingCall>(manager.state.value)
+            published.clear()
+
+            manager.acceptCall(sdpAnswer)
+            assertIs<CallState.Connecting>(manager.state.value)
+            // Answer is published to the caller plus our own other devices.
+            val afterFirst = published.size
+            assertTrue(afterFirst > 0, "Answer must be published immediately")
+
+            advanceTimeBy(CallManager.SIGNAL_RETRANSMIT_DELAY_MS * CallManager.SIGNAL_RETRANSMIT_COUNT)
+
+            // Only the caller-directed answer wrap is replayed (the
+            // sibling-device self-wrap is best-effort). A 1:1 call has one
+            // caller wrap, so it is published SIGNAL_RETRANSMIT_COUNT times.
+            assertEquals(
+                afterFirst + 1 * (CallManager.SIGNAL_RETRANSMIT_COUNT - 1),
+                published.size,
+                "The caller-directed answer wrap must be re-published while Connecting",
+            )
+        }
+
+    // ========================================================================
+    // 20. Known-caller gate (ring for DM peers we do not follow)
+    // ========================================================================
+
+    @Test
+    fun unknownUnfollowedCallerDoesNotRing() =
+        runTest {
+            val (manager, _) =
+                createManager(
+                    localPubKey = bob,
+                    followedKeys = emptySet(),
+                    isKnownCaller = { false },
+                )
+
+            manager.onSignalingEvent(makeOffer(from = alice, to = bob))
+
+            assertIs<CallState.Idle>(manager.state.value, "A stranger with no history must not ring")
+        }
+
+    @Test
+    fun knownUnfollowedCallerRings() =
+        runTest {
+            val (manager, _) =
+                createManager(
+                    localPubKey = bob,
+                    followedKeys = emptySet(),
+                    isKnownCaller = { it == alice },
+                )
+
+            manager.onSignalingEvent(makeOffer(from = alice, to = bob))
+
+            assertIs<CallState.IncomingCall>(
+                manager.state.value,
+                "A DM peer we do not follow must still ring",
+            )
+        }
+
+    @Test
+    fun knownCallerGateCanBeDisabled() =
+        runTest {
+            val (manager, _) =
+                createManager(
+                    localPubKey = bob,
+                    followedKeys = emptySet(),
+                    isKnownCaller = { it == alice },
+                    allowKnownCallers = { false },
+                )
+
+            manager.onSignalingEvent(makeOffer(from = alice, to = bob))
+
+            assertIs<CallState.Idle>(manager.state.value, "Disabling the gate restores follow-only ringing")
+        }
+
+    // ========================================================================
+    // 21. Ringing signal (callee tells the caller its device is ringing)
+    // ========================================================================
+
+    @Test
+    fun calleePublishesRingingOnIncomingOffer() =
+        runTest {
+            val (manager, published) = createManager(localPubKey = bob, followedKeys = setOf(alice))
+
+            manager.onSignalingEvent(makeOffer(from = alice, to = bob))
+            assertIs<CallState.IncomingCall>(manager.state.value)
+
+            // The ringing signal is addressed to the caller, so at least one
+            // wrap is published even before we accept or reject.
+            assertTrue(published.isNotEmpty(), "Callee must tell the caller it is ringing")
+            published.forEach { wrap ->
+                assertEquals(EphemeralGiftWrapEvent.KIND, wrap.kind)
+            }
         }
 }

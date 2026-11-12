@@ -36,6 +36,8 @@ sealed interface CallState {
         val callId: String,
         val peerPubKeys: Set<HexKey>,
         val callType: CallType,
+        /** True once at least one callee reported that its device is ringing. */
+        val isRinging: Boolean = false,
     ) : CallState
 
     @Stable

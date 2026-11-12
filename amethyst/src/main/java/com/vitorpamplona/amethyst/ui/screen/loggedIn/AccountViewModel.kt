@@ -272,6 +272,11 @@ class AccountViewModel(
                     account.publishCallSignaling(wrap)
                 }
             },
+            // Ring for a caller we don't follow if we already have a DM
+            // conversation with them. A stranger with no history is still
+            // gated out by the follow check.
+            isKnownCaller = { pubKey -> account.isKnownCaller(pubKey) },
+            allowKnownCallers = { true },
             isCallsEnabled = { account.settings.callsEnabled.value },
         )
 

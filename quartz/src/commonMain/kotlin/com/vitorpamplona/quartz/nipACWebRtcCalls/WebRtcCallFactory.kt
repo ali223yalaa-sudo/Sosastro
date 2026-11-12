@@ -30,6 +30,7 @@ import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallIceCandidateEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallOfferEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRejectEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRenegotiateEvent
+import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRingingEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.tags.CallType
 
 class WebRtcCallFactory {
@@ -145,6 +146,33 @@ class WebRtcCallFactory {
         val signed = signer.sign(template)
         val wrap = EphemeralGiftWrapEvent.create(event = signed, recipientPubKey = callerPubKey)
         return Result(signed, wrap)
+    }
+
+    /** Progress signal sent by the callee once it starts ringing the caller. */
+    suspend fun createRinging(
+        callerPubKey: HexKey,
+        callId: String,
+        signer: NostrSigner,
+    ): Result {
+        val template = CallRingingEvent.build(callerPubKey, callId)
+        val signed = signer.sign(template)
+        val wrap = EphemeralGiftWrapEvent.create(event = signed, recipientPubKey = callerPubKey)
+        return Result(signed, wrap)
+    }
+
+    /** Group-call ringing: one wrap per member so every participant sees "Ringing…". */
+    suspend fun createGroupRinging(
+        memberPubKeys: Set<HexKey>,
+        callId: String,
+        signer: NostrSigner,
+    ): GroupResult {
+        val template = CallRingingEvent.build(memberPubKeys, callId)
+        val signed = signer.sign(template)
+        val wraps =
+            memberPubKeys.map { pubKey ->
+                EphemeralGiftWrapEvent.create(event = signed, recipientPubKey = pubKey)
+            }
+        return GroupResult(signed, wraps)
     }
 
     suspend fun createRenegotiate(

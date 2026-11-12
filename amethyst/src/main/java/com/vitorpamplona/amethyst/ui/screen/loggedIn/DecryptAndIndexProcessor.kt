@@ -50,6 +50,7 @@ import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallIceCandidateEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallOfferEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRejectEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRenegotiateEvent
+import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRingingEvent
 import com.vitorpamplona.quartz.nipC7Chats.ChatEvent
 import com.vitorpamplona.quartz.utils.Log
 import kotlinx.coroutines.CancellationException
@@ -95,6 +96,7 @@ class EventProcessor(
             is CallHangupEvent,
             is CallRejectEvent,
             is CallRenegotiateEvent,
+            is CallRingingEvent,
             -> callManager?.onSignalingEvent(event)
 
             is ChatroomKeyable -> {

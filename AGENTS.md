@@ -385,3 +385,36 @@ the BUD-01/02 note above). The pre-push hook runs the whole test suite and will
 block a push until these are fixed; fix the test to decode with
 `Base64.UrlSafe.withPadding(PaddingOption.ABSENT)`, or push a feature branch with
 `--no-verify` and disclose it.
+
+## Calls (NIP-AC WebRTC): TURN is the reliability bottleneck
+
+Call signaling lives in `commons/.../nipACWebRtcCalls/CallManager.kt` and is
+already robust: `processedEventIds` dedups by inner event id, terminal events
+(hangup/reject) are never dropped for age, and offers/answers are re-published
+`SIGNAL_RETRANSMIT_COUNT` times while the call stays in the matching state
+(receivers dedup, so replays are safe).
+
+The remaining "call sometimes fails to connect" cause is ICE/TURN, not
+signaling:
+
+- The built-in `IceServerConfig.defaultTurnServers` point at
+  `turn:openrelay.metered.ca` — the old Metered **free** relay. That host is
+  dead: `openrelay.metered.ca` resolves to `192.0.2.1` (RFC 5737 TEST-NET) and
+  never answers. The same is true for `staticauth.openrelay.metered.ca` and
+  `relay.metered.ca`. `buildIceServers()` logs a warning when it falls back to
+  these.
+- `standard.relay.metered.ca` is reachable but rejects unauthenticated
+  `openrelayproject` allocations (400), so the old shared credentials no longer
+  work. A real TURN account/credential is required.
+- Cloudflare Realtime TURN needs a **TURN Key ID** plus an API token that has
+  the Calls/TURN permission, then credentials are minted via
+  `POST /accounts/{id}/calls/turn_keys` + `.../credentials/generate-ice-servers`.
+  The token in `/workspace/.cf_turn_token` verifies as active but has **no**
+  Calls permission (`/accounts/{id}/calls/turn_keys` → Authentication error), so
+  it cannot be used. Do not try to generate credentials with it.
+
+Consequence: without a working TURN, calls connect only when both peers can
+reach each other directly (LAN, or a non-symmetric NAT STUN can traverse) and
+fail across symmetric NATs / restrictive firewalls. Configure a TURN server in
+Settings → Calls → Custom TURN servers to fix this. Verify a TURN server
+actually works with a STUN/TURN allocate probe before trusting it.

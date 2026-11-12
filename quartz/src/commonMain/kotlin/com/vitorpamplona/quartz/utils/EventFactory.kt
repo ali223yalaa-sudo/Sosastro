@@ -303,6 +303,7 @@ import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallIceCandidateEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallOfferEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRejectEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRenegotiateEvent
+import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRingingEvent
 import com.vitorpamplona.quartz.nipB0WebBookmarks.WebBookmarkEvent
 import com.vitorpamplona.quartz.nipB7Blossom.BlossomAuthorizationEvent
 import com.vitorpamplona.quartz.nipB7Blossom.BlossomServersEvent
@@ -379,6 +380,7 @@ class EventFactory {
                 CallOfferEvent.KIND -> CallOfferEvent(id, pubKey, createdAt, tags, content, sig)
                 CallRejectEvent.KIND -> CallRejectEvent(id, pubKey, createdAt, tags, content, sig)
                 CallRenegotiateEvent.KIND -> CallRenegotiateEvent(id, pubKey, createdAt, tags, content, sig)
+                CallRingingEvent.KIND -> CallRingingEvent(id, pubKey, createdAt, tags, content, sig)
                 CashuMintEvent.KIND -> CashuMintEvent(id, pubKey, createdAt, tags, content, sig)
                 CashuMintQuoteEvent.KIND -> CashuMintQuoteEvent(id, pubKey, createdAt, tags, content, sig)
                 CashuTokenEvent.KIND -> CashuTokenEvent(id, pubKey, createdAt, tags, content, sig)

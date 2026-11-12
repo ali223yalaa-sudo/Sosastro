@@ -33,6 +33,7 @@ import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallIceCandidateEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallOfferEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRejectEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRenegotiateEvent
+import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRingingEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.tags.CallType
 import com.vitorpamplona.quartz.utils.Log
 import com.vitorpamplona.quartz.utils.TimeUtils
@@ -58,6 +59,17 @@ class CallManager(
     private val isFollowing: (HexKey) -> Boolean,
     private val publishEvent: (EphemeralGiftWrapEvent) -> Unit,
     /**
+     * Whether an incoming caller that we do not follow is nevertheless an
+     * acceptable caller (e.g. we already have a DM conversation with them).
+     * Used together with [allowKnownCallers] to soften the follow gate.
+     */
+    private val isKnownCaller: (HexKey) -> Boolean = { false },
+    /**
+     * When true (default), an incoming offer rings if the caller is either
+     * followed or a known chat peer. When false, only followed callers ring.
+     */
+    private val allowKnownCallers: () -> Boolean = { true },
+    /**
      * Whether the user has enabled calls in Settings. When false, all
      * incoming [CallOfferEvent]s are silently ignored so the device never
      * rings and no `IncomingCall` state is entered. Signaling for calls that
@@ -66,6 +78,18 @@ class CallManager(
      * current behavior.
      */
     private val isCallsEnabled: () -> Boolean = { true },
+    /**
+     * How many times an offer/answer handshake wrap is published (first send +
+     * replays). Defaults to [SIGNAL_RETRANSMIT_COUNT]; tests that assert exact
+     * publish counts set this to 1 to disable replaying.
+     */
+    private val signalRetransmitCount: Int = SIGNAL_RETRANSMIT_COUNT,
+    /**
+     * How many times a terminal wrap (hangup/reject) is published. Defaults to
+     * [TERMINAL_RETRANSMIT_COUNT]; tests that assert exact publish counts set
+     * this to 1 to disable replaying.
+     */
+    private val terminalRetransmitCount: Int = TERMINAL_RETRANSMIT_COUNT,
 ) {
     private val factory = WebRtcCallFactory()
 
@@ -169,7 +193,43 @@ class CallManager(
         const val PEER_INVITE_TIMEOUT_MS = 30_000L // 30 seconds per-peer invite timeout (caller side)
         const val CONNECTING_TIMEOUT_MS = 30_000L // 30 seconds to establish ICE connection
         const val ENDED_DISPLAY_MS = 2_000L // show "call ended" briefly before resetting
-        const val MAX_EVENT_AGE_SECONDS = 20L // discard signaling events older than this
+
+        /**
+         * Signaling events older than this are ignored. Ephemeral (kind 21059)
+         * events are never stored by relays, so this only matters for events
+         * replayed from the DM inbox on app start or arriving through a slow
+         * relay path. Raised from 20s to 60s so a delayed offer still rings
+         * instead of being silently dropped; terminal events (hangup/reject)
+         * are exempt entirely — see [isEventTooOld].
+         */
+        const val MAX_EVENT_AGE_SECONDS = 60L
+
+        /** How many times a terminal event (hangup/reject) is re-published.
+         *  Ephemeral wraps are dropped when a relay is briefly down or the
+         *  peer is offline, so a single fire-and-forget send can leave the
+         *  other side ringing forever. */
+        const val TERMINAL_RETRANSMIT_COUNT = 3
+
+        /** Delay between terminal-event retransmissions. */
+        const val TERMINAL_RETRANSMIT_DELAY_MS = 1_500L
+
+        /**
+         * How many times the offer/answer handshake is (re-)published. A single
+         * ephemeral wrap can be dropped by a briefly unreachable relay, leaving
+         * the call stuck "Connecting" — the intermittent "call sometimes fails
+         * to connect" report. Receivers dedup by inner event id and the
+         * completed-call guard rejects replays of a finished call, so extra
+         * copies are idempotent.
+         */
+        const val SIGNAL_RETRANSMIT_COUNT = 3
+
+        /**
+         * Delay between offer/answer retransmissions. Short, because the
+         * caller's per-peer invite timeout is [PEER_INVITE_TIMEOUT_MS] and the
+         * callee's ringing timeout is [CALL_TIMEOUT_MS].
+         */
+        const val SIGNAL_RETRANSMIT_DELAY_MS = 1_500L
+
         const val MAX_PROCESSED_EVENT_IDS = 2_000 // cap dedup set to prevent unbounded growth
         const val MAX_COMPLETED_CALL_IDS = 200 // cap completed-call set
 
@@ -200,6 +260,17 @@ class CallManager(
     }
 
     private fun isEventTooOld(event: Event): Boolean {
+        // Terminal events (hangup/reject) are idempotent and must never be
+        // dropped for age: a hangup that arrives late still needs to stop the
+        // call on this device. Dropping it is exactly the "call stays alive on
+        // the other side" bug. Only the pre-session guard still applies, so a
+        // relay replaying a *previous session's* hangup cannot kill a fresh
+        // call with the same id (call ids are unique per call).
+        val isTerminal = event is CallHangupEvent || event is CallRejectEvent
+        if (isTerminal) {
+            return event.createdAt < initTimestamp - MAX_EVENT_AGE_SECONDS
+        }
+
         val age = TimeUtils.now() - event.createdAt
         if (age > MAX_EVENT_AGE_SECONDS) return true
         // Reject events created before this CallManager was initialized.
@@ -242,6 +313,7 @@ class CallManager(
         Log.d("CallManager") { "publishOfferToPeer: to=${calleePubKey.take(8)}, sdpLength=${sdpOffer.length}" }
         val result = factory.createCallOffer(sdpOffer, calleePubKey, allCalleePubKeys, callId, callType, signer)
         publishEvent(result.wrap)
+        scheduleSignalRetransmit(result.wrap) { isOffering(callId) }
     }
 
     /**
@@ -258,6 +330,7 @@ class CallManager(
         Log.d("CallManager") { "publishOfferToPeer (mid-call): to=${peerPubKey.take(8)}, sdpLength=${sdpOffer.length}" }
         val result = factory.createCallOffer(sdpOffer, peerPubKey, allMembers, callId, callType, signer)
         publishEvent(result.wrap)
+        scheduleSignalRetransmit(result.wrap) { isConnectingOrConnected(callId) }
     }
 
     /**
@@ -272,6 +345,7 @@ class CallManager(
         Log.d("CallManager") { "publishAnswerToPeer: to=${peerPubKey.take(8)}, sdpLength=${sdpAnswer.length}" }
         val result = factory.createCallAnswer(sdpAnswer, peerPubKey, allMembers, callId, signer)
         publishEvent(result.wrap)
+        scheduleSignalRetransmit(result.wrap) { isConnectingOrConnected(callId) }
     }
 
     // ---- P2P call initiation (convenience) ----
@@ -292,14 +366,15 @@ class CallManager(
             armRingingWatchdog(callId)
         }
         publishEvent(result.wrap)
+        scheduleSignalRetransmit(result.wrap) { isOffering(callId) }
         Log.d("CallManager") { "initiateCall: offer published, per-peer timeout started" }
     }
 
     // ---- Incoming call handling ----
 
-    private fun onIncomingCallEvent(event: CallOfferEvent) {
+    private fun onIncomingCallEvent(event: CallOfferEvent): Set<HexKey> {
         val callerPubKey = event.pubKey
-        val callId = event.callId() ?: return
+        val callId = event.callId() ?: return emptySet()
         val callType = event.callType() ?: CallType.VOICE
 
         Log.d("CallManager") { "onIncomingCallEvent: from=${callerPubKey.take(8)}, callId=$callId, type=$callType, sdpOfferLength=${event.sdpOffer().length}" }
@@ -310,17 +385,23 @@ class CallManager(
         // branches in onSignalingEvent so cleanup can complete normally.
         if (!isCallsEnabled()) {
             Log.d("CallManager") { "onIncomingCallEvent: calls disabled in settings — ignoring" }
-            return
+            return emptySet()
         }
 
-        if (!isFollowing(callerPubKey)) {
-            Log.d("CallManager") { "onIncomingCallEvent: caller not followed — ignoring" }
-            return
+        // Caller gate: a followed caller always rings. When [allowKnownCallers]
+        // is on (default), a caller we do not follow but already have a DM
+        // conversation with also rings — otherwise an incoming call from
+        // someone who messaged us first would be silently dropped, which is
+        // the most common "peer is online but it never rings" report.
+        val followed = isFollowing(callerPubKey)
+        if (!followed && !(allowKnownCallers() && isKnownCaller(callerPubKey))) {
+            Log.d("CallManager") { "onIncomingCallEvent: caller not followed and not a known chat peer — ignoring" }
+            return emptySet()
         }
 
         if (callId in completedCallIds) {
             Log.d("CallManager") { "onIncomingCallEvent: callId=$callId already completed — ignoring stale offer" }
-            return
+            return emptySet()
         }
 
         val currentState = _state.value
@@ -362,7 +443,7 @@ class CallManager(
                     }
                 }
                 emitSessionEvent(CallSessionEvent.MidCallOfferReceived(callerPubKey, event.sdpOffer()))
-                return
+                return emptySet()
             }
         }
 
@@ -371,7 +452,7 @@ class CallManager(
                 val result = factory.createReject(callerPubKey, callId, "busy", signer = signer)
                 publishEvent(result.wrap)
             }
-            return
+            return emptySet()
         }
 
         val groupMembers = event.groupMembers()
@@ -386,6 +467,15 @@ class CallManager(
             )
         armRingingWatchdog(callId)
         startTimeout(callId)
+
+        // Tell the caller we are ringing so it can show "Ringing…" instead of
+        // "Calling…". The caller of this method signs and publishes the wrap
+        // after the state lock is released (signing is suspend and must not
+        // run under the mutex). Best-effort: if it is lost the caller simply
+        // keeps showing "Calling…" and the call is unaffected. Addressed to
+        // every group member except ourselves so the caller (and, for a group
+        // call, the other ringing peers) see it.
+        return groupMembers - signer.pubKey
     }
 
     suspend fun acceptCall(sdpAnswer: String) {
@@ -441,6 +531,12 @@ class CallManager(
         Log.d("CallManager") { "acceptCall: publishing answer to ${otherMembers.size} recipients" }
         val result = factory.createGroupCallAnswer(sdpAnswer, otherMembers, current.callId, signer)
         result.wraps.forEach { publishEvent(it) }
+        // The answer is the single point of failure for the handshake: if the
+        // caller never receives it the call stays "Connecting" forever. Replay
+        // it while we are still Connecting, then stop.
+        result.wraps.forEach { wrap ->
+            scheduleSignalRetransmit(wrap) { isConnectingOrConnected(current.callId) }
+        }
 
         // Notify our own other devices so they stop ringing. We wrap the
         // *same* signed answer event for our own pubkey and publish it as
@@ -483,7 +579,10 @@ class CallManager(
 
         val otherMembers = current.groupMembers - signer.pubKey
         val result = factory.createGroupReject(otherMembers, current.callId, signer = signer)
+        // Re-publish on a background timer like hangup() so a briefly
+        // unreachable relay cannot leave the caller ringing forever.
         result.wraps.forEach { publishEvent(it) }
+        scheduleTerminalRetransmit(result.wraps)
 
         // Notify our own other devices so they stop ringing. See the
         // matching comment in acceptCall — sibling devices in IncomingCall
@@ -689,6 +788,21 @@ class CallManager(
         emitSessionEvent(CallSessionEvent.IceCandidateReceived(event))
     }
 
+    /**
+     * A callee reported that its device is ringing. Only meaningful while we
+     * are still [CallState.Offering] for the same call: flip the flag so the UI
+     * shows "Ringing…". In any other state it is stale (the call moved on) and
+     * is ignored.
+     */
+    private fun onCallRinging(event: CallRingingEvent) {
+        val current = _state.value
+        val callId = event.callId()
+        Log.d("CallManager") { "onCallRinging: from=${event.pubKey.take(8)}, callId=$callId, state=${current::class.simpleName}" }
+        if (current is CallState.Offering && callId == current.callId && !current.isRinging) {
+            _state.value = current.copy(isRinging = true)
+        }
+    }
+
     private fun onRenegotiate(event: CallRenegotiateEvent) {
         val current = _state.value
         val callId = event.callId()
@@ -815,7 +929,49 @@ class CallManager(
         }
 
         val result = factory.createGroupHangup(peerPubKeys, callId, signer = signer)
+        // Publish the first copy now, then re-publish on a background timer:
+        // ephemeral wraps are dropped when a relay is briefly unreachable,
+        // which would leave the other side ringing forever. Receivers dedup by
+        // event id and are idempotent on a second hangup, so extra copies are
+        // harmless. The retransmits must not block this call — the state is
+        // already Ended and the UI must not wait on the delays.
         result.wraps.forEach { publishEvent(it) }
+        scheduleTerminalRetransmit(result.wraps)
+    }
+
+    /**
+     * Re-publishes [wraps] [TERMINAL_RETRANSMIT_COUNT] − 1 more times on a
+     * background timer so a transiently unreachable relay cannot leave the
+     * remote side stuck. Never blocks the caller.
+     */
+    private fun scheduleTerminalRetransmit(wraps: List<EphemeralGiftWrapEvent>) {
+        if (terminalRetransmitCount <= 1) return
+        scope.launch {
+            repeat(terminalRetransmitCount - 1) {
+                delay(TERMINAL_RETRANSMIT_DELAY_MS)
+                wraps.forEach { publishEvent(it) }
+            }
+        }
+    }
+
+    /**
+     * Re-publishes a single offer/answer wrap [SIGNAL_RETRANSMIT_COUNT] − 1
+     * more times while [stillValid] holds. Stops early as soon as the call has
+     * moved past the state the signal was sent for, so a long-lived call never
+     * replays a stale handshake. Never blocks the caller.
+     */
+    private fun scheduleSignalRetransmit(
+        wrap: EphemeralGiftWrapEvent,
+        stillValid: () -> Boolean,
+    ) {
+        if (signalRetransmitCount <= 1) return
+        scope.launch {
+            repeat(signalRetransmitCount - 1) {
+                delay(SIGNAL_RETRANSMIT_DELAY_MS)
+                if (!stillValid()) return@launch
+                publishEvent(wrap)
+            }
+        }
     }
 
     private suspend fun onPeerHangup(event: CallHangupEvent) {
@@ -929,6 +1085,8 @@ class CallManager(
         Log.d("CallManager") {
             "publishHangupToInvitedPendingPeers: notifying ${invitedPending.size} invited pending peers to stop ringing"
         }
+        // Called while holding the state mutex, so no delay/retransmit here:
+        // a single best-effort send keeps the lock held only for the enqueue.
         for (peer in invitedPending) {
             val result = factory.createHangup(peer, callId, signer = signer)
             publishEvent(result.wrap)
@@ -940,6 +1098,10 @@ class CallManager(
             Log.d("CallManager") { "Discarding old event kind=${event.kind} age=${TimeUtils.now() - event.createdAt}s" }
             return
         }
+
+        // Peers that must receive a "Ringing…" signal; populated by
+        // onIncomingCallEvent and published after the lock is released.
+        var ringingTargets: Set<HexKey> = emptySet()
 
         stateMutex.withLock {
             if (event.id in processedEventIds) return
@@ -976,12 +1138,24 @@ class CallManager(
             }
 
             when (event) {
-                is CallOfferEvent -> onIncomingCallEvent(event)
+                is CallOfferEvent -> ringingTargets = onIncomingCallEvent(event)
                 is CallAnswerEvent -> onCallAnswered(event)
                 is CallRejectEvent -> onCallRejected(event)
                 is CallHangupEvent -> onPeerHangup(event)
                 is CallIceCandidateEvent -> onIceCandidate(event)
                 is CallRenegotiateEvent -> onRenegotiate(event)
+                is CallRingingEvent -> onCallRinging(event)
+            }
+        }
+
+        // Signing is suspend, so publish the "Ringing…" signal after the state
+        // lock is released. Outside the lock it is also deterministically
+        // ordered right after the offer is processed.
+        if (ringingTargets.isNotEmpty()) {
+            val callId = (event as CallOfferEvent).callId()
+            if (callId != null) {
+                val result = factory.createGroupRinging(ringingTargets, callId, signer)
+                result.wraps.forEach { publishEvent(it) }
             }
         }
     }
@@ -993,6 +1167,17 @@ class CallManager(
             is CallState.Connecting -> s.callId
             is CallState.Connected -> s.callId
             else -> null
+        }
+
+    /** True while we are still offering the given call (used to stop offer replays). */
+    private fun isOffering(callId: String): Boolean = (_state.value as? CallState.Offering)?.callId == callId
+
+    /** True while the given call is handshaking or live (used to stop answer replays). */
+    private fun isConnectingOrConnected(callId: String): Boolean =
+        when (val s = _state.value) {
+            is CallState.Connecting -> s.callId == callId
+            is CallState.Connected -> s.callId == callId
+            else -> false
         }
 
     fun currentPeerPubKey(): HexKey? = currentPeerPubKeys()?.firstOrNull()
@@ -1244,7 +1429,12 @@ class CallManager(
 
         if (shouldPublishHangup) {
             val result = factory.createHangup(peerPubKey, callId, signer = signer)
-            publishEvent(result.wrap)
+            // Retransmit like hangup(): a dropped ephemeral wrap would leave the
+            // timed-out peer ringing forever.
+            repeat(TERMINAL_RETRANSMIT_COUNT) {
+                publishEvent(result.wrap)
+                if (it < TERMINAL_RETRANSMIT_COUNT - 1) delay(TERMINAL_RETRANSMIT_DELAY_MS)
+            }
         }
     }
 

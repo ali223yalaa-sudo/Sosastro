@@ -294,6 +294,7 @@ import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallIceCandidateEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallOfferEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRejectEvent
 import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRenegotiateEvent
+import com.vitorpamplona.quartz.nipACWebRtcCalls.events.CallRingingEvent
 import com.vitorpamplona.quartz.nipB0WebBookmarks.WebBookmarkEvent
 import com.vitorpamplona.quartz.nipB7Blossom.BlossomAuthorizationEvent
 import com.vitorpamplona.quartz.nipB7Blossom.BlossomServersEvent
@@ -581,6 +582,7 @@ object KindNames {
             CallHangupEvent.KIND to KindName("Call Hangup", "AC"),
             CallRejectEvent.KIND to KindName("Call Reject", "AC"),
             CallRenegotiateEvent.KIND to KindName("Call Renegotiate", "AC"),
+            CallRingingEvent.KIND to KindName("Call Ringing", "AC"),
             RelayJoinRequestEvent.KIND to KindName("Relay Join Request", "43"),
             RelayInviteRequestEvent.KIND to KindName("Relay Invite Request", "43"),
             RelayLeaveRequestEvent.KIND to KindName("Relay Leave Request", "43"),

@@ -1326,6 +1326,7 @@
     <string name="call_incoming_voice">مكالمة صوتية واردة…</string>
     <string name="call_incoming_video">مكالمة مرئية واردة…</string>
     <string name="call_calling">جارٍ الاتصال…</string>
+    <string name="call_ringing">يرن…</string>
     <string name="call_connecting">جارٍ الاتصال…</string>
     <string name="call_ended">انتهت المكالمة</string>
     <string name="call_with">مكالمة مع %1$s</string>

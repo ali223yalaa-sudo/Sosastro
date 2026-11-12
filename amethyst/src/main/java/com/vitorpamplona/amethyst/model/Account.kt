@@ -308,6 +308,7 @@ import com.vitorpamplona.quartz.utils.Log
 import com.vitorpamplona.quartz.utils.RandomInstance
 import com.vitorpamplona.quartz.utils.TimeUtils
 import com.vitorpamplona.quartz.utils.containsAny
+import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -4161,6 +4162,14 @@ class Account(
     fun isFollowing(user: User): Boolean = user.pubkeyHex in followingKeySet()
 
     fun isFollowing(user: HexKey): Boolean = user in followingKeySet()
+
+    /**
+     * Whether [pubKey] is an acceptable call peer even if not followed: we
+     * already have a 1:1 DM conversation with them. Used to let a call ring
+     * from someone we have chatted with, so "peer is online but it never
+     * rings" no longer happens for existing contacts.
+     */
+    fun isKnownCaller(pubKey: HexKey): Boolean = chatroomList.rooms.get(ChatroomKey(persistentSetOf(pubKey))) != null
 
     fun isKnown(user: User): Boolean = user.pubkeyHex in allFollows.flow.value.authors
 

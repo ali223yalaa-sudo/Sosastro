@@ -99,12 +99,15 @@ fun CallScreen(
                     remember(state.peerPubKeys) {
                         state.peerPubKeys - accountViewModel.account.signer.pubKey
                     }
+                // "Ringing…" once a callee told us its device is ringing,
+                // otherwise "Calling…".
+                val statusText = stringRes(if (state.isRinging) R.string.call_ringing else R.string.call_calling)
                 if (isInPipMode) {
-                    PipCallUI(peerPubKeys = otherMembers, statusText = stringRes(R.string.call_calling), accountViewModel = accountViewModel)
+                    PipCallUI(peerPubKeys = otherMembers, statusText = statusText, accountViewModel = accountViewModel)
                 } else {
                     CallInProgressUI(
                         peerPubKeys = otherMembers,
-                        statusText = stringRes(R.string.call_calling),
+                        statusText = statusText,
                         accountViewModel = accountViewModel,
                         onHangup = { scope.launch { callManager.hangup() } },
                     )

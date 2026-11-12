@@ -21,9 +21,12 @@
 package com.vitorpamplona.amethyst.service.call
 
 import com.vitorpamplona.amethyst.model.CallTurnServer
+import com.vitorpamplona.quartz.utils.Log
 import org.webrtc.PeerConnection
 
 object IceServerConfig {
+    private const val TAG = "IceServerConfig"
+
     val defaultStunServers =
         listOf(
             PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer(),
@@ -31,6 +34,17 @@ object IceServerConfig {
             PeerConnection.IceServer.builder("stun:stun.cloudflare.com:3478").createIceServer(),
         )
 
+    /**
+     * Built-in TURN fallback. NOTE: `openrelay.metered.ca` (the old Metered
+     * free relay) is defunct — its DNS now resolves to the reserved TEST-NET
+     * address 192.0.2.1 and it never answers. These entries are therefore
+     * inert: with no working TURN, calls succeed only when both peers can
+     * reach each other directly (same network, or a non-symmetric NAT that
+     * STUN can traverse) and silently fail to connect across symmetric NATs
+     * or restrictive firewalls. A real TURN server must be configured in
+     * Settings → Calls → Custom TURN servers for reliable calling; see
+     * [buildIceServers], which warns when it falls back to these defaults.
+     */
     val defaultTurnServers =
         listOf(
             PeerConnection.IceServer
@@ -67,6 +81,11 @@ object IceServerConfig {
                         .createIceServer()
                 }
             } else {
+                Log.w(TAG) {
+                    "No custom TURN configured — falling back to the defunct OpenRelay defaults. " +
+                        "Relayed calls across symmetric NATs will fail to connect. " +
+                        "Configure a TURN server in Settings → Calls."
+                }
                 defaultTurnServers
             }
         return defaultStunServers + turnServers

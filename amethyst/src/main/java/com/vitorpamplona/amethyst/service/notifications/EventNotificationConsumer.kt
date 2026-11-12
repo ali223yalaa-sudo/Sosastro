@@ -1072,7 +1072,10 @@ class EventNotificationConsumer(
         event: CallOfferEvent,
         account: Account,
     ) {
-        if (!account.isFollowing(event.pubKey)) return
+        // Ring for a followed caller, or for a caller we already have a DM
+        // conversation with (same rule as CallManager, so background and
+        // foreground agree on who is allowed to ring).
+        if (!account.isFollowing(event.pubKey) && !account.isKnownCaller(event.pubKey)) return
 
         if (TimeUtils.now() - event.createdAt > CallManager.MAX_EVENT_AGE_SECONDS) return
 

@@ -1610,6 +1610,7 @@
     <string name="call_incoming_voice">Incoming voice call\u2026</string>
     <string name="call_incoming_video">Incoming video call\u2026</string>
     <string name="call_calling">Calling\u2026</string>
+    <string name="call_ringing">Ringing\u2026</string>
     <string name="call_connecting">Connecting\u2026</string>
     <string name="call_ended">Call ended</string>
     <string name="call_with">Call with %1$s</string>
