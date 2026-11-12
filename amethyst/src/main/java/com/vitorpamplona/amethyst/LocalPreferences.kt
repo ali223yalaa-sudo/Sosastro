@@ -642,7 +642,7 @@ object LocalPreferences {
                     val hideBlockAlertDialog = getBoolean(PrefKeys.HIDE_BLOCK_ALERT_DIALOG, false)
                     val hideNIP17WarningDialog = getBoolean(PrefKeys.HIDE_NIP_17_WARNING_DIALOG, false)
                     val callsEnabled = getBoolean(PrefKeys.CALLS_ENABLED, true)
-                    val alwaysOnNotificationService = getBoolean(PrefKeys.ALWAYS_ON_NOTIFICATION_SERVICE, false)
+                    val alwaysOnNotificationService = getBoolean(PrefKeys.ALWAYS_ON_NOTIFICATION_SERVICE, true)
                     val defaultRelayAuthPolicy =
                         getString(PrefKeys.DEFAULT_RELAY_AUTH_POLICY, null)
                             ?.let { runCatching { RelayAuthPolicy.valueOf(it) }.getOrNull() }

@@ -39,6 +39,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -2220,5 +2221,94 @@ class CallManagerTest {
             published.forEach { wrap ->
                 assertEquals(EphemeralGiftWrapEvent.KIND, wrap.kind)
             }
+        }
+
+    // ========================================================================
+    // 22. Initial-call glare (both sides call each other at the same time)
+    // ========================================================================
+
+    @Test
+    fun glareLoserAdoptsIncomingOfferAndAutoAccepts() =
+        runTest {
+            // Deterministic tiebreak: the lower pubkey wins. Pick identities so
+            // the local manager is the loser.
+            val winner = if (alice < bob) alice else bob
+            val loser = if (alice < bob) bob else alice
+
+            val (manager, _) =
+                createManager(
+                    localPubKey = loser,
+                    followedKeys = setOf(winner),
+                    signalRetransmitCount = 1,
+                )
+            val (events, job) = collectSessionEvents(manager)
+
+            // We call the peer (call A)...
+            manager.initiateCall(winner, CallType.VOICE, callId, sdpOffer)
+            assertIs<CallState.Offering>(manager.state.value)
+
+            // ...and, before they answer, their offer (call B) arrives.
+            manager.onSignalingEvent(makeOffer(from = winner, to = loser, callId = callId2))
+
+            val state = manager.state.value
+            assertIs<CallState.IncomingCall>(state, "Loser must adopt the winner's offer")
+            assertEquals(callId2, state.callId)
+
+            val autoAccept = events.filterIsInstance<CallSessionEvent.AutoAcceptIncomingOffer>()
+            assertEquals(1, autoAccept.size, "Loser must ask the session to auto-accept")
+            assertEquals(callId2, autoAccept.first().callId)
+            job.cancel()
+        }
+
+    @Test
+    fun glareWinnerKeepsItsOwnOfferAndRejectsThePeer() =
+        runTest {
+            val winner = if (alice < bob) alice else bob
+            val loser = if (alice < bob) bob else alice
+
+            val (manager, published) =
+                createManager(
+                    localPubKey = winner,
+                    followedKeys = setOf(loser),
+                    signalRetransmitCount = 1,
+                )
+            val (events, job) = collectSessionEvents(manager)
+
+            manager.initiateCall(loser, CallType.VOICE, callId, sdpOffer)
+            assertIs<CallState.Offering>(manager.state.value)
+            published.clear()
+
+            manager.onSignalingEvent(makeOffer(from = loser, to = winner, callId = callId2))
+            runCurrent()
+
+            val state = manager.state.value
+            assertIs<CallState.Offering>(state, "Winner must keep its own offer")
+            assertEquals(callId, state.callId)
+            assertEquals(
+                0,
+                events.filterIsInstance<CallSessionEvent.AutoAcceptIncomingOffer>().size,
+                "Winner must not adopt the incoming offer",
+            )
+            assertTrue(published.isNotEmpty(), "Winner must reject the peer's offer")
+            job.cancel()
+        }
+
+    @Test
+    fun glareDoesNotTriggerForUnrelatedOfferingPeer() =
+        runTest {
+            // We are Offering to Bob, but Carol (a different peer) offers to us:
+            // that is not glare, it is a plain busy line.
+            val (manager, published) =
+                createManager(localPubKey = alice, followedKeys = setOf(bob, carol))
+
+            manager.initiateCall(bob, CallType.VOICE, callId, sdpOffer)
+            assertIs<CallState.Offering>(manager.state.value)
+            published.clear()
+
+            manager.onSignalingEvent(makeOffer(from = carol, to = alice, callId = callId2))
+            runCurrent()
+
+            assertIs<CallState.Offering>(manager.state.value, "Unrelated offer must not disturb our call")
+            assertTrue(published.isNotEmpty(), "Unrelated offer must be rejected with busy")
         }
 }

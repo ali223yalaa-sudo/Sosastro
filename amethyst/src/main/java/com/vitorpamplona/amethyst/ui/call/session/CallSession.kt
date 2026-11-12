@@ -167,6 +167,14 @@ class CallSession(
                     is com.vitorpamplona.amethyst.commons.nipACWebRtcCalls.CallSessionEvent.PeerLeft -> {
                         disposePeerSession(event.peerPubKey)
                     }
+
+                    is com.vitorpamplona.amethyst.commons.nipACWebRtcCalls.CallSessionEvent.AutoAcceptIncomingOffer -> {
+                        // Glare: we lost the tiebreak, adopted the peer's
+                        // offer, and now accept it so the two simultaneous
+                        // calls collapse into one. accept() is a no-op unless
+                        // we are still in IncomingCall for this call id.
+                        accept(event.sdpOffer)
+                    }
                 }
             }
         }
@@ -303,6 +311,10 @@ class CallSession(
         scope.launch {
             _errorMessage.value = null
             applyCallSettings()
+            // Glare: we may already hold a PeerConnection to this caller from
+            // the outgoing offer we just abandoned. Dispose it before creating
+            // the callee-side one, or its native resources leak.
+            disposePeerSession(callerPubKey)
             try {
                 withContext(Dispatchers.IO) { mediaManager.initialize(state.callType) }
             } catch (e: Exception) {

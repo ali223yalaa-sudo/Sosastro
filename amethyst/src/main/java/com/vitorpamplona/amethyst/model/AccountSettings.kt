@@ -241,7 +241,7 @@ class AccountSettings(
     var hideDeleteRequestDialog: Boolean = false,
     var hideBlockAlertDialog: Boolean = false,
     var hideNIP17WarningDialog: Boolean = false,
-    val alwaysOnNotificationService: MutableStateFlow<Boolean> = MutableStateFlow(false),
+    val alwaysOnNotificationService: MutableStateFlow<Boolean> = MutableStateFlow(true),
     val splitNotificationsEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false),
     val showMessagesInNotifications: MutableStateFlow<Boolean> = MutableStateFlow(true),
     var backupUserMetadata: MetadataEvent? = null,

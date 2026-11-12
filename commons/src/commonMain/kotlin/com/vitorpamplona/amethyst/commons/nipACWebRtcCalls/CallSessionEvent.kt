@@ -55,4 +55,16 @@ sealed interface CallSessionEvent {
     data class PeerLeft(
         val peerPubKey: HexKey,
     ) : CallSessionEvent
+
+    /**
+     * Glare resolution: both sides placed a call to each other at the same
+     * time. The [CallManager] picks a single winner deterministically and, on
+     * the losing side, adopts the peer's offer and asks the Activity-scoped
+     * session to accept it immediately so the two half-calls collapse into one
+     * live call instead of both hanging up with "busy".
+     */
+    data class AutoAcceptIncomingOffer(
+        val callId: String,
+        val sdpOffer: String,
+    ) : CallSessionEvent
 }

@@ -25,6 +25,7 @@ import com.vitorpamplona.amethyst.LocalPreferences
 import com.vitorpamplona.amethyst.model.Account
 import com.vitorpamplona.amethyst.model.accountsCache.AccountCacheState
 import com.vitorpamplona.quartz.nip01Core.core.HexKey
+import com.vitorpamplona.quartz.nip01Core.relay.client.INostrClient
 import com.vitorpamplona.quartz.utils.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -58,6 +59,7 @@ class AlwaysOnNotificationServiceManager(
     private val accountsCache: AccountCacheState,
     private val localPreferences: LocalPreferences,
     private val activePubKeyProvider: () -> HexKey?,
+    private val clientProvider: () -> INostrClient,
 ) {
     companion object {
         private const val TAG = "AlwaysOnNotifManager"
@@ -65,6 +67,7 @@ class AlwaysOnNotificationServiceManager(
 
     private var watchJob: Job? = null
     private var preloadJob: Job? = null
+    private var giftWrapSubscription: AlwaysOnGiftWrapSubscription? = null
     private var wasEnabled = false
 
     /**
@@ -80,7 +83,7 @@ class AlwaysOnNotificationServiceManager(
                 account.settings.alwaysOnNotificationService.collectLatest { enabled ->
                     if (enabled) {
                         wasEnabled = true
-                        enableAllLayers()
+                        enableAllLayers(account)
                     } else if (wasEnabled) {
                         disableAllLayers()
                     }
@@ -93,9 +96,11 @@ class AlwaysOnNotificationServiceManager(
         watchJob = null
         preloadJob?.cancel()
         preloadJob = null
+        giftWrapSubscription?.stop()
+        giftWrapSubscription = null
     }
 
-    private fun enableAllLayers() {
+    private fun enableAllLayers(account: Account) {
         Log.d(TAG, "Enabling all notification service layers")
 
         // L1: Start foreground service
@@ -108,6 +113,11 @@ class AlwaysOnNotificationServiceManager(
         ServiceWatchdogManager.schedule(context)
 
         // L2 (FCM) and L4 (BOOT_COMPLETED) are always active via manifest
+
+        // L1b: The foreground service only keeps the socket pool alive. With no
+        // Activity there is no Compose-tree REQ either, so the gift-wrap filter
+        // has to be issued here or calls/DMs never arrive while the app is closed.
+        startHeadlessGiftWrapSubscription(account)
 
         startMultiAccountPreload()
     }
@@ -124,7 +134,24 @@ class AlwaysOnNotificationServiceManager(
         // L5: Cancel watchdog alarm
         ServiceWatchdogManager.cancel(context)
 
+        stopHeadlessGiftWrapSubscription()
+
         stopMultiAccountPreload()
+    }
+
+    private fun startHeadlessGiftWrapSubscription(account: Account) {
+        giftWrapSubscription?.stop()
+        giftWrapSubscription =
+            AlwaysOnGiftWrapSubscription(
+                client = clientProvider(),
+                account = account,
+                scope = scope,
+            ).also { it.start() }
+    }
+
+    private fun stopHeadlessGiftWrapSubscription() {
+        giftWrapSubscription?.stop()
+        giftWrapSubscription = null
     }
 
     /**

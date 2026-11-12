@@ -220,15 +220,21 @@ class CallManager(
          * to connect" report. Receivers dedup by inner event id and the
          * completed-call guard rejects replays of a finished call, so extra
          * copies are idempotent.
+         *
+         * Sized so the handshake stays alive for the whole caller invite window
+         * ([PEER_INVITE_TIMEOUT_MS]): a callee whose app was backgrounded,
+         * asleep, or briefly offline still receives a copy the moment it comes
+         * online, instead of the offer being lost after a few seconds. With
+         * [SIGNAL_RETRANSMIT_DELAY_MS] this spans ~27.5s.
          */
-        const val SIGNAL_RETRANSMIT_COUNT = 3
+        const val SIGNAL_RETRANSMIT_COUNT = 12
 
         /**
-         * Delay between offer/answer retransmissions. Short, because the
-         * caller's per-peer invite timeout is [PEER_INVITE_TIMEOUT_MS] and the
-         * callee's ringing timeout is [CALL_TIMEOUT_MS].
+         * Delay between offer/answer retransmissions. Tuned together with
+         * [SIGNAL_RETRANSMIT_COUNT] to cover the caller's per-peer invite
+         * timeout ([PEER_INVITE_TIMEOUT_MS]) without flooding the relays.
          */
-        const val SIGNAL_RETRANSMIT_DELAY_MS = 1_500L
+        const val SIGNAL_RETRANSMIT_DELAY_MS = 2_500L
 
         const val MAX_PROCESSED_EVENT_IDS = 2_000 // cap dedup set to prevent unbounded growth
         const val MAX_COMPLETED_CALL_IDS = 200 // cap completed-call set
@@ -445,6 +451,45 @@ class CallManager(
                 emitSessionEvent(CallSessionEvent.MidCallOfferReceived(callerPubKey, event.sdpOffer()))
                 return emptySet()
             }
+        }
+
+        // Glare: both sides called each other at the same time. We are already
+        // Offering to this exact peer, and they just offered to us. Rejecting
+        // with "busy" would leave both sides dead. Instead, resolve the
+        // collision deterministically: the peer with the lower pubkey wins, so
+        // exactly one side keeps its offer. The losing side adopts the incoming
+        // offer and auto-accepts it, collapsing the two half-calls into one.
+        if (currentState is CallState.Offering && callerPubKey in currentState.peerPubKeys) {
+            val weWin = signer.pubKey < callerPubKey
+            if (weWin) {
+                Log.d("CallManager") { "glare with ${callerPubKey.take(8)}: we win — rejecting their offer, keeping ours" }
+                scope.launch {
+                    val result = factory.createReject(callerPubKey, callId, "busy", signer = signer)
+                    publishEvent(result.wrap)
+                }
+                return emptySet()
+            }
+
+            Log.d("CallManager") { "glare with ${callerPubKey.take(8)}: we lose — adopting their offer" }
+            // Abandon our own offer: stop its replays and drop the per-peer
+            // invite timer so it cannot fire a hangup into the adopted call.
+            cancelAllPeerTimeouts()
+            disarmRingingWatchdog()
+            peersInvitedByUs.remove(callerPubKey)
+            cappedAdd(completedCallIds, currentState.callId, MAX_COMPLETED_CALL_IDS)
+
+            _state.value =
+                CallState.IncomingCall(
+                    callId = callId,
+                    callerPubKey = callerPubKey,
+                    groupMembers = event.groupMembers(),
+                    callType = callType,
+                    sdpOffer = event.sdpOffer(),
+                )
+            armRingingWatchdog(callId)
+            startTimeout(callId)
+            emitSessionEvent(CallSessionEvent.AutoAcceptIncomingOffer(callId, event.sdpOffer()))
+            return emptySet()
         }
 
         if (currentState !is CallState.Idle) {

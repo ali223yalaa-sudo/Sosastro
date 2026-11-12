@@ -735,6 +735,7 @@ class AppModules(
             accountsCache = accountsCache,
             localPreferences = LocalPreferences,
             activePubKeyProvider = { sessionManager.loggedInAccount()?.pubKey },
+            clientProvider = { client },
         )
 
     // Observes LocalCache for notification-relevant events and routes them to
