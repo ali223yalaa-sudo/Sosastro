@@ -120,8 +120,14 @@ fun ChatroomView(
         )
 
     val newPostModel: ChatNewMessageViewModel = viewModel()
-    newPostModel.init(accountViewModel)
-    newPostModel.load(room)
+    // init()/load() write to TextFieldState (toUsers). Called straight from the composable body they
+    // re-ran on every recomposition; the conversation recomposes on each new message or receipt, so
+    // that write-during-composition looped and pinned the main thread, freezing the IME. Run them
+    // once per (model, account, room) instead.
+    remember(newPostModel, accountViewModel, room) {
+        newPostModel.init(accountViewModel)
+        newPostModel.load(room)
+    }
 
     if (replyToNote != null) {
         LaunchedEffect(key1 = replyToNote, newPostModel, accountViewModel) {
