@@ -43,7 +43,11 @@ class NestsAuthTest {
             assertTrue(header.startsWith("Nostr "), "header must start with `Nostr `, got: $header")
 
             val token = header.removePrefix("Nostr ")
-            val json = Base64.decode(token).decodeToString()
+            val json =
+                Base64.UrlSafe
+                    .withPadding(Base64.PaddingOption.ABSENT)
+                    .decode(token)
+                    .decodeToString()
             val event = JacksonMapper.fromJson(json) as HTTPAuthorizationEvent
 
             assertEquals(HTTPAuthorizationEvent.KIND, event.kind)
@@ -61,7 +65,14 @@ class NestsAuthTest {
             val c = NestsAuth.header(signer, "https://a.example.com/bar", "GET")
 
             fun tagsOf(header: String) =
-                (JacksonMapper.fromJson(Base64.decode(header.removePrefix("Nostr ")).decodeToString()) as HTTPAuthorizationEvent).let {
+                (
+                    JacksonMapper.fromJson(
+                        Base64.UrlSafe
+                            .withPadding(Base64.PaddingOption.ABSENT)
+                            .decode(header.removePrefix("Nostr "))
+                            .decodeToString(),
+                    ) as HTTPAuthorizationEvent
+                ).let {
                     Triple(it.url(), it.method(), it.id)
                 }
 

@@ -71,7 +71,7 @@ object Constants {
      */
     const val TEMP_HOME_RELAY_ONLY = true
 
-    fun homeRelayOnly(relays: Set<NormalizedRelayUrl>): Set<NormalizedRelayUrl> = if (TEMP_HOME_RELAY_ONLY) setOf(amethystHome) else relays
+    fun homeRelayOnly(relays: Set<NormalizedRelayUrl>): Set<NormalizedRelayUrl> = if (!TEMP_HOME_RELAY_ONLY || relays.isEmpty()) relays else setOf(amethystHome)
 
     fun homeRelayOnlyMap(filters: Map<NormalizedRelayUrl, List<com.vitorpamplona.quartz.nip01Core.relay.filters.Filter>>): Map<NormalizedRelayUrl, List<com.vitorpamplona.quartz.nip01Core.relay.filters.Filter>> =
         if (!TEMP_HOME_RELAY_ONLY || filters.isEmpty()) {

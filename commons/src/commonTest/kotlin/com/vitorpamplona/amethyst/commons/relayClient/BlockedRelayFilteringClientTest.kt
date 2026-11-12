@@ -20,6 +20,7 @@
  */
 package com.vitorpamplona.amethyst.commons.relayClient
 
+import com.vitorpamplona.amethyst.commons.defaults.Constants
 import com.vitorpamplona.quartz.nip01Core.core.Event
 import com.vitorpamplona.quartz.nip01Core.relay.client.EmptyNostrClient
 import com.vitorpamplona.quartz.nip01Core.relay.client.INostrClient
@@ -33,6 +34,7 @@ class BlockedRelayFilteringClientTest {
     private val good = NormalizedRelayUrl("wss://good.example/")
     private val alsoGood = NormalizedRelayUrl("wss://also-good.example/")
     private val blocked = NormalizedRelayUrl("wss://blocked.example/")
+    private val home = Constants.amethystHome
 
     private fun event() =
         Event(
@@ -85,7 +87,12 @@ class BlockedRelayFilteringClientTest {
             null,
         )
 
-        assertEquals(setOf(good, alsoGood), inner.subscribedFilters?.keys)
+        // Island mode collapses every REQ onto the single owned relay. The
+        // blocked relay's filter is stripped before the collapse, so what
+        // reaches the wire is one REQ to home carrying the two surviving
+        // filters (good + alsoGood).
+        assertEquals(setOf(home), inner.subscribedFilters?.keys)
+        assertEquals(2, inner.subscribedFilters?.get(home)?.size)
     }
 
     @Test
@@ -95,7 +102,8 @@ class BlockedRelayFilteringClientTest {
 
         client.count("cnt", mapOf(good to listOf(Filter()), blocked to listOf(Filter())))
 
-        assertEquals(setOf(good), inner.countFilters?.keys)
+        assertEquals(setOf(home), inner.countFilters?.keys)
+        assertEquals(1, inner.countFilters?.get(home)?.size)
     }
 
     @Test
@@ -105,7 +113,7 @@ class BlockedRelayFilteringClientTest {
 
         client.publish(event(), setOf(good, blocked, alsoGood))
 
-        assertEquals(setOf(good, alsoGood), inner.publishedRelays)
+        assertEquals(setOf(home), inner.publishedRelays)
     }
 
     @Test
@@ -117,8 +125,11 @@ class BlockedRelayFilteringClientTest {
         client.subscribe("sub", filters, null)
         client.publish(event(), setOf(good, blocked))
 
-        assertEquals(setOf(good, blocked), inner.subscribedFilters?.keys)
-        assertEquals(setOf(good, blocked), inner.publishedRelays)
+        // Nothing blocked → both filters survive; both publish targets survive
+        // the block filter. Island mode still collapses the relay set to home.
+        assertEquals(setOf(home), inner.subscribedFilters?.keys)
+        assertEquals(2, inner.subscribedFilters?.get(home)?.size)
+        assertEquals(setOf(home), inner.publishedRelays)
     }
 
     @Test
@@ -129,6 +140,8 @@ class BlockedRelayFilteringClientTest {
         client.subscribe("sub", mapOf(good to listOf(Filter()), blocked to listOf(Filter())), null)
         client.publish(event(), setOf(good, blocked))
 
+        // Every requested relay is blocked → no filters survive, so island mode
+        // has nothing to collapse and issues no REQ (home is not added blindly).
         assertEquals(emptySet(), inner.subscribedFilters?.keys)
         assertEquals(emptySet(), inner.publishedRelays)
     }
@@ -140,11 +153,13 @@ class BlockedRelayFilteringClientTest {
         val client = BlockedRelayFilteringClient(inner) { blockedSet }
 
         client.subscribe("sub", mapOf(good to listOf(Filter()), blocked to listOf(Filter())), null)
-        assertEquals(setOf(good, blocked), inner.subscribedFilters?.keys)
+        assertEquals(setOf(home), inner.subscribedFilters?.keys)
+        assertEquals(2, inner.subscribedFilters?.get(home)?.size)
 
         // user blocks a relay after the client was built
         blockedSet = setOf(blocked)
         client.subscribe("sub", mapOf(good to listOf(Filter()), blocked to listOf(Filter())), null)
-        assertEquals(setOf(good), inner.subscribedFilters?.keys)
+        assertEquals(setOf(home), inner.subscribedFilters?.keys)
+        assertEquals(1, inner.subscribedFilters?.get(home)?.size)
     }
 }

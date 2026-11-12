@@ -173,18 +173,20 @@ class NestViewModelTest {
         }
 
     @Test
-    fun onStageNowDefaultsTrueAndSetOnStageFlipsIt() =
+    fun onStageNowDefaultsFalseAndSetOnStageFlipsIt() =
         runVmTest {
             val vm = newViewModel { FakeNestsListener() }
 
-            // Defaults to true so a freshly-joined speaker advertises
-            // onstage=1 on the first heartbeat (the heartbeat in
-            // NestActivityContent reads this as the tag value).
-            assertTrue(vm.uiState.value.onStageNow)
-            vm.setOnStage(false)
+            // A freshly-joined participant is audience, not on stage: the
+            // onstage flag is driven by the seat model, so it stays false
+            // until a seat is taken ([takeMicSeat]) or the user steps up
+            // ([setOnStage]). The kind-10312 heartbeat reads this as the tag
+            // value.
             assertFalse(vm.uiState.value.onStageNow)
             vm.setOnStage(true)
             assertTrue(vm.uiState.value.onStageNow)
+            vm.setOnStage(false)
+            assertFalse(vm.uiState.value.onStageNow)
         }
 
     @Test
