@@ -1329,6 +1329,10 @@
     <string name="call_ringing">يرن…</string>
     <string name="call_connecting">جارٍ الاتصال…</string>
     <string name="call_ended">انتهت المكالمة</string>
+    <string name="call_no_answer">لا يوجد ردّ</string>
+    <string name="call_declined">تم رفض المكالمة</string>
+    <string name="call_failed">فشلت المكالمة — تحقّق من الشبكة</string>
+    <string name="call_answered_elsewhere">تم الرد على جهاز آخر</string>
     <string name="call_with">مكالمة مع %1$s</string>
     <string name="call_ongoing">المكالمات</string>
     <string name="call_ongoing_description">إشعار المكالمة الجارية</string>

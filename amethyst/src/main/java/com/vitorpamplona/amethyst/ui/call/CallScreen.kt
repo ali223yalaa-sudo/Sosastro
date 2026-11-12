@@ -176,10 +176,21 @@ fun CallScreen(
                     remember(state.peerPubKeys) {
                         state.peerPubKeys - accountViewModel.account.signer.pubKey
                     }
+                val endText =
+                    when (state.reason) {
+                        com.vitorpamplona.amethyst.commons.nipACWebRtcCalls.EndReason.TIMEOUT -> R.string.call_no_answer
+                        com.vitorpamplona.amethyst.commons.nipACWebRtcCalls.EndReason.REJECTED,
+                        com.vitorpamplona.amethyst.commons.nipACWebRtcCalls.EndReason.PEER_REJECTED,
+                        -> R.string.call_declined
+
+                        com.vitorpamplona.amethyst.commons.nipACWebRtcCalls.EndReason.ERROR -> R.string.call_failed
+                        com.vitorpamplona.amethyst.commons.nipACWebRtcCalls.EndReason.ANSWERED_ELSEWHERE -> R.string.call_answered_elsewhere
+                        else -> R.string.call_ended
+                    }
                 if (!isInPipMode) {
                     CallInProgressUI(
                         peerPubKeys = otherMembers,
-                        statusText = stringRes(R.string.call_ended),
+                        statusText = stringRes(endText),
                         accountViewModel = accountViewModel,
                         onHangup = { onCallEnded() },
                     )
