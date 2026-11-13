@@ -214,6 +214,13 @@ setsid nohup /workspace/apk-download/watchdog.sh &   # keeps it alive
 - `JAVA_HOME`/`ANDROID_HOME` must be exported **inside** the backgrounded script, not
   on the interactive command line — a `nohup ... &` child does not inherit them otherwise.
 - `/workspace/build.sh` wraps all of the above; run it and tail `/workspace/build2.log`.
+  It now also runs `apksigner verify` on every output APK and **fails** if any is
+  unsigned.
+- **APK signing**: debug builds sign with `keystore/debug.keystore` (committed;
+  pinned in `amethyst/build.gradle.kts`). Do **not** rely on `~/.android/debug.keystore`
+  — it is on the wiped root fs, and when it is absent Gradle emits APKs with *no*
+  signature at all ("الحزمة غير صالحة" / `Missing META-INF/MANIFEST.MF`), which
+  install on nothing. If APKs ever fail to install, check `apksigner verify` first.
 
 ## Chat surfaces: no relay/paging status text
 
