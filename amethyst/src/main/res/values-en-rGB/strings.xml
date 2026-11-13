@@ -16,7 +16,7 @@
     <!-- Signer trust levels -->
     <!-- Signer per-op consent dialog -->
     <!-- Signer op labels -->
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <!-- Permissions management screen -->
     <!-- Relay Authentication (NIP-42) settings -->
     <!-- Action-aware titles: %1$s is the person (or "Alice and others"). -->

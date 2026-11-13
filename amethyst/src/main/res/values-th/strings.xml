@@ -181,7 +181,7 @@
         \n\nบัญชีของคุณได้รับการรักษาความปลอดภัยด้วยคีย์ลับ คีย์เป็นรหัสชุดตัวอักษรยาวขึ้นต้นด้วย **nsec1**  ใครก็ตามที่สามารถเข้าถึงรหัสชุดนี้ได้ จะสามารถโพสต์และเปลี่ยนแปลงข้อมูลประจำตัวของคุณได้
 
         \n\n- **ห้าม** ใส่รหัสชุดนี้ในเว็บไซต์หรือซอฟต์แวร์ที่คุณไม่ไว้ใจ
-        \n- ทีมพัฒนา Amethyst **จะไม่มีวัน** ขอรหัสชุดนี้ของคุณ
+        \n- ทีมพัฒนา Astro **จะไม่มีวัน** ขอรหัสชุดนี้ของคุณ
         \n- **ควร** สำรองข้อมูลรหัสชุดนี้ไว้เพื่อกู้คืนบัญชีของคุณ เราแนะนำให้ใช้โปรแกรมจัดการรหัสผ่าน</string>
     <string name="account_backup_tips3_md" tools:ignore="Typos">        สำหรับการรักษาความปลอดภัยเพิ่มเติม คุณสามารถเข้ารหัสคีย์ของคุณด้วยรหัสผ่าน  คีย์นี้ขึ้นต้นด้วย **ncryptsec1** และไม่สามารถใช้งานได้หากไม่มีรหัสผ่านของคุณ
         \n\n**แต่**  หากคุณสูญหายรหัสผ่าน คุณจะไม่สามารถกู้คืนคีย์ของคุณได้        </string>
@@ -216,7 +216,7 @@
     <string name="quick_action_follow">ติดตาม</string>
     <string name="quick_action_request_deletion_gallery_title">ลบออกจากคลังภาพ</string>
     <string name="quick_action_request_deletion_alert_title">ส่งคำขอให้ลบ</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst จะขอให้ลบโน้ตของคุณออกจากรีเลย์ที่คุณเชื่อมต่ออยู่ ไม่มีการรับประกันว่าโน้ตของคุณจะถูกลบออกอย่างถาวรจากรีเลย์เหล่านั้น หรือ จากรีเลย์อื่น ๆ ที่อาจเก็บไว้</string>
+    <string name="quick_action_request_deletion_alert_body">Astro จะขอให้ลบโน้ตของคุณออกจากรีเลย์ที่คุณเชื่อมต่ออยู่ ไม่มีการรับประกันว่าโน้ตของคุณจะถูกลบออกอย่างถาวรจากรีเลย์เหล่านั้น หรือ จากรีเลย์อื่น ๆ ที่อาจเก็บไว้</string>
     <string name="quick_action_block_dialog_btn">บล๊อก</string>
     <string name="quick_action_delete_dialog_btn">ลบ</string>
     <string name="quick_action_block">บล๊อก</string>
@@ -285,7 +285,7 @@
     <string name="file_server">เซิร์ฟเวอร์เก็บข้อมูล</string>
     <string name="media_servers">Media Servers</string>
     <string name="set_preferred_media_servers">ตั้งค่า media server ที่คุณต้องการ</string>
-    <string name="built_in_servers_description">รายการค่าเริ่มต้นของ Amethyst คุณสามารถเพิ่มทีละรายการหรือเพิ่มทั้งรายการก็ได้</string>
+    <string name="built_in_servers_description">รายการค่าเริ่มต้นของ Astro คุณสามารถเพิ่มทีละรายการหรือเพิ่มทั้งรายการก็ได้</string>
     <string name="use_default_servers">ใช้รายการค่าเริ่มต้น</string>
     <string name="add_media_server">เพิ่ม media server</string>
     <string name="delete_media_server">ลบ media server</string>
@@ -539,7 +539,7 @@
     <string name="remove_content_warning">ลบคําเตือนเนื้อหา</string>
     <string name="show_npub_as_a_qr_code">แสดง npub เป็น qr code</string>
     <string name="invalid_nip19_uri">ที่อยู่ไม่ถูกต้อง</string>
-    <string name="invalid_nip19_uri_description">Amethyst ได้รับ URI แต่ URI นั้นไม่ถูกต้อง: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro ได้รับ URI แต่ URI นั้นไม่ถูกต้อง: %1$s</string>
     <string name="dm_relays_title">รีเลย์ขาเข้าของ DM</string>
     <string name="dm_relays_not_found">ตั้งค่ารีเลย์ส่วนตัวสำหรับรับข้อมูล</string>
     <string name="dm_relays_not_found_description">การตั้งค่านี้จะแจ้งให้ทุกคนทราบว่าควรใช้รีเลย์ใดในการส่งข้อความถึงคุณ หากไม่มีการตั้งค่านี้ คุณอาจพลาดข้อความบางส่วนได้</string>
@@ -552,7 +552,7 @@
     <string name="search_relays_not_found_examples">ตัวเลือกที่ดี ได้แก่:\n%1$s</string>
     <string name="relay_settings">ตั้งค่ารีเลย์</string>
     <string name="public_home_section">รีเลย์สาธารณะสำหรับหน้า Home</string>
-    <string name="public_home_section_explainer">รีเลย์ประเภทนี้จะเก็บเนื้อหาทั้งหมดของคุณ Amethyst จะส่งโพสต์ของคุณไปยังรีเลย์เหล่านี้ และคนอื่น ๆ จะใช้รีเลย์เหล่านี้เพื่อค้นหาเนื้อหาของคุณ ใส่รีเลย์ 1–3 ตัว ซึ่งสามารถเป็นรีเลย์ส่วนตัว รีเลย์ที่ต้องเสียค่าบริการ หรือรีเลย์สาธารณะก็ได้</string>
+    <string name="public_home_section_explainer">รีเลย์ประเภทนี้จะเก็บเนื้อหาทั้งหมดของคุณ Astro จะส่งโพสต์ของคุณไปยังรีเลย์เหล่านี้ และคนอื่น ๆ จะใช้รีเลย์เหล่านี้เพื่อค้นหาเนื้อหาของคุณ ใส่รีเลย์ 1–3 ตัว ซึ่งสามารถเป็นรีเลย์ส่วนตัว รีเลย์ที่ต้องเสียค่าบริการ หรือรีเลย์สาธารณะก็ได้</string>
     <string name="public_notif_section">รีเลย์ขาเข้าสาธารณะ</string>
     <string name="public_notif_section_explainer">รีเลย์ประเภทนี้จะรับการตอบกลับ ความคิดเห็น การถูกใจ และการส่ง \"zap\" ทั้งหมดไปยังโพสต์ของคุณ ใส่รีเลย์ 1–3 ตัว และตรวจสอบให้แน่ใจว่ารีเลย์เหล่านี้ยอมรับโพสต์จากทุกคน</string>
     <string name="private_inbox_section">รีเลย์ขาเข้าของ DM</string>
@@ -857,7 +857,7 @@
     
     <string name="local_blossom_cache_profile_pics_only_caption">จำกัดแคชในเครื่องไว้สำหรับรูปโปรไฟล์เท่านั้น รูปภาพและวิดีโอในฟีดจะถูกดึงโดยตรงจากเซิร์ฟเวอร์ต้นทาง</string>
     
-    <string name="no_blossom_server_message">คุณไม่มีเซิร์ฟเวอร์ Blossom ที่ตั้งค่าไว้ คุณสามารถใช้รายการของ Amethyst หรือเพิ่มด้านล่าง ↓</string>
+    <string name="no_blossom_server_message">คุณไม่มีเซิร์ฟเวอร์ Blossom ที่ตั้งค่าไว้ คุณสามารถใช้รายการของ Astro หรือเพิ่มด้านล่าง ↓</string>
     
     <string name="recommended_media_servers">เซิร์ฟเวอร์สื่อที่แนะนำ</string>
     
@@ -1143,9 +1143,9 @@
     
     <string name="call_permission_denied_title">ต้องการสิทธิ์การใช้งาน</string>
     
-    <string name="call_permission_denied_voice">Amethyst ต้องการสิทธิ์เข้าถึงไมโครโฟนเพื่อเริ่มการโทรด้วยเสียง โปรดเปิดใช้งานในการตั้งค่าแอป</string>
+    <string name="call_permission_denied_voice">Astro ต้องการสิทธิ์เข้าถึงไมโครโฟนเพื่อเริ่มการโทรด้วยเสียง โปรดเปิดใช้งานในการตั้งค่าแอป</string>
     
-    <string name="call_permission_denied_video">Amethyst ต้องการสิทธิ์เข้าถึงกล้องและไมโครโฟนเพื่อเริ่มการโทรด้วยวิดีโอ โปรดเปิดใช้งานในการตั้งค่าแอป</string>
+    <string name="call_permission_denied_video">Astro ต้องการสิทธิ์เข้าถึงกล้องและไมโครโฟนเพื่อเริ่มการโทรด้วยวิดีโอ โปรดเปิดใช้งานในการตั้งค่าแอป</string>
     
     <string name="call_permission_denied_open_settings">เปิดการตั้งค่า</string>
     
@@ -1183,7 +1183,7 @@
     
     <string name="always_on_notif_channel_description">รักษาการเชื่อมต่อกับ relay กล่องข้อความของคุณให้ใช้งานได้เพื่อรับการแจ้งเตือนแบบเรียลไทม์</string>
     
-    <string name="always_on_notif_title">การแจ้งเตือน Amethyst ใช้งานอยู่</string>
+    <string name="always_on_notif_title">การแจ้งเตือน Astro ใช้งานอยู่</string>
     
     <plurals name="always_on_notif_connected">
     <item quantity="other">เชื่อมต่อกับ %1$d inbox relay แล้ว</item>
@@ -1213,7 +1213,7 @@
     
     <string name="battery_optimization_title">การเพิ่มประสิทธิภาพแบตเตอรี่ใช้งานอยู่</string>
     
-    <string name="battery_optimization_description">Android อาจจำกัดการเชื่อมต่อ relay ในพื้นหลัง ปิดใช้งานการเพิ่มประสิทธิภาพแบตเตอรี่สำหรับ Amethyst เพื่อให้มั่นใจว่าการแจ้งเตือนเชื่อถือได้</string>
+    <string name="battery_optimization_description">Android อาจจำกัดการเชื่อมต่อ relay ในพื้นหลัง ปิดใช้งานการเพิ่มประสิทธิภาพแบตเตอรี่สำหรับ Astro เพื่อให้มั่นใจว่าการแจ้งเตือนเชื่อถือได้</string>
     
     <string name="battery_optimization_fix_now">แก้ไขตอนนี้</string>
     
@@ -1231,7 +1231,7 @@
     
     <string name="add_client_tag_title">เพิ่มแท็กไคลเอนต์ในกิจกรรมของฉัน</string>
     
-    <string name="add_client_tag_explainer">เมื่อเปิดใช้งาน Amethyst จะเพิ่มแท็กไคลเอนต์ NIP-89 ในกิจกรรมที่คุณเผยแพร่</string>
+    <string name="add_client_tag_explainer">เมื่อเปิดใช้งาน Astro จะเพิ่มแท็กไคลเอนต์ NIP-89 ในกิจกรรมที่คุณเผยแพร่</string>
     
     <string name="warn_when_posts_have_reports_from_your_follows_title">เตือนเมื่อมีรายงาน</string>
     
@@ -1543,12 +1543,12 @@
     
     <string name="couldnt_find_nwc_wallets">ไม่พบกระเป๋าเงิน</string>
     
-    <string name="couldnt_find_nwc_wallets_description">Amethyst ไม่พบแอปกระเป๋าเงินที่รองรับ Nostr Wallet Connect (NWC)
+    <string name="couldnt_find_nwc_wallets_description">Astro ไม่พบแอปกระเป๋าเงินที่รองรับ Nostr Wallet Connect (NWC)
 \n\nสิ่งที่คุณทำได้:
 \n\t1. ตรวจสอบการรองรับ NWC: ตรวจสอบอีกครั้งว่าแอปกระเป๋าเงินที่คุณต้องการใช้รองรับ Nostr Wallet Connect หรือไม่
 \n\t2. สร้างการเชื่อมต่อ: ไปที่แอปกระเป๋าเงินของคุณและสร้างการเชื่อมต่อ NWC ใหม่
-\n\t3. เชื่อมกับ Amethyst: กระเป๋าเงินของคุณมักจะให้ตัวเลือกสามแบบ:
-\n\t\t3.1 ลิงก์อัตโนมัติ: ปุ่มเพื่อเปิดและเชื่อมต่อกับ Amethyst โดยอัตโนมัติ หากมี ให้กดปุ่มนั้น เปิด Amethyst และกดบันทึกที่หน้าจอใหม่
+\n\t3. เชื่อมกับ Astro: กระเป๋าเงินของคุณมักจะให้ตัวเลือกสามแบบ:
+\n\t\t3.1 ลิงก์อัตโนมัติ: ปุ่มเพื่อเปิดและเชื่อมต่อกับ Astro โดยอัตโนมัติ หากมี ให้กดปุ่มนั้น เปิด Astro และกดบันทึกที่หน้าจอใหม่
 \n\t\t3.2 ลิงก์ด้วยตนเอง: URI การเชื่อมต่อที่คุณสามารถคัดลอกและกดไอคอนวางบนหน้าจอนี้เพื่อป้อนโดยตรง
 \n\t\t3.3 QR Code: กระเป๋าเงินสร้าง QR Code ที่คุณสามารถอ่านได้จากปุ่ม QR code ในหน้าจอนี้
     </string>
@@ -1597,7 +1597,7 @@
     
     <string name="tor_connection_failed_title">Tor ไม่สามารถเชื่อมต่อได้</string>
     
-    <string name="tor_connection_failed_body">Amethyst ไม่สามารถบูตสแตรป Tor ให้เสร็จสมบูรณ์ได้ ต้องการใช้การเชื่อมต่อปกติ (ไม่ผ่าน Tor) เพื่อให้ฟีดโหลดได้ใช่หรือไม่? ระบบจะจำตัวเลือกนี้ไว้หนึ่งชั่วโมงและลองใช้ Tor อีกครั้งหลังจากนั้น</string>
+    <string name="tor_connection_failed_body">Astro ไม่สามารถบูตสแตรป Tor ให้เสร็จสมบูรณ์ได้ ต้องการใช้การเชื่อมต่อปกติ (ไม่ผ่าน Tor) เพื่อให้ฟีดโหลดได้ใช่หรือไม่? ระบบจะจำตัวเลือกนี้ไว้หนึ่งชั่วโมงและลองใช้ Tor อีกครั้งหลังจากนั้น</string>
     
     <string name="tor_continue_without_for_session">ใช้การเชื่อมต่อปกติ</string>
     
@@ -2547,19 +2547,19 @@
     
     <string name="broadcast_section">Broadcast Relays</string>
     
-    <string name="broadcast_section_explainer">Relays ที่เชี่ยวชาญในการส่งโน้ตของคุณไปยัง relay อื่นๆ ทั้งหมด เช่น sendit.nosflare.com Amethyst จะเพิ่ม relay นี้ในเหตุการณ์ใหม่ทั้งหมดที่คุณสร้าง</string>
+    <string name="broadcast_section_explainer">Relays ที่เชี่ยวชาญในการส่งโน้ตของคุณไปยัง relay อื่นๆ ทั้งหมด เช่น sendit.nosflare.com Astro จะเพิ่ม relay นี้ในเหตุการณ์ใหม่ทั้งหมดที่คุณสร้าง</string>
     
     <string name="indexer_relays_title">Indexer Relays</string>
     
     <string name="indexer_section">Indexer Relays</string>
     
-    <string name="indexer_section_explainer">Relays ที่เชี่ยวชาญในการโฮสต์ข้อมูลเมตาและรายการ relay ของทุกคน เช่น purplepag.es Amethyst จะใช้ relay เหล่านี้เพื่อค้นหาผู้ใช้ที่ไม่ได้อยู่ในรายการของคุณ</string>
+    <string name="indexer_section_explainer">Relays ที่เชี่ยวชาญในการโฮสต์ข้อมูลเมตาและรายการ relay ของทุกคน เช่น purplepag.es Astro จะใช้ relay เหล่านี้เพื่อค้นหาผู้ใช้ที่ไม่ได้อยู่ในรายการของคุณ</string>
     
     <string name="blocked_relays_title">Blocked Relays</string>
     
     <string name="blocked_section">Blocked Relays</string>
     
-    <string name="blocked_section_explainer">Amethyst จะไม่เชื่อมต่อกับ relay เหล่านี้เด็ดขาด</string>
+    <string name="blocked_section_explainer">Astro จะไม่เชื่อมต่อกับ relay เหล่านี้เด็ดขาด</string>
     
     <string name="export_relay_settings">ส่งออกการตั้งค่า relay</string>
     
@@ -2767,7 +2767,7 @@
     
     <string name="crashreport_found">พบรายงานการล่ม</string>
     
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">คุณต้องการส่งรายงานการล่มล่าสุดไปยัง Amethyst ใน DM หรือไม่? ไม่มีข้อมูลส่วนตัวจะถูกแชร์</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">คุณต้องการส่งรายงานการล่มล่าสุดไปยัง Astro ใน DM หรือไม่? ไม่มีข้อมูลส่วนตัวจะถูกแชร์</string>
     
     <string name="crashreport_found_send">ส่ง</string>
     
@@ -4143,7 +4143,7 @@
 
     <string name="signer_not_found_exception_description">ถอนการติดตั้งแอปผู้ลงนามแล้วหรือไม่ ตรวจสอบว่าติดตั้งผู้ลงนามและมีบัญชีนี้อยู่ ออกจากระบบและเข้าสู่ระบบใหม่หากมีการเปลี่ยนแปลงแอปผู้ลงนาม</string>
 
-    <string name="signer_illegal_state_exception_description">ผู้ลงนามภายนอกส่งคืนข้อมูลที่ผิดปกติสำหรับคำขอนี้ อาจมีข้อผิดพลาดใน Amethyst หรือแอปผู้ลงนาม</string>
+    <string name="signer_illegal_state_exception_description">ผู้ลงนามภายนอกส่งคืนข้อมูลที่ผิดปกติสำหรับคำขอนี้ อาจมีข้อผิดพลาดใน Astro หรือแอปผู้ลงนาม</string>
 
     <string name="number_following">"%1$s กำลังติดตาม"</string>
 
@@ -4261,7 +4261,7 @@
 
     <string name="send_payment_pay_button_empty">ชำระเงิน</string>
 
-    <string name="send_payment_no_methods">โปรไฟล์นี้ไม่มีวิธีการชำระเงินที่ Amethyst รองรับการชำระโดยตรง</string>
+    <string name="send_payment_no_methods">โปรไฟล์นี้ไม่มีวิธีการชำระเงินที่ Astro รองรับการชำระโดยตรง</string>
 
     <string name="send_payment_min_onchain">การ zap แบบ on-chain ต้องใช้อย่างน้อย %1$s sats</string>
 
@@ -4327,7 +4327,7 @@
 
     <string name="failed_to_save_the_video">ไม่สามารถบันทึกวิดีโอได้</string>
 
-    <string name="pdf_saved_to_the_gallery">บันทึก PDF ลงใน Downloads/Amethyst แล้ว</string>
+    <string name="pdf_saved_to_the_gallery">บันทึก PDF ลงใน Downloads/Astro แล้ว</string>
 
     <string name="failed_to_save_the_pdf">ไม่สามารถบันทึก PDF ได้</string>
 
@@ -4447,7 +4447,7 @@
 
     <string name="share_as_image_generating">กำลังสร้างตัวอย่าง…</string>
 
-    <string name="share_as_image_watermark">แชร์ผ่าน Amethyst</string>
+    <string name="share_as_image_watermark">แชร์ผ่าน Astro</string>
 
     <string name="quick_action_request_deletion_gallery_alert_body_v2">ลบสื่อนี้ออกจากแกลเลอรีของคุณ</string>
 
@@ -4797,7 +4797,7 @@
 
     <string name="workout_suggestion_connect_title">แชร์การออกกำลังกายของคุณ</string>
 
-    <string name="workout_suggestion_connect_message">ให้ Amethyst อ่านข้อมูลการออกกำลังกายที่เสร็จสิ้นจาก Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) และแนะนำโพสต์</string>
+    <string name="workout_suggestion_connect_message">ให้ Astro อ่านข้อมูลการออกกำลังกายที่เสร็จสิ้นจาก Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) และแนะนำโพสต์</string>
 
     <string name="workout_suggestion_connect_button">เชื่อมต่อ</string>
 
@@ -5284,7 +5284,7 @@
 
     <string name="nests_servers_title">เซิร์ฟเวอร์ Nest</string>
 
-    <string name="nests_servers_explainer">เลือกเซิร์ฟเวอร์ MoQ host ที่ Amethyst จะเผยแพร่ nest ของคุณ รายการแรกจะถูกใช้โดยค่าเริ่มต้นเมื่อคุณเริ่ม space ใหม่</string>
+    <string name="nests_servers_explainer">เลือกเซิร์ฟเวอร์ MoQ host ที่ Astro จะเผยแพร่ nest ของคุณ รายการแรกจะถูกใช้โดยค่าเริ่มต้นเมื่อคุณเริ่ม space ใหม่</string>
 
     <string name="nests_servers_my_section">เซิร์ฟเวอร์ของคุณ</string>
 
@@ -5304,7 +5304,7 @@
 
     <string name="nests_servers_recommended_explainer">ข้อเสนอแนะในตัวที่คุณสามารถเพิ่มลงในรายการด้วยการแตะครั้งเดียว</string>
 
-    <string name="nests_servers_use_defaults">ใช้ค่าเริ่มต้นของ Amethyst</string>
+    <string name="nests_servers_use_defaults">ใช้ค่าเริ่มต้นของ Astro</string>
 
     <string name="nests_servers_add_recommended">เพิ่มเซิร์ฟเวอร์</string>
 

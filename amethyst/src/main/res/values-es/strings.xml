@@ -158,7 +158,7 @@
     <string name="quick_action_unfollow">Dejar de seguir</string>
     <string name="quick_action_follow">Seguir</string>
     <string name="quick_action_request_deletion_alert_title">Solicitar eliminación</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst solicitará que se elimine su nota de los relays a los que está conectado actualmente. No hay garantía de que su nota se elimine permanentemente de esos relays, o de otros relays donde pueda almacenarse.</string>
+    <string name="quick_action_request_deletion_alert_body">Astro solicitará que se elimine su nota de los relays a los que está conectado actualmente. No hay garantía de que su nota se elimine permanentemente de esos relays, o de otros relays donde pueda almacenarse.</string>
     <string name="backup_keys">Claves de respaldo</string>
 <string name="your_profile_image">Tu imagen de perfil</string>
     
@@ -237,7 +237,7 @@
     
 <string name="signer_not_found_exception_description">¿Se ha desinstalado la app del firmante? Comprueba si el firmante está instalado y tiene esta cuenta. Cierra sesión y vuelve a iniciar sesión en la app del firmante si ha cambiado.</string>
     
-<string name="signer_illegal_state_exception_description">El firmante externo devolvió una carga útil que no concuerda con la solicitud. Es posible que haya un error, ya sea en Amethyst o en el firmante.</string>
+<string name="signer_illegal_state_exception_description">El firmante externo devolvió una carga útil que no concuerda con la solicitud. Es posible que haya un error, ya sea en Astro o en el firmante.</string>
     
 <string name="edited">editada</string>
     
@@ -367,7 +367,7 @@
     
 <string name="send_payment_pay_button_empty">Pagar</string>
     
-<string name="send_payment_no_methods">Este perfil no tiene métodos de pago que Amethyst pueda pagar directamente.</string>
+<string name="send_payment_no_methods">Este perfil no tiene métodos de pago que Astro pueda pagar directamente.</string>
     
 <string name="send_payment_min_onchain">Los zaps en cadena requieren al menos %1$s sats</string>
     
@@ -437,7 +437,7 @@
     
 <string name="failed_to_save_the_video">Error al guardar el video</string>
     
-<string name="pdf_saved_to_the_gallery">PDF guardado en Descargas/Amethyst</string>
+<string name="pdf_saved_to_the_gallery">PDF guardado en Descargas/Astro</string>
     
 <string name="failed_to_save_the_pdf">Error al guardar el PDF</string>
     
@@ -576,7 +576,7 @@
 <string xmlns:ns0="http://schemas.android.com/tools" name="account_backup_tips2_md" ns0:ignore="Typos">        ## Consejos sobre la protección y la copia de seguridad de las claves
         \n\nTu cuenta está protegida por una clave secreta. La clave es una larga secuencia de caracteres que empieza por **nsec1**. Cualquiera que tenga acceso a esta clave secreta puede publicar y cambiar tu identidad.
         \n\n- **No** guardes la clave secreta en ningún sitio web o software en los que no confíes.
-        \n- Los desarrolladores de Amethyst **nunca** te pedirán la clave secreta.
+        \n- Los desarrolladores de Astro **nunca** te pedirán la clave secreta.
         \n- **Sí** puedes realizar una copia de seguridad de la clave secreta para recuperar la cuenta. Para ello, te recomendamos usar un gestor de contraseñas.
     </string>
     
@@ -624,7 +624,7 @@
     
 <string name="share_as_image_generating">Generando vista previa…</string>
     
-<string name="share_as_image_watermark">Compartido a través de Amethyst</string>
+<string name="share_as_image_watermark">Compartido a través de Astro</string>
     
 <string name="quick_action_request_deletion_gallery_title">Eliminar de la galería</string>
     
@@ -1027,7 +1027,7 @@
     
 <string name="workout_suggestion_connect_title">Comparte tus entrenamientos</string>
     
-<string name="workout_suggestion_connect_message">Deja que Amethyst lea los entrenamientos terminados de Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) y sugiera una publicación.</string>
+<string name="workout_suggestion_connect_message">Deja que Astro lea los entrenamientos terminados de Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) y sugiera una publicación.</string>
     
 <string name="workout_suggestion_connect_button">Conectar</string>
     
@@ -1368,7 +1368,7 @@
     
 <string name="nests_servers_title">Servidores de nest</string>
     
-<string name="nests_servers_explainer">Elige en qué servidores host de MoQ quieres que Amethyst publique tus nests. La primera entrada es predeterminada cuando creas un nuevo espacio.</string>
+<string name="nests_servers_explainer">Elige en qué servidores host de MoQ quieres que Astro publique tus nests. La primera entrada es predeterminada cuando creas un nuevo espacio.</string>
     
 <string name="nests_servers_my_section">Tus servidores</string>
     
@@ -1548,11 +1548,11 @@
     
 <string name="set_preferred_media_servers">Configura tus servidores preferidos para subir contenido multimedia.</string>
     
-<string name="no_blossom_server_message">No tienes ningún servidor Blossom configurado. Puedes utilizar la lista de Amethyst o añadir uno de la lista a continuación ↓</string>
+<string name="no_blossom_server_message">No tienes ningún servidor Blossom configurado. Puedes utilizar la lista de Astro o añadir uno de la lista a continuación ↓</string>
     
 <string name="recommended_media_servers">Servidores multimedia recomendados</string>
     
-<string name="built_in_servers_description">Lista predeterminada de Amethyst. Puedes agregarlos individualmente o añadir la lista.</string>
+<string name="built_in_servers_description">Lista predeterminada de Astro. Puedes agregarlos individualmente o añadir la lista.</string>
     
 <string name="use_default_servers">Usar lista predeterminada</string>
     
@@ -2506,7 +2506,7 @@
     
 <string name="invalid_nip19_uri">Dirección inválida</string>
     
-<string name="invalid_nip19_uri_description">Amethyst recibió un URI para abrir pero era inválido: %1$s</string>
+<string name="invalid_nip19_uri_description">Astro recibió un URI para abrir pero era inválido: %1$s</string>
     
 <string name="dm_relays_title">Relés de entrada DM</string>
     
@@ -2536,7 +2536,7 @@
     
 <string name="public_home_section_explainer_profile">El usuario está publicando su contenido a estos relés</string>
     
-<string name="public_home_section_explainer">Este tipo de relé almacena todo tu contenido. Amethyst enviará tus publicaciones aquí y otros usarán estos relés para encontrar tu contenido. Inserta entre 1 y 3 relés. Pueden ser personales, de pago o públicos.</string>
+<string name="public_home_section_explainer">Este tipo de relé almacena todo tu contenido. Astro enviará tus publicaciones aquí y otros usarán estos relés para encontrar tu contenido. Inserta entre 1 y 3 relés. Pueden ser personales, de pago o públicos.</string>
     
 <string name="public_notif_section">Relés de buzón de entrada públicos</string>
     
@@ -2582,19 +2582,19 @@
     
 <string name="broadcast_section">Relés de transmisión</string>
     
-<string name="broadcast_section_explainer">Relés que se especializan en enviar tus notas a todos los demás relés, como sendit.nosflare.com. Amethyst agregará este relé a todos los eventos nuevos que crees.</string>
+<string name="broadcast_section_explainer">Relés que se especializan en enviar tus notas a todos los demás relés, como sendit.nosflare.com. Astro agregará este relé a todos los eventos nuevos que crees.</string>
     
 <string name="indexer_relays_title">Relés de indexador</string>
     
 <string name="indexer_section">Relés de indexador</string>
     
-<string name="indexer_section_explainer">Relés que se especializan en alojar los metadatos y las listas de retransmisión de todos, como purplepag.es. Amethyst usará estos relés para encontrar usuarios que no estén en tus listas.</string>
+<string name="indexer_section_explainer">Relés que se especializan en alojar los metadatos y las listas de retransmisión de todos, como purplepag.es. Astro usará estos relés para encontrar usuarios que no estén en tus listas.</string>
     
 <string name="blocked_relays_title">Relés bloqueados</string>
     
 <string name="blocked_section">Relés bloqueados</string>
     
-<string name="blocked_section_explainer">Amethyst nunca se conectará a estos relés</string>
+<string name="blocked_section_explainer">Astro nunca se conectará a estos relés</string>
     
 <string name="zap_the_devs_title">¡Zapea a los desarrolladores!</string>
     
@@ -2779,7 +2779,7 @@
     
 <string name="crashreport_found">Informe de error encontrado</string>
     
-<string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">¿Te gustaría enviar el informe de error reciente a Amethyst en un mensaje directo? No se compartirá información personal</string>
+<string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">¿Te gustaría enviar el informe de error reciente a Astro en un mensaje directo? No se compartirá información personal</string>
     
 <string name="crashreport_found_send">Enviarlo</string>
     
@@ -3485,7 +3485,7 @@
     
 <string name="nests_servers_recommended_explainer">Sugerencias integradas que puedes añadir a tu lista con un solo toque.</string>
     
-<string name="nests_servers_use_defaults">Usar los predeterminados de Amethyst</string>
+<string name="nests_servers_use_defaults">Usar los predeterminados de Astro</string>
     
 <string name="nests_servers_add_recommended">Añadir servidor</string>
     
@@ -3799,9 +3799,9 @@
     
 <string name="call_permission_denied_title">Permiso necesario</string>
     
-<string name="call_permission_denied_voice">Amethyst necesita acceso al micrófono para iniciar una llamada de voz. Actívalo en los ajustes de la aplicación.</string>
+<string name="call_permission_denied_voice">Astro necesita acceso al micrófono para iniciar una llamada de voz. Actívalo en los ajustes de la aplicación.</string>
     
-<string name="call_permission_denied_video">Amethyst necesita acceso a la cámara y al micrófono para iniciar una videollamada. Actívalos en los ajustes de la aplicación.</string>
+<string name="call_permission_denied_video">Astro necesita acceso a la cámara y al micrófono para iniciar una videollamada. Actívalos en los ajustes de la aplicación.</string>
     
 <string name="call_permission_denied_open_settings">Abrir ajustes</string>
     
@@ -3839,7 +3839,7 @@
     
 <string name="always_on_notif_channel_description">Mantiene las conexiones a tus relays de bandeja de entrada activas para notificaciones en tiempo real</string>
     
-<string name="always_on_notif_title">Notificaciones de Amethyst activas</string>
+<string name="always_on_notif_title">Notificaciones de Astro activas</string>
     
 <plurals name="always_on_notif_connected">
     <item quantity="one">Conectado a %1$d relay de bandeja de entrada</item>
@@ -3871,7 +3871,7 @@
     
 <string name="battery_optimization_title">Optimización de batería activa</string>
     
-<string name="battery_optimization_description">Android puede restringir las conexiones a los relays en segundo plano. Desactiva la optimización de batería para Amethyst y garantiza notificaciones fiables.</string>
+<string name="battery_optimization_description">Android puede restringir las conexiones a los relays en segundo plano. Desactiva la optimización de batería para Astro y garantiza notificaciones fiables.</string>
     
 <string name="battery_optimization_fix_now">Corregir ahora</string>
     
@@ -3879,7 +3879,7 @@
     
 <string name="add_client_tag_title">Añadir etiqueta de cliente a mis eventos</string>
     
-<string name="add_client_tag_explainer">Cuando está activado, Amethyst añade una etiqueta de cliente NIP-89 a los eventos que publicas.</string>
+<string name="add_client_tag_explainer">Cuando está activado, Astro añade una etiqueta de cliente NIP-89 a los eventos que publicas.</string>
     
 <string name="report_warning_threshold_title">Umbral de aviso por reportes</string>
     
@@ -4039,12 +4039,12 @@
     
 <string name="messages_create_group">Grupo</string>
     
-<string name="couldnt_find_nwc_wallets_description">Amethyst no encontró ninguna aplicación de cartera compatible con Nostr Wallet Connect (NWC).
+<string name="couldnt_find_nwc_wallets_description">Astro no encontró ninguna aplicación de cartera compatible con Nostr Wallet Connect (NWC).
 \n\nQué puedes hacer:
 \n\t1. Verificar la compatibilidad con NWC: Comprueba que tu aplicación de cartera preferida es compatible con Nostr Wallet Connect.
 \n\t2. Crear conexión: Ve a tu aplicación de cartera y crea una nueva conexión NWC.
-\n\t3. Vincular con Amethyst: Tu cartera normalmente te ofrecerá tres opciones:
-\n\t\t3.1 Enlace automático: Un botón para abrir y conectar automáticamente a Amethyst. Si es así, pulsa ese botón, abre Amethyst y guarda en la nueva pantalla.
+\n\t3. Vincular con Astro: Tu cartera normalmente te ofrecerá tres opciones:
+\n\t\t3.1 Enlace automático: Un botón para abrir y conectar automáticamente a Astro. Si es así, pulsa ese botón, abre Astro y guarda en la nueva pantalla.
 \n\t\t3.2 Enlace manual: Un URI de conexión que puedes copiar y pegar usando el icono de pegado en esta pantalla para introducirlo directamente.
 \n\t\t3.3 Código QR: La cartera genera un código QR que puedes leer con el botón de código QR en esta pantalla.
     </string>
@@ -4079,7 +4079,7 @@
     
 <string name="tor_connection_failed_title">Tor no se está conectando</string>
     
-<string name="tor_connection_failed_body">Amethyst no pudo completar el arranque de Tor. ¿Usar una conexión normal (sin Tor) para que el feed pueda cargarse? Recordaremos esta elección durante la próxima hora y volveremos a intentar Tor después.</string>
+<string name="tor_connection_failed_body">Astro no pudo completar el arranque de Tor. ¿Usar una conexión normal (sin Tor) para que el feed pueda cargarse? Recordaremos esta elección durante la próxima hora y volveremos a intentar Tor después.</string>
     
 <string name="tor_continue_without_for_session">Usar conexión normal</string>
     

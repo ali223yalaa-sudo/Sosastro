@@ -1449,7 +1449,7 @@ class AmethystAppFunctions {
         // set up a Bitcoin backend in Amethyst Settings → Bitcoin."
         if (account.cache.onchainBackend == null) {
             throw AppFunctionNotSupportedException(
-                "Amethyst has no Bitcoin chain backend configured. " +
+                "Astro has no Bitcoin chain backend configured. " +
                     "Open Settings → Bitcoin and add an Esplora-compatible endpoint (e.g. mempool.space) " +
                     "before sending onchain zaps.",
             )
@@ -1575,7 +1575,7 @@ class AmethystAppFunctions {
             account.cache.getNoteIfExists(eventId)
                 ?: throw AppFunctionInvalidArgumentException(
                     "Event $eventId not in local cache. Fetch it via getNotesByUser or " +
-                        "getRecentFromFollows first, or open the note in Amethyst.",
+                        "getRecentFromFollows first, or open the note in Astro.",
                 )
         val event =
             note.event
@@ -1903,7 +1903,7 @@ class AmethystAppFunctions {
     private fun requireInProcessSigner(signer: NostrSigner) {
         if (!signer.isWriteable()) {
             throw AppFunctionNotSupportedException(
-                "Active Amethyst account is read-only (npub login). Sign in with a private key or NIP-46 bunker to publish.",
+                "Active Astro account is read-only (npub login). Sign in with a private key or NIP-46 bunker to publish.",
             )
         }
         // NostrSignerExternal lives in quartz/androidMain and isn't visible
@@ -1914,15 +1914,15 @@ class AmethystAppFunctions {
         val klass = signer::class.qualifiedName
         if (klass == "com.vitorpamplona.quartz.nip55AndroidSigner.client.NostrSignerExternal") {
             throw AppFunctionNotSupportedException(
-                "Amethyst is configured to use an external NIP-55 signer (Amber). " +
+                "Astro is configured to use an external NIP-55 signer (Amber). " +
                     "Write actions from Gemini aren't supported with this signer yet — " +
                     "they require Amber's approval activity which can't launch from a " +
-                    "background dispatch. Open Amethyst directly to complete the action.",
+                    "background dispatch. Open Astro directly to complete the action.",
             )
         }
     }
 
-    private fun notSignedIn(): AppFunctionNotSupportedException = AppFunctionNotSupportedException("No Amethyst account is signed in.")
+    private fun notSignedIn(): AppFunctionNotSupportedException = AppFunctionNotSupportedException("No Astro account is signed in.")
 
     /**
      * Accepts either an npub bech32 (`npub1…`) or 64-character hex

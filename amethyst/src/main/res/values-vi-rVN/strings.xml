@@ -67,7 +67,7 @@
     <string name="unauthorized_exception_description">Trình ký không cho phép giải mã cần thiết cho thao tác này. Hãy bật giải mã NIP-44 trong ứng dụng ký của bạn rồi thử lại</string>
     <string name="signer_not_found_exception">Không tìm thấy trình ký</string>
     <string name="signer_not_found_exception_description">Ứng dụng trình ký đã bị gỡ cài đặt? Hãy kiểm tra xem trình ký đã được cài đặt và có tài khoản này chưa. Đăng xuất và đăng nhập lại nếu ứng dụng trình ký đã thay đổi.</string>
-    <string name="signer_illegal_state_exception_description">Trình ký bên ngoài trả về dữ liệu không hợp lệ cho yêu cầu. Có thể có lỗi trong Amethyst hoặc trong trình ký.</string>
+    <string name="signer_illegal_state_exception_description">Trình ký bên ngoài trả về dữ liệu không hợp lệ cho yêu cầu. Có thể có lỗi trong Astro hoặc trong trình ký.</string>
     <string name="boosted">đã boost</string>
     <string name="edited">đã chỉnh sửa</string>
     <string name="edited_number">lần chỉnh sửa #%1$s</string>
@@ -142,7 +142,7 @@
     <string name="send_payment_done">Xong</string>
     <string name="send_payment_pay_button">Thanh toán %1$s sats</string>
     <string name="send_payment_pay_button_empty">Thanh toán</string>
-    <string name="send_payment_no_methods">Hồ sơ này không có phương thức thanh toán nào mà Amethyst có thể thanh toán trực tiếp.</string>
+    <string name="send_payment_no_methods">Hồ sơ này không có phương thức thanh toán nào mà Astro có thể thanh toán trực tiếp.</string>
     <string name="send_payment_min_onchain">Zap on-chain yêu cầu ít nhất %1$s sats</string>
     <string name="send_payment_cashu_insufficient">Số dư trong mint mà người nhận chấp nhận không đủ. Hãy nạp thêm vào ví Cashu của bạn trước.</string>
     <string name="send_payment_cashu_balance">Có thể chi tiêu cho người nhận này: %1$s sats</string>
@@ -201,7 +201,7 @@
     <string name="failed_to_save_the_image">Không thể lưu ảnh</string>
     <string name="video_saved_to_the_gallery">Video đã được lưu vào thư viện video của điện thoại</string>
     <string name="failed_to_save_the_video">Không thể lưu video</string>
-    <string name="pdf_saved_to_the_gallery">PDF đã được lưu vào Downloads/Amethyst</string>
+    <string name="pdf_saved_to_the_gallery">PDF đã được lưu vào Downloads/Astro</string>
     <string name="failed_to_save_the_pdf">Không thể lưu PDF</string>
     <string name="upload_image">Tải ảnh lên</string>
     <string name="upload_file">Tải tệp lên</string>
@@ -342,7 +342,7 @@
     <string name="account_backup_tips2_md" tools:ignore="Typos">        ## Mẹo sao lưu khóa và bảo mật
         \n\nTài khoản của bạn được bảo mật bằng một khóa bí mật. Khóa là một chuỗi ký tự dài bắt đầu bằng **nsec1**. Bất kỳ ai có quyền truy cập vào khóa bí mật này đều có thể đăng bài và thay đổi danh tính của bạn.
         \n\n- **Không** đưa khóa bí mật của bạn vào bất kỳ trang web hoặc phần mềm nào mà bạn không tin tưởng.
-        \n- Các nhà phát triển Amethyst sẽ **không bao giờ** yêu cầu khóa bí mật của bạn.
+        \n- Các nhà phát triển Astro sẽ **không bao giờ** yêu cầu khóa bí mật của bạn.
         \n- **Hãy** giữ bản sao lưu an toàn của khóa bí mật để khôi phục tài khoản. Chúng tôi khuyến nghị sử dụng trình quản lý mật khẩu.
     </string>
     <string name="account_backup_tips3_md" tools:ignore="Typos">        Để bảo mật thêm, bạn có thể mã hóa khóa của mình bằng mật khẩu. Khóa này bắt đầu bằng **ncryptsec1** và không thể sử dụng nếu không có mật khẩu của bạn.
@@ -380,7 +380,7 @@
     <string name="share_as_image">Chia sẻ dưới dạng hình ảnh</string>
     <string name="share_as_image_url">Chia sẻ dưới dạng URL hình ảnh</string>
     <string name="share_as_image_generating">Đang tạo bản xem trước…</string>
-    <string name="share_as_image_watermark">Được chia sẻ qua Amethyst</string>
+    <string name="share_as_image_watermark">Được chia sẻ qua Astro</string>
     <string name="quick_action_copy_user_id">ID tác giả</string>
     <string name="quick_action_copy_note_id">ID ghi chú</string>
     <string name="quick_action_copy_text">Sao chép văn bản</string>
@@ -390,7 +390,7 @@
     <string name="quick_action_request_deletion_gallery_title">Xóa khỏi thư viện</string>
     <string name="quick_action_request_deletion_gallery_alert_body_v2">Xóa phương tiện này khỏi thư viện của bạn.</string>
     <string name="quick_action_request_deletion_alert_title">Yêu cầu xóa</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst sẽ yêu cầu xóa ghi chú của bạn khỏi các relay mà bạn hiện đang kết nối. Không có đảm bảo rằng ghi chú của bạn sẽ bị xóa vĩnh viễn khỏi các relay đó hoặc khỏi các relay khác nơi nó có thể được lưu trữ.</string>
+    <string name="quick_action_request_deletion_alert_body">Astro sẽ yêu cầu xóa ghi chú của bạn khỏi các relay mà bạn hiện đang kết nối. Không có đảm bảo rằng ghi chú của bạn sẽ bị xóa vĩnh viễn khỏi các relay đó hoặc khỏi các relay khác nơi nó có thể được lưu trữ.</string>
     <string name="quick_action_block_dialog_btn">Chặn</string>
     <string name="quick_action_delete_dialog_btn">Xóa</string>
     <string name="quick_action_block">Chặn</string>
@@ -589,7 +589,7 @@
     <string name="workout_minutes">Phút</string>
     <string name="workout_seconds">Giây</string>
     <string name="workout_suggestion_connect_title">Chia sẻ bài tập của bạn</string>
-    <string name="workout_suggestion_connect_message">Cho phép Amethyst đọc bài tập đã hoàn thành từ Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) và đề xuất bài đăng.</string>
+    <string name="workout_suggestion_connect_message">Cho phép Astro đọc bài tập đã hoàn thành từ Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) và đề xuất bài đăng.</string>
     <string name="workout_suggestion_connect_button">Kết nối</string>
     <string name="workout_from_health_connect">Từ Health Connect</string>
     <string name="exercise_running">Chạy bộ</string>
@@ -688,7 +688,7 @@
     <!-- Signer trust levels -->
     <!-- Signer per-op consent dialog -->
     <!-- Signer op labels -->
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <!-- Permissions management screen -->
     <!-- Relay Authentication (NIP-42) settings -->
     <!-- Action-aware titles: %1$s is the person (or "Alice and others"). -->
@@ -831,7 +831,7 @@
     <string name="nest_create_schedule_toggle">Lên lịch cho sau</string>
     <string name="nest_create_when">Chọn thời gian bắt đầu</string>
     <string name="nests_servers_title">Máy chủ Nest</string>
-    <string name="nests_servers_explainer">Chọn máy chủ MoQ nào Amethyst đăng nest của bạn lên. Mục đầu tiên được dùng mặc định khi bạn bắt đầu không gian mới.</string>
+    <string name="nests_servers_explainer">Chọn máy chủ MoQ nào Astro đăng nest của bạn lên. Mục đầu tiên được dùng mặc định khi bạn bắt đầu không gian mới.</string>
     <string name="nests_servers_my_section">Máy chủ của bạn</string>
     <string name="nests_servers_my_explainer">Được lưu dưới dạng sự kiện có thể thay thế kind-10112 để các client khác có thể đọc tùy chọn của bạn.</string>
     <string name="nests_servers_add_relay_field">URL relay (WebTransport)</string>
@@ -839,7 +839,7 @@
     <string name="nests_servers_add_pair_button">Thêm</string>
     <string name="nests_servers_recommended_section">Máy chủ được đề xuất</string>
     <string name="nests_servers_recommended_explainer">Các đề xuất tích hợp sẵn mà bạn có thể thêm vào danh sách chỉ bằng một lần nhấn.</string>
-    <string name="nests_servers_use_defaults">Dùng mặc định của Amethyst</string>
+    <string name="nests_servers_use_defaults">Dùng mặc định của Astro</string>
     <string name="nests_servers_add_recommended">Thêm máy chủ</string>
     <string name="nests_servers_remove">Xóa máy chủ</string>
     <string name="nests_servers_empty">Chưa có máy chủ nest. Thêm một cái bên dưới hoặc chọn máy chủ được đề xuất.</string>
@@ -1029,9 +1029,9 @@
     <string name="local_blossom_cache_not_detected">Không phát hiện bộ nhớ đệm cục bộ trên cổng 24242.</string>
     <string name="local_blossom_cache_profile_pics_only">Chỉ lưu ảnh hồ sơ vào bộ nhớ đệm</string>
     <string name="local_blossom_cache_profile_pics_only_caption">Giới hạn bộ nhớ đệm cục bộ chỉ cho ảnh hồ sơ. Hình ảnh và video trong nguồn cấp sẽ được tải trực tiếp từ các máy chủ gốc.</string>
-    <string name="no_blossom_server_message">Bạn chưa đặt máy chủ Blossom nào. Bạn có thể dùng danh sách của Amethyst, hoặc thêm một máy chủ bên dưới ↓</string>
+    <string name="no_blossom_server_message">Bạn chưa đặt máy chủ Blossom nào. Bạn có thể dùng danh sách của Astro, hoặc thêm một máy chủ bên dưới ↓</string>
     <string name="recommended_media_servers">Máy chủ Phương tiện Được đề xuất</string>
-    <string name="built_in_servers_description">Danh sách mặc định của Amethyst. Bạn có thể thêm từng máy chủ riêng lẻ hoặc thêm cả danh sách.</string>
+    <string name="built_in_servers_description">Danh sách mặc định của Astro. Bạn có thể thêm từng máy chủ riêng lẻ hoặc thêm cả danh sách.</string>
     <string name="use_default_servers">Dùng Danh sách Mặc định</string>
     <string name="add_media_server">Thêm máy chủ phương tiện</string>
     <string name="delete_media_server">Xóa máy chủ phương tiện</string>
@@ -1195,8 +1195,8 @@
     <string name="call_add_participant">Thêm người tham gia</string>
     <string name="call_search_users">Tìm kiếm người dùng…</string>
     <string name="call_permission_denied_title">Cần quyền truy cập</string>
-    <string name="call_permission_denied_voice">Amethyst cần quyền truy cập micro để bắt đầu cuộc gọi thoại. Vui lòng bật trong cài đặt ứng dụng.</string>
-    <string name="call_permission_denied_video">Amethyst cần quyền truy cập camera và micro để bắt đầu cuộc gọi video. Vui lòng bật trong cài đặt ứng dụng.</string>
+    <string name="call_permission_denied_voice">Astro cần quyền truy cập micro để bắt đầu cuộc gọi thoại. Vui lòng bật trong cài đặt ứng dụng.</string>
+    <string name="call_permission_denied_video">Astro cần quyền truy cập camera và micro để bắt đầu cuộc gọi video. Vui lòng bật trong cài đặt ứng dụng.</string>
     <string name="call_permission_denied_open_settings">Mở cài đặt</string>
     <string name="call_permission_denied_cancel">Hủy</string>
     <string name="call_settings">Cài đặt cuộc gọi</string>
@@ -1215,7 +1215,7 @@
     <string name="call_settings_turn_username">Tên người dùng</string>
     <string name="call_settings_turn_credential">Thông tin xác thực</string>
     <string name="always_on_notif_channel_description">Duy trì kết nối đến các relay hộp thư đến của bạn để thông báo theo thời gian thực</string>
-    <string name="always_on_notif_title">Thông báo Amethyst đang hoạt động</string>
+    <string name="always_on_notif_title">Thông báo Astro đang hoạt động</string>
     <plurals name="always_on_notif_connected">
         <item quantity="other">Đã kết nối với %1$d relay hộp thư đến</item>
     </plurals>
@@ -1232,7 +1232,7 @@
     <string name="notification_tab_following">Đang theo dõi</string>
     <string name="notification_tab_everyone">Mọi người</string>
     <string name="battery_optimization_title">Tối ưu hóa pin đang hoạt động</string>
-    <string name="battery_optimization_description">Android có thể hạn chế kết nối relay trong nền. Tắt tối ưu hóa pin cho Amethyst để đảm bảo thông báo đáng tin cậy.</string>
+    <string name="battery_optimization_description">Android có thể hạn chế kết nối relay trong nền. Tắt tối ưu hóa pin cho Astro để đảm bảo thông báo đáng tin cậy.</string>
     <string name="battery_optimization_fix_now">Khắc phục ngay</string>
     <string name="reply_notify">Thông báo: </string>
     <string name="today">Hôm nay</string>
@@ -1245,7 +1245,7 @@
     <string name="filter_spam_from_strangers_title">Lọc thư rác</string>
     <string name="filter_spam_from_strangers_explainer">Ẩn các bài đăng từ người lạ có nội dung giống hệt nhau từ 5 lần trở lên</string>
     <string name="add_client_tag_title">Thêm thẻ client vào sự kiện của tôi</string>
-    <string name="add_client_tag_explainer">Khi bật, Amethyst sẽ thêm thẻ client NIP-89 vào các sự kiện bạn đăng.</string>
+    <string name="add_client_tag_explainer">Khi bật, Astro sẽ thêm thẻ client NIP-89 vào các sự kiện bạn đăng.</string>
     <string name="warn_when_posts_have_reports_from_your_follows_title">Cảnh báo khi có báo cáo</string>
     <string name="warn_when_posts_have_reports_from_your_follows_explainer">Hiển thị thông báo cảnh báo khi bài đăng hoặc hồ sơ có báo cáo từ những người bạn theo dõi</string>
     <string name="report_warning_threshold_title">Ngưỡng cảnh báo báo cáo</string>
@@ -1483,12 +1483,12 @@
     <string name="messages_new_subject_message_placeholder">Đổi tên cho mục tiêu mới.</string>
     <string name="paste_from_clipboard">Dán từ bộ nhớ tạm</string>
     <string name="couldnt_find_nwc_wallets">Không tìm thấy ví</string>
-    <string name="couldnt_find_nwc_wallets_description">Amethyst không tìm thấy ứng dụng ví nào hỗ trợ Nostr Wallet Connect (NWC).
+    <string name="couldnt_find_nwc_wallets_description">Astro không tìm thấy ứng dụng ví nào hỗ trợ Nostr Wallet Connect (NWC).
 \n\nBạn có thể thực hiện:
 \n\t1. Xác minh hỗ trợ NWC: Kiểm tra lại xem ứng dụng ví của bạn có tương thích với Nostr Wallet Connect không.
 \n\t2. Tạo kết nối: Vào ứng dụng ví của bạn và tạo kết nối NWC mới.
-\n\t3. Liên kết với Amethyst: Ví của bạn thường cung cấp ba tùy chọn:
-\n\t\t3.1 Liên kết tự động: Nút để tự động mở và kết nối với Amethyst. Nếu có, nhấn nút đó, mở Amethyst và nhấn lưu trên màn hình mới.
+\n\t3. Liên kết với Astro: Ví của bạn thường cung cấp ba tùy chọn:
+\n\t\t3.1 Liên kết tự động: Nút để tự động mở và kết nối với Astro. Nếu có, nhấn nút đó, mở Astro và nhấn lưu trên màn hình mới.
 \n\t\t3.2 Liên kết thủ công: URI kết nối mà bạn có thể sao chép và nhấn biểu tượng dán trên màn hình này để nhập trực tiếp.
 \n\t\t3.3 Mã QR: Ví tạo mã QR mà bạn có thể đọc bằng nút mã QR trên màn hình này.
     </string>
@@ -1558,7 +1558,7 @@
     <string name="error_unable_to_fetch_invoice">Không thể tải hóa đơn từ máy chủ của người nhận</string>
     <string name="wallet_connect_pay_invoice_error_error">Nhà cung cấp kết nối ví của bạn trả về lỗi sau: %1$s</string>
     <string name="tor_connection_failed_title">Tor không kết nối được</string>
-    <string name="tor_connection_failed_body">Amethyst không thể hoàn tất khởi động Tor. Sử dụng kết nối thông thường (không qua Tor) để tải feed không? Chúng tôi sẽ ghi nhớ lựa chọn này trong một giờ và thử lại Tor sau đó.</string>
+    <string name="tor_connection_failed_body">Astro không thể hoàn tất khởi động Tor. Sử dụng kết nối thông thường (không qua Tor) để tải feed không? Chúng tôi sẽ ghi nhớ lựa chọn này trong một giờ và thử lại Tor sau đó.</string>
     <string name="tor_continue_without_for_session">Sử dụng kết nối thông thường</string>
     <string name="tor_keep_waiting">Tiếp tục chờ</string>
     <string name="could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup">Không thể tạo LNUrl từ Địa chỉ Lightning \"%1$s\". Hãy kiểm tra cài đặt của người dùng</string>
@@ -1579,7 +1579,7 @@
     <string name="notification_channel_status_off">Tắt</string>
     <string name="select_push_server">Chọn ứng dụng UnifiedPush</string>
     <string name="push_server_title">Nhà cung cấp push</string>
-    <string name="push_server_explainer">Chọn ứng dụng UnifiedPush để nhận thông báo khi Amethyst đóng.</string>
+    <string name="push_server_explainer">Chọn ứng dụng UnifiedPush để nhận thông báo khi Astro đóng.</string>
     <string name="push_server_none">Không có</string>
     <string name="push_server_none_explainer">Tắt thông báo Push</string>
     <string name="push_server_uses_app_explainer">Sử dụng ứng dụng %1$s</string>
@@ -2090,7 +2090,7 @@
     <string name="show_npub_as_a_qr_code">Hiển thị npub dưới dạng mã QR</string>
     <string name="show_nprofile_as_a_qr_code">Hiển thị nprofile dưới dạng mã QR</string>
     <string name="invalid_nip19_uri">Địa chỉ không hợp lệ</string>
-    <string name="invalid_nip19_uri_description">Amethyst nhận được URI để mở nhưng URI đó không hợp lệ: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro nhận được URI để mở nhưng URI đó không hợp lệ: %1$s</string>
     <string name="dm_relays_title">Relay Hộp thư DM</string>
     <string name="dm_relays_not_found">Thiết lập relay Hộp thư Riêng tư của bạn</string>
     <string name="dm_relays_not_found_description">Cài đặt này cho mọi người biết relay nào cần sử dụng khi gửi tin nhắn cho bạn. Nếu không có chúng, bạn có thể bỏ lỡ một số tin nhắn.</string>
@@ -2117,7 +2117,7 @@
     <string name="relay_reorder">Sắp xếp lại relay</string>
     <string name="public_home_section">Relay Outbox/Home Công khai</string>
     <string name="public_home_section_explainer_profile">Người dùng đang đăng nội dung lên các relay này</string>
-    <string name="public_home_section_explainer">Loại relay này lưu trữ tất cả nội dung của bạn. Amethyst sẽ gửi bài đăng của bạn tới đây và người khác sẽ dùng các relay này để tìm nội dung của bạn. Nhập từ 1–3 relay. Chúng có thể là relay cá nhân, relay trả phí hoặc relay công khai.</string>
+    <string name="public_home_section_explainer">Loại relay này lưu trữ tất cả nội dung của bạn. Astro sẽ gửi bài đăng của bạn tới đây và người khác sẽ dùng các relay này để tìm nội dung của bạn. Nhập từ 1–3 relay. Chúng có thể là relay cá nhân, relay trả phí hoặc relay công khai.</string>
     <string name="public_notif_section">Relay Inbox Công khai</string>
     <string name="public_notif_section_explainer_profile">Người dùng đang nhận thông báo trên các relay này</string>
     <string name="public_notif_section_explainer">Loại relay này nhận tất cả các trả lời, bình luận, lượt thích và zap cho bài đăng của bạn. Chúng có thể là relay trả phí hoặc miễn phí. Giới hạn do người điều hành relay đặt ra có thể hạn chế thông báo bạn nhận theo hướng tốt và xấu. Ví dụ: nếu bạn bị tấn công bằng spam bình luận, relay trả phí có thể lọc spam. Nhập từ 1–3 relay.</string>
@@ -2147,13 +2147,13 @@
     <string name="proxy_section_explainer">Các relay tổng hợp mà ứng dụng phải sử dụng để tải feed của bạn, như filter.nostr.wine. Tùy chọn này thay thế mô hình outbox và sẽ khiến ứng dụng chỉ kết nối đến các relay trong danh sách của bạn.</string>
     <string name="broadcast_relays_title">Relay Phát sóng</string>
     <string name="broadcast_section">Relay Phát sóng</string>
-    <string name="broadcast_section_explainer">Các relay chuyên đẩy ghi chú của bạn đến tất cả các relay khác, như sendit.nosflare.com. Amethyst sẽ thêm relay này vào tất cả các sự kiện mới do bạn tạo</string>
+    <string name="broadcast_section_explainer">Các relay chuyên đẩy ghi chú của bạn đến tất cả các relay khác, như sendit.nosflare.com. Astro sẽ thêm relay này vào tất cả các sự kiện mới do bạn tạo</string>
     <string name="indexer_relays_title">Relay Chỉ mục</string>
     <string name="indexer_section">Relay Chỉ mục</string>
-    <string name="indexer_section_explainer">Các relay chuyên lưu trữ siêu dữ liệu và danh sách relay của mọi người, như purplepag.es. Amethyst sẽ sử dụng các relay này để tìm người dùng không có trong danh sách của bạn.</string>
+    <string name="indexer_section_explainer">Các relay chuyên lưu trữ siêu dữ liệu và danh sách relay của mọi người, như purplepag.es. Astro sẽ sử dụng các relay này để tìm người dùng không có trong danh sách của bạn.</string>
     <string name="blocked_relays_title">Relay Bị chặn</string>
     <string name="blocked_section">Relay Bị chặn</string>
-    <string name="blocked_section_explainer">Amethyst sẽ không bao giờ kết nối đến các relay này</string>
+    <string name="blocked_section_explainer">Astro sẽ không bao giờ kết nối đến các relay này</string>
     <string name="export_relay_settings">Xuất cài đặt relay</string>
     <string name="export_as_text">Xuất dạng văn bản</string>
     <string name="export_as_zip">Xuất dạng ZIP (JSON)</string>
@@ -2319,7 +2319,7 @@
     <string name="feed_filter_selected">Bộ lọc feed, đã chọn %1$s</string>
     <string name="feed_filter_select_an_option">Bộ lọc feed, %1$s</string>
     <string name="crashreport_found">Tìm thấy Báo cáo Sự cố</string>
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Bạn có muốn gửi báo cáo sự cố gần đây đến Amethyst qua DM không? Không có thông tin cá nhân nào được chia sẻ</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Bạn có muốn gửi báo cáo sự cố gần đây đến Astro qua DM không? Không có thông tin cá nhân nào được chia sẻ</string>
     <string name="crashreport_found_send">Gửi đi</string>
     <string name="this_message_will_disappear_in">Tin nhắn này sẽ biến mất sau %1$s</string>
     <string name="select_signer">Chọn Signer</string>

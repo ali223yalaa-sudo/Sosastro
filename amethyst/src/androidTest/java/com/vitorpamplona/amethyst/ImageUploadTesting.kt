@@ -77,7 +77,7 @@ class ImageUploadTesting {
             .Builder()
             .followRedirects(true)
             .followSslRedirects(true)
-            .addInterceptor(DefaultContentTypeInterceptor("Amethyst/${BuildConfig.VERSION_NAME}"))
+            .addInterceptor(DefaultContentTypeInterceptor("Astro/${BuildConfig.VERSION_NAME}"))
             .build()
 
     private fun getBitmap(): ByteArray {

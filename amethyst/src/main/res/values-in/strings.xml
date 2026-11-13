@@ -173,7 +173,7 @@
     <string name="quick_action_unfollow">Berhenti mengikuti</string>
     <string name="quick_action_follow">Ikuti</string>
     <string name="quick_action_request_deletion_alert_title">Meminta Penghapusan</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst akan meminta agar catatan Anda dihapus dari relai yang saat ini Anda sambungkan. Tidak ada jaminan bahwa catatan Anda akan dihapus secara permanen dari relai tersebut, atau dari relai lain tempat catatan itu disimpan.</string>
+    <string name="quick_action_request_deletion_alert_body">Astro akan meminta agar catatan Anda dihapus dari relai yang saat ini Anda sambungkan. Tidak ada jaminan bahwa catatan Anda akan dihapus secara permanen dari relai tersebut, atau dari relai lain tempat catatan itu disimpan.</string>
     <string name="quick_action_block_dialog_btn">Blokir</string>
     <string name="quick_action_delete_dialog_btn">Hapus</string>
     <string name="quick_action_block">Blokir</string>
@@ -382,7 +382,7 @@
     
     <string name="nests_servers_recommended_explainer">Saran bawaan yang dapat Anda tambahkan ke daftar dengan satu ketukan.</string>
     
-    <string name="nests_servers_use_defaults">Gunakan default Amethyst</string>
+    <string name="nests_servers_use_defaults">Gunakan default Astro</string>
     
     <string name="nests_servers_add_recommended">Tambah server</string>
     
@@ -682,11 +682,11 @@
     
     <string name="local_blossom_cache_profile_pics_only_caption">Batasi cache lokal hanya untuk foto profil. Gambar dan video feed akan diambil langsung dari server aslinya.</string>
     
-    <string name="no_blossom_server_message">Anda tidak memiliki server Blossom. Anda dapat menggunakan daftar Amethyst, atau tambahkan satu di bawah ↓</string>
+    <string name="no_blossom_server_message">Anda tidak memiliki server Blossom. Anda dapat menggunakan daftar Astro, atau tambahkan satu di bawah ↓</string>
     
     <string name="recommended_media_servers">Server Media yang Direkomendasikan</string>
     
-    <string name="built_in_servers_description">Daftar default Amethyst. Anda dapat menambahkannya satu per satu atau menambahkan seluruh daftarnya.</string>
+    <string name="built_in_servers_description">Daftar default Astro. Anda dapat menambahkannya satu per satu atau menambahkan seluruh daftarnya.</string>
     
     <string name="use_default_servers">Gunakan Daftar Default</string>
     
@@ -992,9 +992,9 @@
     
     <string name="call_permission_denied_title">Izin diperlukan</string>
     
-    <string name="call_permission_denied_voice">Amethyst membutuhkan akses mikrofon untuk memulai panggilan suara. Mohon aktifkan di pengaturan aplikasi.</string>
+    <string name="call_permission_denied_voice">Astro membutuhkan akses mikrofon untuk memulai panggilan suara. Mohon aktifkan di pengaturan aplikasi.</string>
     
-    <string name="call_permission_denied_video">Amethyst membutuhkan akses kamera dan mikrofon untuk memulai panggilan video. Mohon aktifkan keduanya di pengaturan aplikasi.</string>
+    <string name="call_permission_denied_video">Astro membutuhkan akses kamera dan mikrofon untuk memulai panggilan video. Mohon aktifkan keduanya di pengaturan aplikasi.</string>
     
     <string name="call_permission_denied_open_settings">Buka pengaturan</string>
     
@@ -1032,7 +1032,7 @@
     
     <string name="always_on_notif_channel_description">Menjaga koneksi ke relay inbox Anda aktif untuk notifikasi real-time</string>
     
-    <string name="always_on_notif_title">Notifikasi Amethyst Aktif</string>
+    <string name="always_on_notif_title">Notifikasi Astro Aktif</string>
     
     <plurals name="always_on_notif_connected">
     <item quantity="other">Terhubung ke %1$d relay inbox</item>
@@ -1062,7 +1062,7 @@
     
     <string name="battery_optimization_title">Optimasi baterai aktif</string>
     
-    <string name="battery_optimization_description">Android dapat membatasi koneksi relay di latar belakang. Nonaktifkan optimasi baterai untuk Amethyst guna memastikan notifikasi yang andal.</string>
+    <string name="battery_optimization_description">Android dapat membatasi koneksi relay di latar belakang. Nonaktifkan optimasi baterai untuk Astro guna memastikan notifikasi yang andal.</string>
     
     <string name="battery_optimization_fix_now">Perbaiki sekarang</string>
     
@@ -1080,7 +1080,7 @@
     
     <string name="add_client_tag_title">Tambahkan tag klien ke acara saya</string>
     
-    <string name="add_client_tag_explainer">Saat diaktifkan, Amethyst menambahkan tag klien NIP-89 ke acara yang Anda publikasikan.</string>
+    <string name="add_client_tag_explainer">Saat diaktifkan, Astro menambahkan tag klien NIP-89 ke acara yang Anda publikasikan.</string>
     
     <string name="warn_when_posts_have_reports_from_your_follows_title">Peringatkan pada laporan</string>
     
@@ -1416,12 +1416,12 @@
     
     <string name="couldnt_find_nwc_wallets">Dompet tidak ditemukan</string>
     
-    <string name="couldnt_find_nwc_wallets_description">Amethyst tidak dapat menemukan aplikasi dompet apa pun yang mendukung Nostr Wallet Connect (NWC).
+    <string name="couldnt_find_nwc_wallets_description">Astro tidak dapat menemukan aplikasi dompet apa pun yang mendukung Nostr Wallet Connect (NWC).
 \n\nYang dapat Anda lakukan:
 \n\t1. Verifikasi Dukungan NWC: Pastikan aplikasi dompet pilihan Anda kompatibel dengan Nostr Wallet Connect.
 \n\t2. Buat Koneksi: Buka aplikasi dompet Anda dan buat koneksi NWC baru.
-\n\t3. Hubungkan ke Amethyst: Dompet Anda biasanya akan memberikan tiga pilihan:
-\n\t\t3.1 Tautan Otomatis: Tombol untuk secara otomatis membuka dan terhubung ke Amethyst. Jika ada, klik tombol tersebut, buka Amethyst dan tekan simpan di layar baru.
+\n\t3. Hubungkan ke Astro: Dompet Anda biasanya akan memberikan tiga pilihan:
+\n\t\t3.1 Tautan Otomatis: Tombol untuk secara otomatis membuka dan terhubung ke Astro. Jika ada, klik tombol tersebut, buka Astro dan tekan simpan di layar baru.
 \n\t\t3.2 Tautan Manual: URI Koneksi yang dapat Anda salin dan klik ikon tempel di layar ini untuk memasukkannya secara langsung.
 \n\t\t3.3 Kode QR: Dompet membuat kode QR yang dapat Anda baca dari tombol kode QR di layar ini.
     </string>
@@ -1484,7 +1484,7 @@
     
     <string name="tor_connection_failed_title">Tor tidak terhubung</string>
     
-    <string name="tor_connection_failed_body">Amethyst tidak dapat menyelesaikan bootstrapping Tor. Gunakan koneksi biasa (non-Tor) agar feed dapat dimuat? Kami akan mengingat pilihan ini selama satu jam berikutnya dan mencoba ulang Tor setelah itu.</string>
+    <string name="tor_connection_failed_body">Astro tidak dapat menyelesaikan bootstrapping Tor. Gunakan koneksi biasa (non-Tor) agar feed dapat dimuat? Kami akan mengingat pilihan ini selama satu jam berikutnya dan mencoba ulang Tor setelah itu.</string>
     
     <string name="tor_continue_without_for_session">Gunakan koneksi biasa</string>
     
@@ -2528,7 +2528,7 @@
     
     <string name="invalid_nip19_uri">Alamat tidak valid</string>
     
-    <string name="invalid_nip19_uri_description">Amethyst menerima URI untuk dibuka tetapi URI tersebut tidak valid: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro menerima URI untuk dibuka tetapi URI tersebut tidak valid: %1$s</string>
     
     <string name="dm_relays_title">Relay Kotak Masuk DM</string>
     
@@ -2582,7 +2582,7 @@
     
     <string name="public_home_section_explainer_profile">Pengguna memposting kontennya ke relay ini</string>
     
-    <string name="public_home_section_explainer">Jenis relay ini menyimpan semua konten Anda. Amethyst akan mengirim postingan Anda ke sini dan orang lain akan menggunakan relay ini untuk menemukan konten Anda. Masukkan 1–3 relay. Bisa berupa relay pribadi, relay berbayar, atau relay publik.</string>
+    <string name="public_home_section_explainer">Jenis relay ini menyimpan semua konten Anda. Astro akan mengirim postingan Anda ke sini dan orang lain akan menggunakan relay ini untuk menemukan konten Anda. Masukkan 1–3 relay. Bisa berupa relay pribadi, relay berbayar, atau relay publik.</string>
     
     <string name="public_notif_section">Relay Kotak Masuk Publik</string>
     
@@ -2644,19 +2644,19 @@
     
     <string name="broadcast_section">Relay Siaran</string>
     
-    <string name="broadcast_section_explainer">Relay yang berspesialisasi dalam mendorong catatan Anda ke semua relay lainnya, seperti sendit.nosflare.com. Amethyst akan menambahkan relay ini ke semua event baru yang Anda buat</string>
+    <string name="broadcast_section_explainer">Relay yang berspesialisasi dalam mendorong catatan Anda ke semua relay lainnya, seperti sendit.nosflare.com. Astro akan menambahkan relay ini ke semua event baru yang Anda buat</string>
     
     <string name="indexer_relays_title">Relay Indeks</string>
     
     <string name="indexer_section">Relay Indeks</string>
     
-    <string name="indexer_section_explainer">Relay yang berspesialisasi dalam menyimpan metadata dan daftar relay semua orang, seperti purplepag.es. Amethyst akan menggunakan relay ini untuk menemukan pengguna yang tidak ada dalam daftar Anda.</string>
+    <string name="indexer_section_explainer">Relay yang berspesialisasi dalam menyimpan metadata dan daftar relay semua orang, seperti purplepag.es. Astro akan menggunakan relay ini untuk menemukan pengguna yang tidak ada dalam daftar Anda.</string>
     
     <string name="blocked_relays_title">Relay Diblokir</string>
     
     <string name="blocked_section">Relay Diblokir</string>
     
-    <string name="blocked_section_explainer">Amethyst tidak akan pernah terhubung ke relay ini</string>
+    <string name="blocked_section_explainer">Astro tidak akan pernah terhubung ke relay ini</string>
     
     <string name="export_relay_settings">Ekspor pengaturan relay</string>
     
@@ -3002,7 +3002,7 @@
     
     <string name="crashreport_found">Laporan Crash Ditemukan</string>
     
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Apakah Anda ingin mengirim laporan crash terbaru ke Amethyst melalui DM? Tidak ada informasi pribadi yang akan dibagikan</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Apakah Anda ingin mengirim laporan crash terbaru ke Astro melalui DM? Tidak ada informasi pribadi yang akan dibagikan</string>
     
     <string name="crashreport_found_send">Kirim</string>
     
@@ -4410,7 +4410,7 @@
     
     <string name="signer_not_found_exception_description">Apakah aplikasi penanda tangan telah dihapus? Periksa apakah penanda tangan terpasang dan memiliki akun ini. Keluar dan masuk kembali jika aplikasi penanda tangan telah berubah.</string>
     
-    <string name="signer_illegal_state_exception_description">Penanda tangan eksternal mengembalikan payload yang tidak sesuai dengan permintaan. Mungkin ada bug di Amethyst atau di penanda tangan.</string>
+    <string name="signer_illegal_state_exception_description">Penanda tangan eksternal mengembalikan payload yang tidak sesuai dengan permintaan. Mungkin ada bug di Astro atau di penanda tangan.</string>
     
     <string name="edited">diedit</string>
     
@@ -4538,7 +4538,7 @@
     
     <string name="send_payment_pay_button_empty">Bayar</string>
     
-    <string name="send_payment_no_methods">Profil ini tidak memiliki metode pembayaran yang dapat dibayar langsung oleh Amethyst.</string>
+    <string name="send_payment_no_methods">Profil ini tidak memiliki metode pembayaran yang dapat dibayar langsung oleh Astro.</string>
     
     <string name="send_payment_min_onchain">Zap on-chain memerlukan minimal %1$s sats</string>
     
@@ -4608,7 +4608,7 @@
     
     <string name="failed_to_save_the_video">Gagal menyimpan video</string>
     
-    <string name="pdf_saved_to_the_gallery">PDF disimpan ke Unduhan/Amethyst</string>
+    <string name="pdf_saved_to_the_gallery">PDF disimpan ke Unduhan/Astro</string>
     
     <string name="failed_to_save_the_pdf">Gagal menyimpan PDF</string>
     
@@ -4740,7 +4740,7 @@
         ## Tips Cadangan Kunci dan Keamanan
         \n\nAkun Anda diamankan dengan kunci rahasia. Kunci ini adalah rangkaian karakter panjang yang diawali dengan **nsec1**. Siapa pun yang memiliki akses ke kunci rahasia ini dapat memposting dan mengubah identitas Anda.
         \n\n- **Jangan** memasukkan kunci rahasia Anda ke situs web atau perangkat lunak yang tidak Anda percaya.
-        \n- Pengembang Amethyst **tidak akan pernah** meminta kunci rahasia Anda.
+        \n- Pengembang Astro **tidak akan pernah** meminta kunci rahasia Anda.
         \n- **Lakukan** pencadangan kunci rahasia Anda secara aman untuk pemulihan akun. Kami merekomendasikan penggunaan pengelola kata sandi.
     </string>
     
@@ -4771,7 +4771,7 @@
     
     <string name="share_as_image_generating">Membuat pratinjau…</string>
     
-    <string name="share_as_image_watermark">Dibagikan melalui Amethyst</string>
+    <string name="share_as_image_watermark">Dibagikan melalui Astro</string>
     
     <string name="quick_action_request_deletion_gallery_title">Hapus dari Galeri</string>
     
@@ -5125,7 +5125,7 @@
 
     <string name="workout_suggestion_connect_title">Bagikan latihan Anda</string>
 
-    <string name="workout_suggestion_connect_message">Biarkan Amethyst membaca latihan yang selesai dari Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) dan menyarankan postingan.</string>
+    <string name="workout_suggestion_connect_message">Biarkan Astro membaca latihan yang selesai dari Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) dan menyarankan postingan.</string>
 
     <string name="workout_suggestion_connect_button">Hubungkan</string>
 
@@ -5612,7 +5612,7 @@
 
     <string name="nests_servers_title">Server nest</string>
 
-    <string name="nests_servers_explainer">Pilih server host MoQ mana yang digunakan Amethyst untuk menerbitkan nest Anda. Entri pertama digunakan secara default saat Anda memulai ruang baru.</string>
+    <string name="nests_servers_explainer">Pilih server host MoQ mana yang digunakan Astro untuk menerbitkan nest Anda. Entri pertama digunakan secara default saat Anda memulai ruang baru.</string>
 
     <string name="nests_servers_my_section">Server Anda</string>
 
@@ -5628,7 +5628,7 @@
 
     <string name="nests_servers_auth_label">Auth</string>
 <string name="loading_account">Memuat akun</string>
-<string name="push_server_explainer">Pilih aplikasi UnifiedPush untuk mengirim notifikasi saat Amethyst ditutup.</string>
+<string name="push_server_explainer">Pilih aplikasi UnifiedPush untuk mengirim notifikasi saat Astro ditutup.</string>
 <string name="push_server_install_app">Pengaturan Notifikasi Push</string>
 <string name="push_server_install_app_description">
         Untuk menerima notifikasi push, instal aplikasi yang mendukung [Unified Push](https://unifiedpush.org/), seperti [Ntfy](https://ntfy.sh/).

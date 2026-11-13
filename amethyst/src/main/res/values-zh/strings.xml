@@ -168,7 +168,7 @@
     <string name="quick_action_unfollow">取关</string>
     <string name="quick_action_follow">关注</string>
     <string name="quick_action_request_deletion_alert_title">请求删贴</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst 将请求您的记录从当前连接的中继器中删除。不能保证您发布的笔记将被永久从那些中继器或其他存储笔记的中继器中删除。</string>
+    <string name="quick_action_request_deletion_alert_body">Astro 将请求您的记录从当前连接的中继器中删除。不能保证您发布的笔记将被永久从那些中继器或其他存储笔记的中继器中删除。</string>
     <string name="quick_action_block_dialog_btn">阻止</string>
     <string name="quick_action_delete_dialog_btn">删除</string>
     <string name="quick_action_block">隐藏</string>
@@ -273,7 +273,7 @@
     
 <string name="signer_not_found_exception_description">签名器被卸载？请检查是否已经安装了签名器以及其中是否存在该账户。变更签名器需要注销后重新登录。</string>
     
-<string name="signer_illegal_state_exception_description">外部签名器对该请求返回了不正常的载荷。这可能是 Amethyst 或签名器上的错误。</string>
+<string name="signer_illegal_state_exception_description">外部签名器对该请求返回了不正常的载荷。这可能是 Astro 或签名器上的错误。</string>
     
 <string name="edited">已编辑</string>
     
@@ -403,7 +403,7 @@
     
 <string name="send_payment_pay_button_empty">付款</string>
     
-<string name="send_payment_no_methods">此配置文件没有Amethyst可以直接支付的付款方法。</string>
+<string name="send_payment_no_methods">此配置文件没有Astro可以直接支付的付款方法。</string>
     
 <string name="send_payment_min_onchain">链上打闪需要至少 %1$s sat</string>
     
@@ -473,7 +473,7 @@
     
 <string name="failed_to_save_the_video">保存视频失败</string>
     
-<string name="pdf_saved_to_the_gallery">已保存 PDF 到 Downloads/Amethyst</string>
+<string name="pdf_saved_to_the_gallery">已保存 PDF 到 Downloads/Astro</string>
     
 <string name="failed_to_save_the_pdf">保存 PDF 失败</string>
     
@@ -612,7 +612,7 @@
 <string xmlns:ns0="http://schemas.android.com/tools" name="account_backup_tips2_md" ns0:ignore="Typos">## 备份与安全提示
         \n\n你的帐户由一个私钥保护。私钥是以**nsec1**开头的随机字符串。任何拥有你的私钥的人都可以使用你的身份发布内容。
         \n\n- **不要**将你的私钥添加到任何你不信任的网站或软件，亦不要在网上公开。
-        \n- Amethyst 开发人员**永远不会**要求你提供私钥。
+        \n- Astro 开发人员**永远不会**要求你提供私钥。
         \n- **请**保留你的私钥的安全备份，以备帐户恢复。我们建议使用密码管理器。
     </string>
     
@@ -646,7 +646,7 @@
     
 <string name="share_as_image_generating">正在生成预览…</string>
     
-<string name="share_as_image_watermark">通过 Amethyst 共享</string>
+<string name="share_as_image_watermark">通过 Astro 共享</string>
     
 <string name="quick_action_request_deletion_gallery_title">从相册中删除</string>
     
@@ -1490,7 +1490,7 @@
     
 <string name="nests_servers_title">语音聊天服务器</string>
     
-<string name="nests_servers_explainer">选择 Amethyst 将你的语音聊天室发布到哪些 MoQ 主机服务器。启动新空间时第一个条目将用作默认。</string>
+<string name="nests_servers_explainer">选择 Astro 将你的语音聊天室发布到哪些 MoQ 主机服务器。启动新空间时第一个条目将用作默认。</string>
     
 <string name="nests_servers_my_section">您的服务器</string>
     
@@ -1510,7 +1510,7 @@
     
 <string name="nests_servers_recommended_explainer">内置建议，您可轻触添加到列表中。</string>
     
-<string name="nests_servers_use_defaults">使用 Amethyst 默认值</string>
+<string name="nests_servers_use_defaults">使用 Astro 默认值</string>
     
 <string name="nests_servers_add_recommended">添加服务器</string>
     
@@ -1884,7 +1884,7 @@
     
 <string name="recommended_media_servers">推荐的媒体服务器</string>
     
-<string name="built_in_servers_description">Amethyst 的默认列表。可单独添加或添加整个列表。</string>
+<string name="built_in_servers_description">Astro 的默认列表。可单独添加或添加整个列表。</string>
     
 <string name="use_default_servers">使用默认列表</string>
     
@@ -2217,9 +2217,9 @@
     
 <string name="call_permission_denied_title">需要权限</string>
     
-<string name="call_permission_denied_voice">Amethyst 需要麦克风权限来开始语音通话。请在应用程序设置中启用它。</string>
+<string name="call_permission_denied_voice">Astro 需要麦克风权限来开始语音通话。请在应用程序设置中启用它。</string>
     
-<string name="call_permission_denied_video">Amethyst需要摄像头和麦克风访问权限来开始视频通话。请在应用程序设置中启用它们。</string>
+<string name="call_permission_denied_video">Astro需要摄像头和麦克风访问权限来开始视频通话。请在应用程序设置中启用它们。</string>
     
 <string name="call_permission_denied_open_settings">打开设置</string>
     
@@ -2257,7 +2257,7 @@
     
 <string name="always_on_notif_channel_description">保持与收件箱中继的连接以便接收实时通知</string>
     
-<string name="always_on_notif_title">Amethyst 通知活跃</string>
+<string name="always_on_notif_title">Astro 通知活跃</string>
     
 <plurals name="always_on_notif_connected">
     <item quantity="other">已连接到 %1$d 个收件箱中继</item>
@@ -2287,7 +2287,7 @@
     
 <string name="battery_optimization_title">电池优化已启用</string>
     
-<string name="battery_optimization_description">Android 可能会限制后台中继连接。禁用针对Amethyst电池优化以确保可靠的通知。</string>
+<string name="battery_optimization_description">Android 可能会限制后台中继连接。禁用针对Astro电池优化以确保可靠的通知。</string>
     
 <string name="battery_optimization_fix_now">立即修复</string>
     
@@ -2313,7 +2313,7 @@
     
 <string name="add_client_tag_title">将客户端标签添加到我的事件</string>
     
-<string name="add_client_tag_explainer">启用时，Amethyst 将会附加一个 NIP-89 客户端标签到您发布的事件。</string>
+<string name="add_client_tag_explainer">启用时，Astro 将会附加一个 NIP-89 客户端标签到您发布的事件。</string>
     
 <string name="warn_when_posts_have_reports_from_your_follows_title">举报警示</string>
     
@@ -2799,12 +2799,12 @@
     
 <string name="couldnt_find_nwc_wallets">未找到钱包</string>
     
-<string name="couldnt_find_nwc_wallets_description">Amethyst 找不到任何支持 Nostr Wallet Connect (NWC) 的钱包应用.
+<string name="couldnt_find_nwc_wallets_description">Astro 找不到任何支持 Nostr Wallet Connect (NWC) 的钱包应用.
 \n\n你可以做的事情：
 \n\t1. 验证 NWC 支持：仔细确认偏好的钱包应用和 Nostr Wallet Connect 兼容。
 \n\t2. 创建连接：前往钱包应用并创建新的 NWC 连接。
-\n\t3.链接到 Amethyst: 你的钱包通常会给你三个选项：
-\n\t\t3.1 自动链接：自动打开并连接到 Amethyst 的按钮。如果是这样， 单击那个按钮，打开 Amethyst 并在新屏上按保存。
+\n\t3.链接到 Astro: 你的钱包通常会给你三个选项：
+\n\t\t3.1 自动链接：自动打开并连接到 Astro 的按钮。如果是这样， 单击那个按钮，打开 Astro 并在新屏上按保存。
 \n\t\t3.2 手动链接: 你可以复制的连接 URI，单击这个屏幕上的粘贴图标直接输入它。
 \n\t\t3.3 二维码: 钱包会创建一个你可以从这个屏幕中的二维码按钮那里读取的二维码。
     </string>
@@ -2943,7 +2943,7 @@
     
 <string name="tor_connection_failed_title">Tor 未连接</string>
     
-<string name="tor_connection_failed_body">Amethyst 无法完成引导 Tor。 使用常规(非Tor)连接以便加载源吗？我们会记住该选择一个小时，并在这之后重试Tor连接。</string>
+<string name="tor_connection_failed_body">Astro 无法完成引导 Tor。 使用常规(非Tor)连接以便加载源吗？我们会记住该选择一个小时，并在这之后重试Tor连接。</string>
     
 <string name="tor_continue_without_for_session">使用常规连接</string>
     
@@ -2985,7 +2985,7 @@
     
 <string name="push_server_title">推送提供方</string>
     
-<string name="push_server_explainer">选择 UnifiedPush 应用，在Amethyst 关闭时发送通知。</string>
+<string name="push_server_explainer">选择 UnifiedPush 应用，在Astro 关闭时发送通知。</string>
     
 <string name="push_server_none">无</string>
     
@@ -4016,7 +4016,7 @@
     
 <string name="invalid_nip19_uri">地址无效</string>
     
-<string name="invalid_nip19_uri_description">Amethyst 收到了要打开的 URI，但该 uri 无效：%1$s</string>
+<string name="invalid_nip19_uri_description">Astro 收到了要打开的 URI，但该 uri 无效：%1$s</string>
     
 <string name="dm_relays_title">私信收件箱中继</string>
     
@@ -4070,7 +4070,7 @@
     
 <string name="public_home_section_explainer_profile">用户正在将其内容发布到这些中继</string>
     
-<string name="public_home_section_explainer">这类中继会保存您的所有内容。Amethyst 会将您的事件发送到这些中继，其他人则通过这些中继查找您的内容。可以设置 1 ~ 3 个中继。它们可以是个人专用中继、付费中继或者公共中继。</string>
+<string name="public_home_section_explainer">这类中继会保存您的所有内容。Astro 会将您的事件发送到这些中继，其他人则通过这些中继查找您的内容。可以设置 1 ~ 3 个中继。它们可以是个人专用中继、付费中继或者公共中继。</string>
     
 <string name="public_notif_section">公共收件箱中继</string>
     
@@ -4491,7 +4491,7 @@
     
 <string name="crashreport_found">找到了崩溃报告</string>
     
-<string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">要用私信将最近的崩溃报告发送给 Amethyst 吗？不会分享个人信息</string>
+<string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">要用私信将最近的崩溃报告发送给 Astro 吗？不会分享个人信息</string>
     
 <string name="crashreport_found_send">发送它</string>
     

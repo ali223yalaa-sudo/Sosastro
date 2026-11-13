@@ -71,7 +71,7 @@
     <string name="unauthorized_exception_description">இந்த செயல்பாட்டை முடிக்க தேவையான மறைகுறியாக்கத்தை கையெழுத்திட்டவர் அங்கீகரிக்கவில்லை. உங்கள் கையெழுத்திட்டவர் செயலியில் NIP-44 மறைகுறியாக்கங்களை இயக்கி மீண்டும் முயற்சிக்கவும்</string>
     <string name="signer_not_found_exception">கையெழுத்திட்டவர் கண்டுபிடிக்கப்படவில்லை</string>
     <string name="signer_not_found_exception_description">கையெழுத்திட்டவர் செயலி நிறுவல் நீக்கம் செய்யப்பட்டதா? கையெழுத்திட்டவர் நிறுவப்பட்டு இந்த கணக்கை வைத்திருக்கிறதா என சரிபார்க்கவும். கையெழுத்திட்டவர் செயலி மாறியிருந்தால் வெளியேறி மீண்டும் உள்நுழைக.</string>
-    <string name="signer_illegal_state_exception_description">வெளிப்புற கையெழுத்திட்டவர் கோரிக்கைக்கு அசாதாரணமான தரவை திரும்ப அனுப்பியது. Amethyst அல்லது கையெழுத்திட்டவரில் ஒரு பிழை இருக்கலாம்.</string>
+    <string name="signer_illegal_state_exception_description">வெளிப்புற கையெழுத்திட்டவர் கோரிக்கைக்கு அசாதாரணமான தரவை திரும்ப அனுப்பியது. Astro அல்லது கையெழுத்திட்டவரில் ஒரு பிழை இருக்கலாம்.</string>
     <string name="zaps">ஜாப்கள்</string>
     <string name="boost">உயர்த்து</string>
     <string name="boosted">உயர்த்தப்பட்டது</string>
@@ -150,7 +150,7 @@
     <string name="send_payment_done">முடிந்தது</string>
     <string name="send_payment_pay_button">%1$s sats செலுத்து</string>
     <string name="send_payment_pay_button_empty">செலுத்து</string>
-    <string name="send_payment_no_methods">இந்த சுயவிவரத்தில் Amethyst நேரடியாக செலுத்தக்கூடிய பணம் செலுத்தும் முறைகள் இல்லை.</string>
+    <string name="send_payment_no_methods">இந்த சுயவிவரத்தில் Astro நேரடியாக செலுத்தக்கூடிய பணம் செலுத்தும் முறைகள் இல்லை.</string>
     <string name="send_payment_min_onchain">ஆன்-செயின் zaps குறைந்தது %1$s sats தேவை</string>
     <string name="send_payment_cashu_insufficient">இந்த பெறுநர் ஏற்கும் மிண்டில் போதுமான இருப்பு இல்லை. முதலில் உங்கள் Cashu பணப்பையை நிரப்பவும்.</string>
     <string name="send_payment_cashu_balance">இந்த பெறுநருக்கு செலவிடக்கூடியது: %1$s sats</string>
@@ -210,7 +210,7 @@
     <string name="failed_to_save_the_image">படத்தைச் சேமிக்க இயலவில்லை</string>
     <string name="video_saved_to_the_gallery">வீடியோ தொலைபேசியின் வீடியோ தொகுப்பில் சேமிக்கப்பட்டது</string>
     <string name="failed_to_save_the_video">வீடியோவை சேமிக்க தோல்வியடைந்தது</string>
-    <string name="pdf_saved_to_the_gallery">PDF, Downloads/Amethyst இல் சேமிக்கப்பட்டது</string>
+    <string name="pdf_saved_to_the_gallery">PDF, Downloads/Astro இல் சேமிக்கப்பட்டது</string>
     <string name="failed_to_save_the_pdf">PDF ஐ சேமிக்க தோல்வியடைந்தது</string>
     <string name="upload_image">படத்தைப் பதிவேற்று</string>
     <string name="upload_file">கோப்பை பதிவேற்று</string>
@@ -352,7 +352,7 @@
     <string name="account_backup_tips2_md" tools:ignore="Typos">        ## திறவுகோல் காப்புப்பிரதி மற்றும் பாதுகாப்பு குறிப்புகள்
         \n\nஉங்கள் கணக்கு ஒரு இரகசிய திறவுகோலால் பாதுகாக்கப்படுகிறது. இந்த திறவுகோல் **nsec1** என்று தொடங்கும் நீண்ட எழுத்துத் தொடராகும். இந்த இரகசிய திறவுகோலை யாராவது பெற்றால் அவர்கள் உங்கள் அடையாளத்தை பயன்படுத்தி இடுகையிடலாம் மற்றும் மாற்றலாம்.
         \n\n- உங்கள் இரகசிய திறவுகோலை நீங்கள் நம்பாத எந்த வலைத்தளத்திலும் அல்லது மென்பொருளிலும் வைக்க **வேண்டாம்**.
-        \n- Amethyst டெவலப்பர்கள் உங்கள் இரகசிய திறவுகோலை **ஒருபோதும்** கேட்கமாட்டார்கள்.
+        \n- Astro டெவலப்பர்கள் உங்கள் இரகசிய திறவுகோலை **ஒருபோதும்** கேட்கமாட்டார்கள்.
         \n- கணக்கு மீட்டெடுப்புக்காக உங்கள் இரகசிய திறவுகோலை பாதுகாப்பாக காப்புப்பிரதி எடுங்கள். கடவுச்சொல் மேலாளரை பயன்படுத்த பரிந்துரைக்கிறோம்.
     </string>
     <string name="account_backup_tips3_md" tools:ignore="Typos">        கூடுதல் பாதுகாப்புக்காக, உங்கள் திறவுகோலை கடவுச்சொல்லால் குறியாக்கலாம். இந்த திறவுகோல் **ncryptsec1** என்று தொடங்கும் மற்றும் உங்கள் கடவுச்சொல்லின்றி பயன்படுத்த முடியாது.
@@ -390,7 +390,7 @@
     <string name="share_as_image">படமாக பகிரவும்</string>
     <string name="share_as_image_url">படத்தின் URL ஆக பகிரவும்</string>
     <string name="share_as_image_generating">முன்னோட்டம் உருவாக்குகிறது…</string>
-    <string name="share_as_image_watermark">Amethyst வழியாக பகிரப்பட்டது</string>
+    <string name="share_as_image_watermark">Astro வழியாக பகிரப்பட்டது</string>
     <string name="quick_action_copy_user_id">பயனர் ஐடி</string>
     <string name="quick_action_copy_note_id">பதிவின் எண்</string>
     <string name="quick_action_copy_text">உரையைப் படியெடு</string>
@@ -604,7 +604,7 @@
     <string name="workout_minutes">நிமிடங்கள்</string>
     <string name="workout_seconds">வினாடிகள்</string>
     <string name="workout_suggestion_connect_title">உங்கள் உடற்பயிற்சிகளை பகிர்ந்து கொள்ளுங்கள்</string>
-    <string name="workout_suggestion_connect_message">Amethyst ஐ Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) இலிருந்து முடிந்த உடற்பயிற்சிகளை படிக்க அனுமதிக்கவும் மற்றும் ஒரு இடுகையை பரிந்துரைக்கட்டும்.</string>
+    <string name="workout_suggestion_connect_message">Astro ஐ Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) இலிருந்து முடிந்த உடற்பயிற்சிகளை படிக்க அனுமதிக்கவும் மற்றும் ஒரு இடுகையை பரிந்துரைக்கட்டும்.</string>
     <string name="workout_suggestion_connect_button">இணைக்கவும்</string>
     <string name="workout_suggestion_distance_km">%1$s கி.மீ</string>
     <string name="workout_from_health_connect">Health Connect இலிருந்து</string>
@@ -706,7 +706,7 @@
     <!-- Signer trust levels -->
     <!-- Signer per-op consent dialog -->
     <!-- Signer op labels -->
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <!-- Permissions management screen -->
     <!-- Relay Authentication (NIP-42) settings -->
     <!-- Action-aware titles: %1$s is the person (or "Alice and others"). -->
@@ -850,13 +850,13 @@
     <string name="nest_create_schedule_toggle">பிறகு திட்டமிடு</string>
     <string name="nest_create_when">தொடக்க நேரத்தை தேர்வு செய்</string>
     <string name="nests_servers_title">Nest சேவையகங்கள்</string>
-    <string name="nests_servers_explainer">Amethyst உங்கள் nests ஐ எந்த MoQ வழங்குநர் சேவையகங்களில் வெளியிடுகிறது என்பதை தேர்வு செய்யவும். புதிய இடம் தொடங்கும்போது முதல் உள்ளீடு இயல்புநிலையாக பயன்படுத்தப்படும்.</string>
+    <string name="nests_servers_explainer">Astro உங்கள் nests ஐ எந்த MoQ வழங்குநர் சேவையகங்களில் வெளியிடுகிறது என்பதை தேர்வு செய்யவும். புதிய இடம் தொடங்கும்போது முதல் உள்ளீடு இயல்புநிலையாக பயன்படுத்தப்படும்.</string>
     <string name="nests_servers_my_section">உங்கள் சேவையகங்கள்</string>
     <string name="nests_servers_my_explainer">மற்ற கிளையர்கள் உங்கள் விருப்பத்தை படிக்கும் வகையில் kind-10112 மாற்று நிகழ்வாக சேமிக்கப்படும்.</string>
     <string name="nests_servers_add_pair_button">சேர்</string>
     <string name="nests_servers_recommended_section">பரிந்துரைக்கப்பட்ட சேவையகங்கள்</string>
     <string name="nests_servers_recommended_explainer">ஒரு தட்டுதலில் உங்கள் பட்டியலில் சேர்க்கக்கூடிய உள்ளமைக்கப்பட்ட பரிந்துரைகள்.</string>
-    <string name="nests_servers_use_defaults">Amethyst இயல்புநிலைகளை பயன்படுத்து</string>
+    <string name="nests_servers_use_defaults">Astro இயல்புநிலைகளை பயன்படுத்து</string>
     <string name="nests_servers_add_recommended">சேவையகம் சேர்</string>
     <string name="nests_servers_remove">சேவையகம் நீக்கு</string>
     <string name="nests_servers_empty">இன்னும் nest சேவையகங்கள் இல்லை. கீழே ஒன்று சேர்க்கவும் அல்லது பரிந்துரைக்கப்பட்ட சேவையகத்தை தேர்வு செய்யவும்.</string>
@@ -1051,9 +1051,9 @@
     <string name="local_blossom_cache_not_detected">போர்ட் 24242 இல் உள்ளூர் தற்காலிக சேமிப்பு கண்டறியப்படவில்லை.</string>
     <string name="local_blossom_cache_profile_pics_only">சுயவிவர படங்களை மட்டும் தற்காலிகமாக சேமி</string>
     <string name="local_blossom_cache_profile_pics_only_caption">உள்ளூர் தற்காலிக சேமிப்பை சுயவிவர படங்களுக்கு மட்டும் கட்டுப்படுத்தவும். ஊட்ட படங்களும் வீடியோக்களும் நேரடியாக அசல் சேவையகங்களிலிருந்து பெறப்படும்.</string>
-    <string name="no_blossom_server_message">உங்களிடம் Blossom சேவையகங்கள் அமைக்கப்படவில்லை. Amethyst\'ன் பட்டியலை பயன்படுத்தலாம் அல்லது கீழே ஒன்றை சேர்க்கலாம் ↓</string>
+    <string name="no_blossom_server_message">உங்களிடம் Blossom சேவையகங்கள் அமைக்கப்படவில்லை. Astro\'ன் பட்டியலை பயன்படுத்தலாம் அல்லது கீழே ஒன்றை சேர்க்கலாம் ↓</string>
     <string name="recommended_media_servers">பரிந்துரைக்கப்பட்ட மீடியா சேவையகங்கள்</string>
-    <string name="built_in_servers_description">Amethyst\'ன் இயல்புநிலை பட்டியல். அவற்றை தனித்தனியாக சேர்க்கலாம் அல்லது பட்டியலை சேர்க்கலாம்.</string>
+    <string name="built_in_servers_description">Astro\'ன் இயல்புநிலை பட்டியல். அவற்றை தனித்தனியாக சேர்க்கலாம் அல்லது பட்டியலை சேர்க்கலாம்.</string>
     <string name="use_default_servers">இயல்புநிலை பட்டியல் பயன்படுத்து</string>
     <string name="add_media_server">மீடியா சேவையகம் சேர்</string>
     <string name="delete_media_server">மீடியா சேவையகம் நீக்கு</string>
@@ -1217,8 +1217,8 @@
     <string name="call_add_participant">பங்கேற்பாளரை சேர்</string>
     <string name="call_search_users">பயனர்களை தேடு…</string>
     <string name="call_permission_denied_title">அனுமதி தேவை</string>
-    <string name="call_permission_denied_voice">குரல் அழைப்பை தொடங்க Amethyst க்கு மைக்ரோஃபோன் அணுகல் தேவை. பயன்பாட்டு அமைப்புகளில் அதை இயக்கவும்.</string>
-    <string name="call_permission_denied_video">வீடியோ அழைப்பை தொடங்க Amethyst க்கு கேமரா மற்றும் மைக்ரோஃபோன் அணுகல் தேவை. பயன்பாட்டு அமைப்புகளில் அவற்றை இயக்கவும்.</string>
+    <string name="call_permission_denied_voice">குரல் அழைப்பை தொடங்க Astro க்கு மைக்ரோஃபோன் அணுகல் தேவை. பயன்பாட்டு அமைப்புகளில் அதை இயக்கவும்.</string>
+    <string name="call_permission_denied_video">வீடியோ அழைப்பை தொடங்க Astro க்கு கேமரா மற்றும் மைக்ரோஃபோன் அணுகல் தேவை. பயன்பாட்டு அமைப்புகளில் அவற்றை இயக்கவும்.</string>
     <string name="call_permission_denied_open_settings">அமைப்புகளை திற</string>
     <string name="call_permission_denied_cancel">ரத்துசெய்</string>
     <string name="call_settings">அழைப்பு அமைப்புகள்</string>
@@ -1237,7 +1237,7 @@
     <string name="call_settings_turn_username">பயனர்பெயர்</string>
     <string name="call_settings_turn_credential">சான்றோலை</string>
     <string name="always_on_notif_channel_description">நிகழ்நேர அறிவிப்புகளுக்காக உங்கள் inbox relays உடன் இணைப்புகளை செயலில் வைக்கிறது</string>
-    <string name="always_on_notif_title">Amethyst அறிவிப்புகள் செயலில்</string>
+    <string name="always_on_notif_title">Astro அறிவிப்புகள் செயலில்</string>
     <plurals name="always_on_notif_connected">
         <item quantity="one">%1$d inbox relay-உடன் இணைக்கப்பட்டது</item>
         <item quantity="other">%1$d inbox relays-உடன் இணைக்கப்பட்டது</item>
@@ -1256,7 +1256,7 @@
     <string name="notification_tab_following">தொடர்பவர்கள்</string>
     <string name="notification_tab_everyone">அனைவரும்</string>
     <string name="battery_optimization_title">பேட்டரி மேம்படுத்தல் செயலில்</string>
-    <string name="battery_optimization_description">Android பின்னணியில் relay இணைப்புகளை கட்டுப்படுத்தலாம். நம்பகமான அறிவிப்புகளை உறுதி செய்ய Amethyst க்கான பேட்டரி மேம்படுத்தலை முடக்கவும்.</string>
+    <string name="battery_optimization_description">Android பின்னணியில் relay இணைப்புகளை கட்டுப்படுத்தலாம். நம்பகமான அறிவிப்புகளை உறுதி செய்ய Astro க்கான பேட்டரி மேம்படுத்தலை முடக்கவும்.</string>
     <string name="battery_optimization_fix_now">இப்போதே சரிசெய்</string>
     <string name="reply_notify">தெரிவிக்க</string>
     <string name="today">இன்று</string>
@@ -1269,7 +1269,7 @@
     <string name="filter_spam_from_strangers_title">ஸ்பாம் வடிகட்டு</string>
     <string name="filter_spam_from_strangers_explainer">5 அல்லது அதிகமான முறை சரியாக ஒரே மாதிரியான அந்நியர்களின் இடுகைகளை மறைக்கிறது</string>
     <string name="add_client_tag_title">என் நிகழ்வுகளில் கிளையண்ட் குறிச்சொல் சேர்</string>
-    <string name="add_client_tag_explainer">இயக்கப்படும்போது, Amethyst நீங்கள் வெளியிடும் நிகழ்வுகளில் NIP-89 கிளையண்ட் குறிச்சொல்லை இணைக்கிறது.</string>
+    <string name="add_client_tag_explainer">இயக்கப்படும்போது, Astro நீங்கள் வெளியிடும் நிகழ்வுகளில் NIP-89 கிளையண்ட் குறிச்சொல்லை இணைக்கிறது.</string>
     <string name="warn_when_posts_have_reports_from_your_follows_title">அறிக்கைகளில் எச்சரி</string>
     <string name="warn_when_posts_have_reports_from_your_follows_explainer">இடுகைகள் அல்லது சுயவிவரங்களுக்கு உங்கள் தொடர்புகளிடமிருந்து அறிக்கைகள் இருக்கும்போது எச்சரிக்கை செய்தி காட்டுகிறது</string>
     <string name="report_warning_threshold_title">அறிக்கை எச்சரிக்கை வரம்பு</string>
@@ -1512,12 +1512,12 @@
     <string name="messages_new_subject_message_placeholder">புதிய இலக்குகளுக்காக பெயரை மாற்றுகிறது.</string>
     <string name="paste_from_clipboard">கிளிப்போர்டிலிருந்து ஒட்டு</string>
     <string name="couldnt_find_nwc_wallets">வாலட் கிடைக்கவில்லை</string>
-    <string name="couldnt_find_nwc_wallets_description">Nostr Wallet Connect (NWC)-ஐ ஆதரிக்கும் எந்த பணப்பை பயன்பாடுகளையும் Amethyst கண்டுபிடிக்கவில்லை.
+    <string name="couldnt_find_nwc_wallets_description">Nostr Wallet Connect (NWC)-ஐ ஆதரிக்கும் எந்த பணப்பை பயன்பாடுகளையும் Astro கண்டுபிடிக்கவில்லை.
 \n\nநீங்கள் செய்யக்கூடியவை:
 \n\t1. NWC ஆதரவை சரிபாருங்கள்: உங்கள் விருப்பமான பணப்பை பயன்பாடு Nostr Wallet Connect-உடன் இணக்கமானதா என இரட்டிப்பு சரிபாருங்கள்.
 \n\t2. இணைப்பை உருவாக்குங்கள்: உங்கள் பணப்பை பயன்பாட்டிற்கு சென்று புதிய NWC இணைப்பை உருவாக்குங்கள்.
-\n\t3. Amethyst-உடன் இணைக்குங்கள்: உங்கள் பணப்பை பொதுவாக மூன்று விருப்பங்களை வழங்கும்:
-\n\t\t3.1 தானியங்கி இணைப்பு: Amethyst-ஐ தானாக திறந்து இணைக்க ஒரு பொத்தான். அவ்வாறிருந்தால், அந்த பொத்தானை அழுத்தி Amethyst-ஐ திறந்து புதிய திரையில் சேமி அழுத்துங்கள்.
+\n\t3. Astro-உடன் இணைக்குங்கள்: உங்கள் பணப்பை பொதுவாக மூன்று விருப்பங்களை வழங்கும்:
+\n\t\t3.1 தானியங்கி இணைப்பு: Astro-ஐ தானாக திறந்து இணைக்க ஒரு பொத்தான். அவ்வாறிருந்தால், அந்த பொத்தானை அழுத்தி Astro-ஐ திறந்து புதிய திரையில் சேமி அழுத்துங்கள்.
 \n\t\t3.2 கைமுறை இணைப்பு: நீங்கள் நகலெடுக்கக்கூடிய Connection URI, இந்த திரையில் ஒட்டு ஐகானை அழுத்தி நேரடியாக உள்ளிடலாம்.
 \n\t\t3.3 QR குறியீடு: பணப்பை ஒரு QR குறியீட்டை உருவாக்கும், இந்த திரையில் QR குறியீடு பொத்தானிலிருந்து படிக்கலாம்.
     </string>
@@ -1588,7 +1588,7 @@
     <string name="error_unable_to_fetch_invoice">பெறுநரின் சேவையகங்களிலிருந்து இன்வாய்ஸை பெற முடியவில்லை</string>
     <string name="wallet_connect_pay_invoice_error_error">உங்கள் wallet connect வழங்குனர் பின்வரும் பிழையை திருப்பி அனுப்பியது: %1$s</string>
     <string name="tor_connection_failed_title">Tor இணைக்கப்படவில்லை</string>
-    <string name="tor_connection_failed_body">Amethyst க்கு Tor இன் bootstrapping ஐ முடிக்க முடியவில்லை. ஊட்டம் ஏற்றப்படுவதற்கு வழக்கமான (Tor அல்லாத) இணைப்பை பயன்படுத்தவா? இந்த தேர்வை அடுத்த ஒரு மணி நேரம் நினைவில் வைத்து அதன் பிறகு Tor ஐ மீண்டும் முயற்சிப்போம்.</string>
+    <string name="tor_connection_failed_body">Astro க்கு Tor இன் bootstrapping ஐ முடிக்க முடியவில்லை. ஊட்டம் ஏற்றப்படுவதற்கு வழக்கமான (Tor அல்லாத) இணைப்பை பயன்படுத்தவா? இந்த தேர்வை அடுத்த ஒரு மணி நேரம் நினைவில் வைத்து அதன் பிறகு Tor ஐ மீண்டும் முயற்சிப்போம்.</string>
     <string name="tor_continue_without_for_session">வழக்கமான இணைப்பை பயன்படுத்து</string>
     <string name="tor_keep_waiting">தொடர்ந்து காத்திரு</string>
     <string name="could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup">Lightning முகவரி \"%1$s\" இலிருந்து LNUrl ஐ உருவாக்க முடியவில்லை. பயனரின் அமைப்பை சரிபார்க்கவும்</string>
@@ -1609,7 +1609,7 @@
     <string name="notification_channel_status_off">அணைப்பு</string>
     <string name="select_push_server">ஒரு UnifiedPush ஆப்பை தேர்ந்தெடுக்கவும்</string>
     <string name="push_server_title">புஷ் வழங்குநர்</string>
-    <string name="push_server_explainer">Amethyst மூடப்பட்டிருக்கும்போது அறிவிப்புகளை வழங்க ஒரு UnifiedPush ஆப்பை தேர்ந்தெடுக்கவும்.</string>
+    <string name="push_server_explainer">Astro மூடப்பட்டிருக்கும்போது அறிவிப்புகளை வழங்க ஒரு UnifiedPush ஆப்பை தேர்ந்தெடுக்கவும்.</string>
     <string name="push_server_none">எதுவுமில்லை</string>
     <string name="push_server_none_explainer">புஷ் அறிவிப்புகளை முடக்கும்</string>
     <string name="push_server_uses_app_explainer">%1$s ஆப்பை பயன்படுத்துகிறது</string>
@@ -2131,7 +2131,7 @@
     <string name="show_npub_as_a_qr_code">npub-ஐ QR குறியீடாகக் காட்டு</string>
     <string name="show_nprofile_as_a_qr_code">nprofile-ஐ QR குறியீடாகக் காட்டு</string>
     <string name="invalid_nip19_uri">தவறான முகவரி</string>
-    <string name="invalid_nip19_uri_description">Amethyst திறக்க ஒரு URI பெற்றது, ஆனால் அந்த URI தவறானது: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro திறக்க ஒரு URI பெற்றது, ஆனால் அந்த URI தவறானது: %1$s</string>
     <string name="dm_relays_title">DM இன்பாக்ஸ் Relays</string>
     <string name="dm_relays_not_found">உங்கள் தனிப்பட்ட இன்பாக்ஸ் relays அமைக்கவும்</string>
     <string name="dm_relays_not_found_description">இந்த அமைப்பு உங்களுக்கு செய்திகள் அனுப்பும்போது எந்த relays பயன்படுத்த வேண்டும் என்று அனைவருக்கும் தெரிவிக்கிறது. இவை இல்லாமல் சில செய்திகளை நீங்கள் தவறவிடலாம்.</string>
@@ -2158,7 +2158,7 @@
     <string name="relay_reorder">Relay-ஐ மறுவரிசைப்படுத்து</string>
     <string name="public_home_section">பொது அவுட்பாக்ஸ்/முகப்பு Relays</string>
     <string name="public_home_section_explainer_profile">பயனர் இந்த relays-ல் தன் உள்ளடக்கத்தை இடுகையிடுகிறார்</string>
-    <string name="public_home_section_explainer">இந்த relay வகை உங்கள் அனைத்து உள்ளடக்கத்தையும் சேமிக்கிறது. Amethyst உங்கள் இடுகைகளை இங்கே அனுப்பும், மற்றவர்கள் உங்கள் உள்ளடக்கத்தை கண்டுபிடிக்க இந்த relays பயன்படுத்துவார்கள். 1–3 relays சேர்க்கவும். அவை தனிப்பட்ட relays, கட்டண relays அல்லது பொது relays ஆக இருக்கலாம்.</string>
+    <string name="public_home_section_explainer">இந்த relay வகை உங்கள் அனைத்து உள்ளடக்கத்தையும் சேமிக்கிறது. Astro உங்கள் இடுகைகளை இங்கே அனுப்பும், மற்றவர்கள் உங்கள் உள்ளடக்கத்தை கண்டுபிடிக்க இந்த relays பயன்படுத்துவார்கள். 1–3 relays சேர்க்கவும். அவை தனிப்பட்ட relays, கட்டண relays அல்லது பொது relays ஆக இருக்கலாம்.</string>
     <string name="public_notif_section">பொது இன்பாக்ஸ் Relays</string>
     <string name="public_notif_section_explainer_profile">பயனர் இந்த relays-ல் அறிவிப்புகளைப் பெறுகிறார்</string>
     <string name="public_notif_section_explainer">இந்த relay வகை உங்கள் இடுகைகளுக்கான அனைத்து பதில்கள், கருத்துகள், விருப்பங்கள் மற்றும் zaps பெறுகிறது. அவை கட்டண அல்லது இலவச relays ஆக இருக்கலாம். relay ஆபரேட்டர் அமைக்கும் வரம்புகள் நல்லதற்கும் கெட்டதற்கும் நீங்கள் பெறும் அறிவிப்புகளை கட்டுப்படுத்தலாம். எடுத்துக்காட்டாக, கருத்து ஸ்பாம் தாக்குதலுக்கு உட்பட்டால், கட்டண relays ஸ்பாமை வடிகட்டலாம். 1–3 relays சேர்க்கவும்.</string>
@@ -2185,13 +2185,13 @@
     <string name="proxy_section_explainer">filter.nostr.wine போன்ற ஒருங்கிணைப்பு relays, பயன்பாடு உங்கள் ஊட்டங்களை பதிவிறக்க பயன்படுத்த வேண்டும். இது அவுட்பாக்ஸ் மாதிரியை மாற்றுகிறது, பயன்பாட்டை உங்கள் பட்டியல்களில் உள்ள relays மட்டுமே இணைக்கும்.</string>
     <string name="broadcast_relays_title">ஒளிபரப்பு Relays</string>
     <string name="broadcast_section">ஒளிபரப்பு Relays</string>
-    <string name="broadcast_section_explainer">sendit.nosflare.com போன்ற, உங்கள் குறிப்புகளை மற்ற அனைத்து relays-க்கும் தள்ளுவதில் நிபுணத்துவம் பெற்ற Relays. Amethyst நீங்கள் செய்யும் அனைத்து புதிய நிகழ்வுகளிலும் இந்த relay-ஐ சேர்க்கும்</string>
+    <string name="broadcast_section_explainer">sendit.nosflare.com போன்ற, உங்கள் குறிப்புகளை மற்ற அனைத்து relays-க்கும் தள்ளுவதில் நிபுணத்துவம் பெற்ற Relays. Astro நீங்கள் செய்யும் அனைத்து புதிய நிகழ்வுகளிலும் இந்த relay-ஐ சேர்க்கும்</string>
     <string name="indexer_relays_title">குறியீட்டாளர் Relays</string>
     <string name="indexer_section">குறியீட்டாளர் Relays</string>
-    <string name="indexer_section_explainer">purplepag.es போன்ற, அனைவரின் மெட்டாடேட்டா மற்றும் relay பட்டியல்களை வழங்குவதில் நிபுணத்துவம் பெற்ற Relays. உங்கள் பட்டியல்களில் இல்லாத பயனர்களை கண்டுபிடிக்க Amethyst இந்த relays பயன்படுத்தும்.</string>
+    <string name="indexer_section_explainer">purplepag.es போன்ற, அனைவரின் மெட்டாடேட்டா மற்றும் relay பட்டியல்களை வழங்குவதில் நிபுணத்துவம் பெற்ற Relays. உங்கள் பட்டியல்களில் இல்லாத பயனர்களை கண்டுபிடிக்க Astro இந்த relays பயன்படுத்தும்.</string>
     <string name="blocked_relays_title">தடுக்கப்பட்ட Relays</string>
     <string name="blocked_section">தடுக்கப்பட்ட Relays</string>
-    <string name="blocked_section_explainer">Amethyst இந்த relays-க்கு ஒருபோதும் இணைக்காது</string>
+    <string name="blocked_section_explainer">Astro இந்த relays-க்கு ஒருபோதும் இணைக்காது</string>
     <string name="export_relay_settings">Relay அமைப்புகளை ஏற்றுமதி செய்</string>
     <string name="export_as_text">உரையாக ஏற்றுமதி செய்</string>
     <string name="export_as_zip">ZIP (JSON) ஆக ஏற்றுமதி செய்</string>
@@ -2358,7 +2358,7 @@
     <string name="feed_filter_selected">ஊட்ட வடிகட்டி, %1$s தேர்ந்தெடுக்கப்பட்டது</string>
     <string name="feed_filter_select_an_option">ஊட்ட வடிகட்டி, %1$s</string>
     <string name="crashreport_found">செயலிழப்பு அறிக்கை கிடைத்தது</string>
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">சமீபத்திய செயலிழப்பு அறிக்கையை DM மூலம் Amethyst-க்கு அனுப்ப விரும்புகிறீர்களா? எந்த தனிப்பட்ட தகவலும் பகிரப்படாது</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">சமீபத்திய செயலிழப்பு அறிக்கையை DM மூலம் Astro-க்கு அனுப்ப விரும்புகிறீர்களா? எந்த தனிப்பட்ட தகவலும் பகிரப்படாது</string>
     <string name="crashreport_found_send">அனுப்புங்கள்</string>
     <string name="this_message_will_disappear_in">இந்த செய்தி %1$s-ல் மறைந்துவிடும்</string>
     <string name="select_signer">கையொப்பமிடுபவரை தேர்ந்தெடுக்கவும்</string>

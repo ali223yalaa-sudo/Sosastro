@@ -106,7 +106,7 @@
     <string name="unauthorized_exception_description">لم يأذن الموقِّع بعملية فك التشفير المطلوبة لإتمام هذه العملية. قم بتفعيل فك تشفير NIP-44 في تطبيق الموقِّع وحاول مرة أخرى</string>
     <string name="signer_not_found_exception">الموقِّع غير موجود</string>
     <string name="signer_not_found_exception_description">هل تم إلغاء تثبيت تطبيق الموقِّع؟ تحقق من تثبيته وأنه يحتوي على هذا الحساب. سجّل الخروج وأعد تسجيل الدخول إن تغيّر تطبيق الموقِّع.</string>
-    <string name="signer_illegal_state_exception_description">أعاد الموقِّع الخارجي بيانات غير متوقعة للطلب. قد يكون هناك خطأ في Amethyst أو في تطبيق الموقِّع.</string>
+    <string name="signer_illegal_state_exception_description">أعاد الموقِّع الخارجي بيانات غير متوقعة للطلب. قد يكون هناك خطأ في Astro أو في تطبيق الموقِّع.</string>
     <string name="zaps">زاب</string>
     <string name="boost">تعزيز</string>
     <string name="boosted">معزز</string>
@@ -185,7 +185,7 @@
     <string name="send_payment_done">تم</string>
     <string name="send_payment_pay_button">دفع %1$s sat</string>
     <string name="send_payment_pay_button_empty">دفع</string>
-    <string name="send_payment_no_methods">لا توجد طرق دفع في هذا الملف الشخصي يمكن لـ Amethyst الدفع بها مباشرةً.</string>
+    <string name="send_payment_no_methods">لا توجد طرق دفع في هذا الملف الشخصي يمكن لـ Astro الدفع بها مباشرةً.</string>
     <string name="send_payment_min_onchain">تتطلب zaps الـ on-chain ما لا يقل عن %1$s sat</string>
     <string name="send_payment_cashu_insufficient">لا يوجد رصيد كافٍ في mint يقبله هذا المستلم. أعد شحن محفظة Cashu أولًا.</string>
     <string name="send_payment_cashu_balance">القابل للإنفاق لهذا المستلم: %1$s sat</string>
@@ -248,7 +248,7 @@
     <string name="failed_to_save_the_image">فشل حفظ الصورة</string>
     <string name="video_saved_to_the_gallery">تم حفظ الفيديو في الجهاز</string>
     <string name="failed_to_save_the_video">فشل حفظ الفيديو</string>
-    <string name="pdf_saved_to_the_gallery">تم حفظ ملف PDF في Downloads/Amethyst</string>
+    <string name="pdf_saved_to_the_gallery">تم حفظ ملف PDF في Downloads/Astro</string>
     <string name="failed_to_save_the_pdf">فشل حفظ ملف PDF</string>
     <string name="upload_image">تحميل الصورة</string>
     <string name="upload_file">رفع ملف</string>
@@ -407,7 +407,7 @@
     <string name="account_backup_tips2_md" tools:ignore="Typos">        ## النصائح الرئيسية للنسخ الاحتياطي والسلامة
         \n\n- يتم تأمين حسابك بمفتاح سري. المفتاح السري هو سلسلة عشوائية طويلة تبدأ بـ **nsec1**. أي شخص لديه مفتاحك السري يمكنه نشر المحتوى باستخدام هويتك.
         \n\n- لا تقم بوضع مفتاحك السري في أي موقع أو برنامج لا تثق به.
-        \n- مطوري Amethyst لن يطلبوا منك **أبدا** المفتاح السري الخاص بك.
+        \n- مطوري Astro لن يطلبوا منك **أبدا** المفتاح السري الخاص بك.
         \n- حافظ على نسخة احتياطية آمنة لمفتاحك السري لاسترداد الحساب. نوصي باستخدام برنامج لادارة كلمات المرور.
     </string>
     <string name="account_backup_tips3_md" tools:ignore="Typos">        للحصول على أمان إضافي، يمكنك تشفير مفتاحك الخاص بكلمة مرور. يبدأ هذا المفتاح المشفر بـ **ncryptsec1** ولا يمكن استخدامه دون كلمة المرور الخاصة بك.
@@ -446,7 +446,7 @@
     <string name="share_as_image">مشاركة كصورة</string>
     <string name="share_as_image_url">مشاركة كرابط صورة</string>
     <string name="share_as_image_generating">جارٍ توليد المعاينة…</string>
-    <string name="share_as_image_watermark">تمت المشاركة عبر Amethyst</string>
+    <string name="share_as_image_watermark">تمت المشاركة عبر Astro</string>
     <string name="quick_action_copy_user_id">معرف المؤلف (ID)</string>
     <string name="quick_action_copy_note_id">معرف الملاحظة</string>
     <string name="quick_action_copy_text">نسخ النص</string>
@@ -456,7 +456,7 @@
     <string name="quick_action_request_deletion_gallery_title">إزالته من المعرض</string>
     <string name="quick_action_request_deletion_gallery_alert_body_v2">إزالة هذه الوسائط من معرضك.</string>
     <string name="quick_action_request_deletion_alert_title">طلب حذفها</string>
-    <string name="quick_action_request_deletion_alert_body">سيطلب Amethyst حذف ملاحظتك من المرحلات المتصل بها حاليا، لا يوجد ضمان لحذفها من هذه المرحلات أو من المرحلات الأخرى التي ربما حفظت فيها.</string>
+    <string name="quick_action_request_deletion_alert_body">سيطلب Astro حذف ملاحظتك من المرحلات المتصل بها حاليا، لا يوجد ضمان لحذفها من هذه المرحلات أو من المرحلات الأخرى التي ربما حفظت فيها.</string>
     <string name="quick_action_block_dialog_btn">حظر </string>
     <string name="quick_action_delete_dialog_btn">حذف</string>
     <string name="quick_action_block">حظر</string>
@@ -680,7 +680,7 @@
     <string name="workout_minutes">دقائق</string>
     <string name="workout_seconds">ثوانٍ</string>
     <string name="workout_suggestion_connect_title">شارك تمارينك</string>
-    <string name="workout_suggestion_connect_message">اسمح لـ Amethyst بقراءة التمارين المكتملة من Health Connect (Samsung Health أو Google Fit أو Fitbit أو Garmin…) واقتراح منشور.</string>
+    <string name="workout_suggestion_connect_message">اسمح لـ Astro بقراءة التمارين المكتملة من Health Connect (Samsung Health أو Google Fit أو Fitbit أو Garmin…) واقتراح منشور.</string>
     <string name="workout_suggestion_connect_button">ربط</string>
     <string name="workout_suggestion_distance_km">%1$s كم</string>
     <string name="workout_from_health_connect">من Health Connect</string>
@@ -786,7 +786,7 @@
     <!-- Signer trust levels -->
     <!-- Signer per-op consent dialog -->
     <!-- Signer op labels -->
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <!-- Permissions management screen -->
     <!-- Relay Authentication (NIP-42) settings -->
     <!-- Action-aware titles: %1$s is the person (or "Alice and others"). -->
@@ -963,7 +963,7 @@
     <string name="nest_create_schedule_toggle">جدولة لوقت لاحق</string>
     <string name="nest_create_when">اختر وقت البدء</string>
     <string name="nests_servers_title">خوادم Nest</string>
-    <string name="nests_servers_explainer">اختر خوادم MoQ التي ينشر إليها Amethyst nests الخاصة بك. يُستخدم الإدخال الأول افتراضيًا عند بدء مساحة جديدة.</string>
+    <string name="nests_servers_explainer">اختر خوادم MoQ التي ينشر إليها Astro nests الخاصة بك. يُستخدم الإدخال الأول افتراضيًا عند بدء مساحة جديدة.</string>
     <string name="nests_servers_my_section">خوادمك</string>
     <string name="nests_servers_my_explainer">محفوظ كحدث قابل للاستبدال من النوع kind-10112 حتى يتمكن العملاء الآخرون من قراءة تفضيلاتك.</string>
     <string name="nests_servers_add_relay_field">عنوان URL لـ relay (WebTransport)</string>
@@ -973,7 +973,7 @@
     <string name="nests_servers_auth_label">مصادقة</string>
     <string name="nests_servers_recommended_section">الخوادم الموصى بها</string>
     <string name="nests_servers_recommended_explainer">اقتراحات مدمجة يمكنك إضافتها إلى قائمتك بنقرة واحدة.</string>
-    <string name="nests_servers_use_defaults">استخدام إعدادات Amethyst الافتراضية</string>
+    <string name="nests_servers_use_defaults">استخدام إعدادات Astro الافتراضية</string>
     <string name="nests_servers_add_recommended">إضافة خادم</string>
     <string name="nests_servers_remove">إزالة خادم</string>
     <string name="nests_servers_empty">لا توجد خوادم nest بعد. أضف واحدًا أدناه أو اختر خادمًا موصى به.</string>
@@ -1177,9 +1177,9 @@
     <string name="local_blossom_cache_not_detected">لم يتم اكتشاف ذاكرة التخزين المؤقت المحلية على المنفذ 24242.</string>
     <string name="local_blossom_cache_profile_pics_only">تخزين صور الملف الشخصي فقط</string>
     <string name="local_blossom_cache_profile_pics_only_caption">تقييد ذاكرة التخزين المؤقت المحلية على صور الملف الشخصي. سيتم جلب صور ومقاطع فيديو الموجز مباشرة من الخوادم الأصلية.</string>
-    <string name="no_blossom_server_message">لم تقم بتعيين أي خوادم Blossom. يمكنك استخدام قائمة Amethyst، أو إضافة خادم أدناه ↓</string>
+    <string name="no_blossom_server_message">لم تقم بتعيين أي خوادم Blossom. يمكنك استخدام قائمة Astro، أو إضافة خادم أدناه ↓</string>
     <string name="recommended_media_servers">خوادم الوسائط الموصى بها</string>
-    <string name="built_in_servers_description">القائمة الافتراضية لـ Amethyst. يمكنك إضافتها بشكل فردي أو إضافة القائمة بأكملها.</string>
+    <string name="built_in_servers_description">القائمة الافتراضية لـ Astro. يمكنك إضافتها بشكل فردي أو إضافة القائمة بأكملها.</string>
     <string name="use_default_servers">استخدام القائمة الافتراضية</string>
     <string name="add_media_server">إضافة خادم وسائط</string>
     <string name="delete_media_server">حذف خادم الوسائط</string>
@@ -1356,8 +1356,8 @@
     <string name="call_add_participant">إضافة مشارك</string>
     <string name="call_search_users">البحث عن مستخدمين…</string>
     <string name="call_permission_denied_title">إذن مطلوب</string>
-    <string name="call_permission_denied_voice">يحتاج Amethyst إلى إذن الوصول إلى الميكروفون لبدء مكالمة صوتية. يُرجى تفعيله من إعدادات التطبيق.</string>
-    <string name="call_permission_denied_video">يحتاج Amethyst إلى إذن الوصول إلى الكاميرا والميكروفون لبدء مكالمة مرئية. يُرجى تفعيلهما من إعدادات التطبيق.</string>
+    <string name="call_permission_denied_voice">يحتاج Astro إلى إذن الوصول إلى الميكروفون لبدء مكالمة صوتية. يُرجى تفعيله من إعدادات التطبيق.</string>
+    <string name="call_permission_denied_video">يحتاج Astro إلى إذن الوصول إلى الكاميرا والميكروفون لبدء مكالمة مرئية. يُرجى تفعيلهما من إعدادات التطبيق.</string>
     <string name="call_permission_denied_open_settings">فتح الإعدادات</string>
     <string name="call_permission_denied_cancel">إلغاء</string>
     <string name="call_settings">إعدادات المكالمات</string>
@@ -1376,7 +1376,7 @@
     <string name="call_settings_turn_username">اسم المستخدم</string>
     <string name="call_settings_turn_credential">بيانات الاعتماد</string>
     <string name="always_on_notif_channel_description">يحافظ على الاتصال بـ relay صندوق الوارد الخاص بك لتلقّي الإشعارات في الوقت الفعلي</string>
-    <string name="always_on_notif_title">إشعارات Amethyst نشطة</string>
+    <string name="always_on_notif_title">إشعارات Astro نشطة</string>
     <plurals name="always_on_notif_connected">
         <item quantity="zero">متصل بـ %1$d relay للصندوق الوارد</item>
         <item quantity="one">متصل بـ %1$d relay للصندوق الوارد</item>
@@ -1403,7 +1403,7 @@
     <string name="notification_tab_following">المتابَعون</string>
     <string name="notification_tab_everyone">الجميع</string>
     <string name="battery_optimization_title">تحسين البطارية نشط</string>
-    <string name="battery_optimization_description">قد يقيّد Android اتصالات relay في الخلفية. عطّل تحسين البطارية لـ Amethyst لضمان استلام الإشعارات بشكل موثوق.</string>
+    <string name="battery_optimization_description">قد يقيّد Android اتصالات relay في الخلفية. عطّل تحسين البطارية لـ Astro لضمان استلام الإشعارات بشكل موثوق.</string>
     <string name="battery_optimization_fix_now">إصلاح الآن</string>
     <string name="reply_notify">تنبيه: </string>
     <string name="today">اليوم</string>
@@ -1416,7 +1416,7 @@
     <string name="filter_spam_from_strangers_title">تصفية الرسائل المزعجة</string>
     <string name="filter_spam_from_strangers_explainer">تُخفي المنشورات من الغرباء التي تكررت بنفس المحتوى 5 مرات أو أكثر</string>
     <string name="add_client_tag_title">إضافة وسم العميل إلى أحداثي</string>
-    <string name="add_client_tag_explainer">عند التفعيل، يُضيف Amethyst وسم عميل NIP-89 إلى الأحداث التي تنشرها.</string>
+    <string name="add_client_tag_explainer">عند التفعيل، يُضيف Astro وسم عميل NIP-89 إلى الأحداث التي تنشرها.</string>
     <string name="warn_when_posts_have_reports_from_your_follows_title">التحذير عند وجود بلاغات</string>
     <string name="warn_when_posts_have_reports_from_your_follows_explainer">يعرض رسالة تحذير عندما تحتوي المنشورات أو الملفات الشخصية على بلاغات من أشخاص تتابعهم</string>
     <string name="report_warning_threshold_title">حدّ عتبة تحذير البلاغات</string>
@@ -1675,12 +1675,12 @@
     <string name="messages_new_subject_message_placeholder">تغيير اسم الأهداف الجديدة.</string>
     <string name="paste_from_clipboard">لصق من الحافظة</string>
     <string name="couldnt_find_nwc_wallets">لم يتم العثور على المحفظة</string>
-    <string name="couldnt_find_nwc_wallets_description">لم يتمكن Amethyst من العثور على أي تطبيقات محافظ تدعم Nostr Wallet Connect (NWC).
+    <string name="couldnt_find_nwc_wallets_description">لم يتمكن Astro من العثور على أي تطبيقات محافظ تدعم Nostr Wallet Connect (NWC).
 \n\nما يمكنك فعله:
 \n\t1. التحقق من دعم NWC: تأكد من أن تطبيق محفظتك المفضل متوافق مع Nostr Wallet Connect.
 \n\t2. إنشاء اتصال: انتقل إلى تطبيق محفظتك وأنشئ اتصال NWC جديدًا.
-\n\t3. الربط بـ Amethyst: عادةً ما تتيح محفظتك ثلاثة خيارات:
-\n\t\t3.1 ربط تلقائي: زر لفتح Amethyst والاتصال به تلقائيًا. إذا كان الأمر كذلك، اضغط على الزر، وافتح Amethyst واضغط على حفظ في الشاشة الجديدة.
+\n\t3. الربط بـ Astro: عادةً ما تتيح محفظتك ثلاثة خيارات:
+\n\t\t3.1 ربط تلقائي: زر لفتح Astro والاتصال به تلقائيًا. إذا كان الأمر كذلك، اضغط على الزر، وافتح Astro واضغط على حفظ في الشاشة الجديدة.
 \n\t\t3.2 ربط يدوي: عنوان URI للاتصال يمكنك نسخه والضغط على أيقونة اللصق في هذه الشاشة لإدخاله مباشرةً.
 \n\t\t3.3 رمز QR: تنشئ المحفظة رمز QR يمكنك قراءته من زر رمز QR في هذه الشاشة.
     </string>
@@ -1752,7 +1752,7 @@
     <string name="error_unable_to_fetch_invoice">تعذر جلب الinvoice من خوادم المستلم</string>
     <string name="wallet_connect_pay_invoice_error_error">موفر wallet connect الخاص بك أعاد الخطأ التالي: %1$s</string>
     <string name="tor_connection_failed_title">Tor لا يتصل</string>
-    <string name="tor_connection_failed_body">لم يتمكن Amethyst من إكمال تمهيد Tor. هل تريد استخدام اتصال عادي (بدون Tor) حتى يتمكن الخلاصة من التحميل؟ سنتذكر هذا الخيار للساعة القادمة وسنعيد المحاولة مع Tor بعد ذلك.</string>
+    <string name="tor_connection_failed_body">لم يتمكن Astro من إكمال تمهيد Tor. هل تريد استخدام اتصال عادي (بدون Tor) حتى يتمكن الخلاصة من التحميل؟ سنتذكر هذا الخيار للساعة القادمة وسنعيد المحاولة مع Tor بعد ذلك.</string>
     <string name="tor_continue_without_for_session">استخدام اتصال عادي</string>
     <string name="tor_keep_waiting">الاستمرار في الانتظار</string>
     <string name="could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup">تعذّر إنشاء LNUrl من عنوان Lightning \"%1$s\". تحقق من إعداد المستخدم</string>
@@ -2325,7 +2325,7 @@
     <string name="profile_ui_setting_zap_received_feed">تغذية Zap المستلم</string>
     <string name="profile_ui_setting_followers_feed">تغذية المتابعين</string>
     <string name="profile_layout_settings">ترتيب الملف الشخصي</string>
-    <string name="profile_layout_settings_description">حرّك أي عنصر بحرية واستخدم الزاوية للتكبير/التصغير. انشر ليراه مستخدمو Amethyst الآخرون.</string>
+    <string name="profile_layout_settings_description">حرّك أي عنصر بحرية واستخدم الزاوية للتكبير/التصغير. انشر ليراه مستخدمو Astro الآخرون.</string>
     <string name="profile_layout_reorder">إعادة الترتيب</string>
     <string name="profile_layout_block_display_name">الاسم المعروض</string>
     <string name="profile_layout_block_username">اسم المستخدم</string>
@@ -2415,7 +2415,7 @@
     <string name="show_npub_as_a_qr_code">عرض npub كرمز QR</string>
     <string name="show_nprofile_as_a_qr_code">عرض nprofile كرمز QR</string>
     <string name="invalid_nip19_uri">عنوان غير صالح</string>
-    <string name="invalid_nip19_uri_description">تلقّى Amethyst رابطًا لفتحه لكن الرابط غير صالح: %1$s</string>
+    <string name="invalid_nip19_uri_description">تلقّى Astro رابطًا لفتحه لكن الرابط غير صالح: %1$s</string>
     <string name="dm_relays_title">مرحلات الرسائل الخاصة</string>
     <string name="dm_relays_not_found">أعد مرحلات رسائلك الخاصة</string>
     <string name="dm_relays_not_found_description">هذا الإعداد يوضح للعملاء أين يرسلون الرسائل الخاصة لك، بدونه قد تفقد بعضهم.</string>
@@ -2439,7 +2439,7 @@
     <string name="relay_settings">إعدادات المرحل</string>
     <string name="relay_reorder">إعادة ترتيب relay</string>
     <string name="public_home_section_explainer_profile">المستخدم ينشر محتواه إلى هذه الـ relays</string>
-    <string name="public_home_section_explainer">يخزّن هذا النوع من الـ relay جميع محتواك. سيرسل Amethyst منشوراتك إليها وسيستخدم الآخرون هذه الـ relays للعثور على محتواك. أدخل ما بين 1 و3 relays. يمكن أن تكون relays شخصية أو مدفوعة أو عامة.</string>
+    <string name="public_home_section_explainer">يخزّن هذا النوع من الـ relay جميع محتواك. سيرسل Astro منشوراتك إليها وسيستخدم الآخرون هذه الـ relays للعثور على محتواك. أدخل ما بين 1 و3 relays. يمكن أن تكون relays شخصية أو مدفوعة أو عامة.</string>
     <string name="public_notif_section_explainer_profile">المستخدم يستقبل الإشعارات على هذه الـ relays</string>
     <string name="public_notif_section_explainer">يستقبل هذا النوع من الـ relay جميع الردود والتعليقات والإعجابات والـ zaps على منشوراتك. يمكن أن تكون مدفوعة أو مجانية. القيود التي يضعها مشغّل الـ relay يمكن أن تحدّ من الإشعارات التي تستقبلها بشكل جيد أو سيء. على سبيل المثال، إذا كنت تتعرض لهجوم بريد مزعج في التعليقات، يمكن للـ relays المدفوعة تصفية البريد المزعج. أدخل ما بين 1 و3 relays.</string>
     <string name="private_inbox_section_explainer_profile">المستخدم يستقبل الرسائل المباشرة على هذه الـ relays</string>
@@ -2454,9 +2454,9 @@
     <string name="trusted_section_explainer">الـ relays التي تثق بها ولا تحتاج إلى اتصال Tor</string>
     <string name="favorite_section_explainer">الـ relays التي تزورها كثيرًا لمشاهدة تغذيتها العالمية</string>
     <string name="proxy_section_explainer">الـ relays التجميعية التي يجب أن يستخدمها التطبيق لتنزيل تغذياتك منها، مثل filter.nostr.wine. هذا يستبدل نموذج outbox وسيجعل التطبيق يتصل فقط بالـ relays الموجودة في قوائمك.</string>
-    <string name="broadcast_section_explainer">الـ relays المتخصصة في دفع ملاحظاتك إلى جميع الـ relays الأخرى، مثل sendit.nosflare.com. سيضيف Amethyst هذا الـ relay إلى جميع الأحداث الجديدة التي تصدر منك</string>
-    <string name="indexer_section_explainer">الـ relays المتخصصة في استضافة بيانات وصفية الجميع وقوائم الـ relays، مثل purplepag.es. سيستخدم Amethyst هذه الـ relays للعثور على المستخدمين الغير موجودين في قوائمك.</string>
-    <string name="blocked_section_explainer">لن يتصل Amethyst أبدًا بهذه الـ relays</string>
+    <string name="broadcast_section_explainer">الـ relays المتخصصة في دفع ملاحظاتك إلى جميع الـ relays الأخرى، مثل sendit.nosflare.com. سيضيف Astro هذا الـ relay إلى جميع الأحداث الجديدة التي تصدر منك</string>
+    <string name="indexer_section_explainer">الـ relays المتخصصة في استضافة بيانات وصفية الجميع وقوائم الـ relays، مثل purplepag.es. سيستخدم Astro هذه الـ relays للعثور على المستخدمين الغير موجودين في قوائمك.</string>
+    <string name="blocked_section_explainer">لن يتصل Astro أبدًا بهذه الـ relays</string>
     <string name="export_relay_settings">تصدير إعدادات الـ relay</string>
     <string name="export_as_text">تصدير كنص</string>
     <string name="export_as_zip">تصدير كـ ZIP (JSON)</string>
@@ -2625,7 +2625,7 @@
     <string name="feed_filter_selected">مرشّح الخلاصة، تم اختيار %1$s</string>
     <string name="feed_filter_select_an_option">مرشّح الخلاصة، %1$s</string>
     <string name="crashreport_found">تم العثور على تقرير عطل</string>
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">هل تريد إرسال تقرير العطل الأخير إلى Amethyst عبر رسالة خاصة؟ لن تُشارك أي معلومات شخصية</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">هل تريد إرسال تقرير العطل الأخير إلى Astro عبر رسالة خاصة؟ لن تُشارك أي معلومات شخصية</string>
     <string name="crashreport_found_send">إرسال</string>
     <string name="this_message_will_disappear_in">ستختفي هذه الرسالة خلال %1$s</string>
     <string name="select_signer">اختر موقّعًا</string>

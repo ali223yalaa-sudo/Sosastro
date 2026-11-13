@@ -78,7 +78,7 @@
     <string name="unauthorized_exception_description">Podepisovatel neautorizoval dešifrování potřebné k provedení této operace. Aktivujte dešifrování NIP-44 ve své aplikaci pro podepisování a zkuste to znovu</string>
     <string name="signer_not_found_exception">Podepisovatel nenalezen</string>
     <string name="signer_not_found_exception_description">Byla aplikace pro podepisování odinstalována? Zkontrolujte, zda je aplikace nainstalována a obsahuje tento účet. Odhlaste se a přihlaste znovu, pokud se aplikace změnila.</string>
-    <string name="signer_illegal_state_exception_description">Externí podepisovatel vrátil data, která jsou pro daný požadavek neobvyklá. Může se jednat o chybu v Amethystu nebo v podepisovateli.</string>
+    <string name="signer_illegal_state_exception_description">Externí podepisovatel vrátil data, která jsou pro daný požadavek neobvyklá. Může se jednat o chybu v Astrou nebo v podepisovateli.</string>
     <string name="zaps">Zapy</string>
     <string name="boost">Zvýšení</string>
     <string name="boosted">zvýšeno</string>
@@ -160,7 +160,7 @@
     <string name="send_payment_done">Hotovo</string>
     <string name="send_payment_pay_button">Zaplatit %1$s sats</string>
     <string name="send_payment_pay_button_empty">Zaplatit</string>
-    <string name="send_payment_no_methods">Tento profil nemá žádné platební metody, které může Amethyst zaplatit přímo.</string>
+    <string name="send_payment_no_methods">Tento profil nemá žádné platební metody, které může Astro zaplatit přímo.</string>
     <string name="send_payment_min_onchain">On-chain zapy vyžadují alespoň %1$s sats</string>
     <string name="send_payment_cashu_insufficient">Nedostatečný zůstatek v mintu, který tento příjemce přijímá. Nejprve dobijte svou Cashu peněženku.</string>
     <string name="send_payment_cashu_balance">K útratě pro tohoto příjemce: %1$s sats</string>
@@ -222,7 +222,7 @@
     <string name="failed_to_save_the_image">Chyba při ukládání obrázku</string>
     <string name="video_saved_to_the_gallery">Video uloženo do video galerie telefonu</string>
     <string name="failed_to_save_the_video">Nepodařilo se uložit video</string>
-    <string name="pdf_saved_to_the_gallery">PDF uloženo do Downloads/Amethyst</string>
+    <string name="pdf_saved_to_the_gallery">PDF uloženo do Downloads/Astro</string>
     <string name="failed_to_save_the_pdf">Nepodařilo se uložit PDF</string>
     <string name="upload_image">Nahrát obrázek</string>
     <string name="upload_file">Nahrát soubor</string>
@@ -364,7 +364,7 @@
     <string name="account_backup_tips2_md" tools:ignore="Typos">    ## Tipy pro zálohování klíčů a bezpečnost
     \n\nVaše konto je zabezpečeno tajným klíčem. Klíč je dlouhá posloupnost znaků začínající s **nsec1**. Kdo má přístup k tomuto tajnému klíči, může přispívat a měnit vaši identitu.
     \n\n- **Nedávejte** svůj tajný klíč na žádnou webovou stránku nebo do žádného softwaru, kterému nedůvěřujete.
-    \n- Vývojáři Amethystu nikdy **nebudou** žádat o váš tajný klíč.
+    \n- Vývojáři Astrou nikdy **nebudou** žádat o váš tajný klíč.
     \n- **Udržujte** bezpečnou zálohu vašeho tajného klíče pro obnovení účtu. Doporučujeme použití správce hesel.</string>
     <string name="account_backup_tips3_md" tools:ignore="Typos">    Pro další zabezpečení můžete svůj klíč zašifrovat heslem. Tento klíč začíná s **ncryptsec1** a nelze ho použít bez vašeho hesla.
     \n\nPokud zapomenete heslo, nebudete moci obnovit svůj klíč.</string>
@@ -400,7 +400,7 @@
     <string name="share_as_image">Sdílet jako obrázek</string>
     <string name="share_as_image_url">Sdílet jako URL obrázku</string>
     <string name="share_as_image_generating">Generování náhledu…</string>
-    <string name="share_as_image_watermark">Sdíleno přes Amethyst</string>
+    <string name="share_as_image_watermark">Sdíleno přes Astro</string>
     <string name="quick_action_copy_user_id">ID autora</string>
     <string name="quick_action_copy_note_id">ID poznámky</string>
     <string name="quick_action_copy_text">Kopírovat text</string>
@@ -410,7 +410,7 @@
     <string name="quick_action_request_deletion_gallery_title">Odstranit z galerie</string>
     <string name="quick_action_request_deletion_gallery_alert_body_v2">Odstranit toto médium z vaší galerie.</string>
     <string name="quick_action_request_deletion_alert_title">Požadavek na smazání</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst požádá o smazání vaší poznámky ze spojek, ke kterým jste v současnosti připojeni. Není zaručeno, že vaše poznámka bude trvale smazána z těchto spojek nebo z dalších spojek, kde může být uložena.</string>
+    <string name="quick_action_request_deletion_alert_body">Astro požádá o smazání vaší poznámky ze spojek, ke kterým jste v současnosti připojeni. Není zaručeno, že vaše poznámka bude trvale smazána z těchto spojek nebo z dalších spojek, kde může být uložena.</string>
     <string name="quick_action_block_dialog_btn">Blokovat</string>
     <string name="quick_action_delete_dialog_btn">Smazat</string>
     <string name="quick_action_block">Blokovat</string>
@@ -627,7 +627,7 @@
     <string name="workout_minutes">Minuty</string>
     <string name="workout_seconds">Sekundy</string>
     <string name="workout_suggestion_connect_title">Sdílejte své tréninky</string>
-    <string name="workout_suggestion_connect_message">Nechte Amethyst číst dokončené tréninky z Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) a navrhnout příspěvek.</string>
+    <string name="workout_suggestion_connect_message">Nechte Astro číst dokončené tréninky z Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) a navrhnout příspěvek.</string>
     <string name="workout_suggestion_connect_button">Připojit</string>
     <string name="workout_from_health_connect">Z Health Connect</string>
     <string name="exercise_running">Běh</string>
@@ -730,7 +730,7 @@
     <!-- Signer trust levels -->
     <!-- Signer per-op consent dialog -->
     <!-- Signer op labels -->
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <!-- Permissions management screen -->
     <!-- Relay Authentication (NIP-42) settings -->
     <!-- Action-aware titles: %1$s is the person (or "Alice and others"). -->
@@ -880,7 +880,7 @@
     <string name="nest_create_schedule_toggle">Naplánovat na později</string>
     <string name="nest_create_when">Vyberte čas začátku</string>
     <string name="nests_servers_title">Nest servery</string>
-    <string name="nests_servers_explainer">Vyberte, na které MoQ hostitelské servery Amethyst publikuje vaše nesty. První položka se použije jako výchozí při vytváření nového prostoru.</string>
+    <string name="nests_servers_explainer">Vyberte, na které MoQ hostitelské servery Astro publikuje vaše nesty. První položka se použije jako výchozí při vytváření nového prostoru.</string>
     <string name="nests_servers_my_section">Vaše servery</string>
     <string name="nests_servers_my_explainer">Uloženo jako nahraditelná událost typu kind-10112, aby ostatní klienti mohli číst vaše preference.</string>
     <string name="nests_servers_add_relay_field">URL relay (WebTransport)</string>
@@ -890,7 +890,7 @@
     <string name="nests_servers_auth_label">Autentizace</string>
     <string name="nests_servers_recommended_section">Doporučené servery</string>
     <string name="nests_servers_recommended_explainer">Vestavěné návrhy, které můžete jedním klepnutím přidat do svého seznamu.</string>
-    <string name="nests_servers_use_defaults">Použít výchozí Amethyst</string>
+    <string name="nests_servers_use_defaults">Použít výchozí Astro</string>
     <string name="nests_servers_add_recommended">Přidat server</string>
     <string name="nests_servers_remove">Odebrat server</string>
     <string name="nests_servers_empty">Zatím žádné servery. Přidejte server níže nebo vyberte z doporučených.</string>
@@ -1091,9 +1091,9 @@
     <string name="local_blossom_cache_not_detected">Lokální cache nebyla na portu 24242 nalezena.</string>
     <string name="local_blossom_cache_profile_pics_only">Cachovat pouze profilové obrázky</string>
     <string name="local_blossom_cache_profile_pics_only_caption">Omezit lokální cache pouze na profilové obrázky. Obrázky a videa z feedu budou stahovány přímo z původních serverů.</string>
-    <string name="no_blossom_server_message">Nemáte nastaveny žádné Blossom servery. Můžete použít Amethystův seznam, nebo přidat některý níže ↓</string>
+    <string name="no_blossom_server_message">Nemáte nastaveny žádné Blossom servery. Můžete použít Astroův seznam, nebo přidat některý níže ↓</string>
     <string name="recommended_media_servers">Doporučené média servery</string>
-    <string name="built_in_servers_description">Výchozí seznam Amethysty. Můžete je přidat jednotlivě nebo přidat seznam.</string>
+    <string name="built_in_servers_description">Výchozí seznam Astroy. Můžete je přidat jednotlivě nebo přidat seznam.</string>
     <string name="use_default_servers">Použít výchozí seznam</string>
     <string name="add_media_server">Přidat server médií</string>
     <string name="delete_media_server">Odstranit server médií</string>
@@ -1260,8 +1260,8 @@
     <string name="call_add_participant">Přidat účastníka</string>
     <string name="call_search_users">Hledat uživatele\u2026</string>
     <string name="call_permission_denied_title">Vyžadováno oprávnění</string>
-    <string name="call_permission_denied_voice">Amethyst potřebuje přístup k mikrofonu, aby mohl zahájit hlasový hovor. Povolte jej v nastavení aplikace.</string>
-    <string name="call_permission_denied_video">Amethyst potřebuje přístup ke kameře a mikrofonu, aby mohl zahájit videohovor. Povolte je v nastavení aplikace.</string>
+    <string name="call_permission_denied_voice">Astro potřebuje přístup k mikrofonu, aby mohl zahájit hlasový hovor. Povolte jej v nastavení aplikace.</string>
+    <string name="call_permission_denied_video">Astro potřebuje přístup ke kameře a mikrofonu, aby mohl zahájit videohovor. Povolte je v nastavení aplikace.</string>
     <string name="call_permission_denied_open_settings">Otevřít nastavení</string>
     <string name="call_permission_denied_cancel">Zrušit</string>
     <string name="call_settings">Nastavení hovorů</string>
@@ -1280,7 +1280,7 @@
     <string name="call_settings_turn_username">Uživatelské jméno</string>
     <string name="call_settings_turn_credential">Pověření</string>
     <string name="always_on_notif_channel_description">Udržuje připojení k vašim inbox relayím aktivní pro oznámení v reálném čase</string>
-    <string name="always_on_notif_title">Amethyst oznámení aktivní</string>
+    <string name="always_on_notif_title">Astro oznámení aktivní</string>
     <plurals name="always_on_notif_connected">
         <item quantity="one">Připojeno k %1$d příchozímu relay</item>
         <item quantity="few">Připojeno k %1$d příchozím relays</item>
@@ -1303,7 +1303,7 @@
     <string name="notification_tab_following">Sledovaní</string>
     <string name="notification_tab_everyone">Všichni</string>
     <string name="battery_optimization_title">Optimalizace baterie aktivní</string>
-    <string name="battery_optimization_description">Android může omezit připojení k relayím na pozadí. Vypněte optimalizaci baterie pro Amethyst, aby byla oznámení spolehlivá.</string>
+    <string name="battery_optimization_description">Android může omezit připojení k relayím na pozadí. Vypněte optimalizaci baterie pro Astro, aby byla oznámení spolehlivá.</string>
     <string name="battery_optimization_fix_now">Opravit</string>
     <string name="reply_notify">Upozornit: </string>
     <string name="today">Dnes</string>
@@ -1316,7 +1316,7 @@
     <string name="filter_spam_from_strangers_title">Filtrovat spam</string>
     <string name="filter_spam_from_strangers_explainer">Skryje příspěvky od cizinců, které byly přesně stejné 5 a více krát</string>
     <string name="add_client_tag_title">Přidávat klientský tag do mých událostí</string>
-    <string name="add_client_tag_explainer">Když je tato možnost zapnutá, Amethyst připojuje k událostem, které publikuješ, klientský tag podle NIP-89.</string>
+    <string name="add_client_tag_explainer">Když je tato možnost zapnutá, Astro připojuje k událostem, které publikuješ, klientský tag podle NIP-89.</string>
     <string name="warn_when_posts_have_reports_from_your_follows_title">Upozornit na hlášení</string>
     <string name="warn_when_posts_have_reports_from_your_follows_explainer">Zobrazí varovnou zprávu, když příspěvky mají 5 nebo více hlášení od vašich sledovaných</string>
     <string name="report_warning_threshold_title">Práh varování o nahlášeních</string>
@@ -1570,12 +1570,12 @@
     <string name="messages_new_subject_message_placeholder">Změna názvu pro nové cíle.</string>
     <string name="paste_from_clipboard">Vložit ze schránky</string>
     <string name="couldnt_find_nwc_wallets">Peněženka nebyla nalezená</string>
-    <string name="couldnt_find_nwc_wallets_description">Amethyst nenašel žádné aplikace peněženek, které podporují Nostr Wallet Connect (NWC).
+    <string name="couldnt_find_nwc_wallets_description">Astro nenašel žádné aplikace peněženek, které podporují Nostr Wallet Connect (NWC).
 \n\nCo můžete udělat:
 \n\t1. Ověřte podporu NWC: Zkontrolujte, že vaše oblíbená peněženka podporuje Nostr Wallet Connect.
 \n\t2. Vytvořte připojení: Otevřete svou peněženku a vytvořte nové NWC připojení.
-\n\t3. Propojte s Amethyst: Vaše peněženka obvykle nabídne tři možnosti:
-\n\t\t3.1 Automatické propojení: Tlačítko pro automatické otevření a připojení k Amethyst. Klikněte na něj, otevřete Amethyst a uložte na nové obrazovce.
+\n\t3. Propojte s Astro: Vaše peněženka obvykle nabídne tři možnosti:
+\n\t\t3.1 Automatické propojení: Tlačítko pro automatické otevření a připojení k Astro. Klikněte na něj, otevřete Astro a uložte na nové obrazovce.
 \n\t\t3.2 Ruční propojení: URI připojení, které můžete zkopírovat a vložit přes ikonu vložení na této obrazovce.
 \n\t\t3.3 QR kód: Peněženka vytvoří QR kód, který můžete naskenovat pomocí tlačítka QR kódu na této obrazovce.</string>
     <string name="language_description">Pro rozhraní aplikace</string>
@@ -1645,7 +1645,7 @@
     <string name="error_unable_to_fetch_invoice">Nebylo možné načíst fakturu ze serverů příjemce</string>
     <string name="wallet_connect_pay_invoice_error_error">Poskytovatel připojení vaší peněženky vrátil následující chybu: %1$s</string>
     <string name="tor_connection_failed_title">Tor se nepřipojuje</string>
-    <string name="tor_connection_failed_body">Amethystu se nepodařilo dokončit připojení k síti Tor. Chcete použít běžné připojení (bez Toru), aby se feed mohl načíst? Tuto volbu si zapamatujeme na hodinu a poté znovu zkusíme Tor.</string>
+    <string name="tor_connection_failed_body">Astrou se nepodařilo dokončit připojení k síti Tor. Chcete použít běžné připojení (bez Toru), aby se feed mohl načíst? Tuto volbu si zapamatujeme na hodinu a poté znovu zkusíme Tor.</string>
     <string name="tor_continue_without_for_session">Použít běžné připojení</string>
     <string name="tor_keep_waiting">Pokračovat v čekání</string>
     <string name="could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup">Nepodařilo se sestavit LNUrl z Lightning adresy \"%1$s\". Zkontrolujte nastavení uživatele</string>
@@ -2227,7 +2227,7 @@
     <string name="show_npub_as_a_qr_code">Zobrazit npub jako QR kód</string>
     <string name="show_nprofile_as_a_qr_code">Zobrazit nprofile jako QR kód</string>
     <string name="invalid_nip19_uri">Neplatná adresa</string>
-    <string name="invalid_nip19_uri_description">Amethyst obdržel URI k otevření, ale tento URI byl neplatný: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro obdržel URI k otevření, ale tento URI byl neplatný: %1$s</string>
     <string name="dm_relays_title">Relé DM Schránky</string>
     <string name="dm_relays_not_found">Nastavte svá relé soukromé schránky</string>
     <string name="dm_relays_not_found_description">Toto nastavení umožňuje všem vědět, která relé použít při posílání zpráv vám. Bez nich můžete některé zprávy zmeškat.</string>
@@ -2254,7 +2254,7 @@
     <string name="relay_reorder">Přeřadit relé</string>
     <string name="public_home_section">Veřejná domácí relé</string>
     <string name="public_home_section_explainer_profile">Uživatel zveřejňuje svůj obsah na těchto přenašečích</string>
-    <string name="public_home_section_explainer">Tento typ relé ukládá veškerý váš obsah. Amethyst sem pošle vaše příspěvky a ostatní použijí tato relé, aby našli váš obsah. Vložte mezi 1–3 relé. Mohou to být osobní relé, placená relé nebo veřejná relé.</string>
+    <string name="public_home_section_explainer">Tento typ relé ukládá veškerý váš obsah. Astro sem pošle vaše příspěvky a ostatní použijí tato relé, aby našli váš obsah. Vložte mezi 1–3 relé. Mohou to být osobní relé, placená relé nebo veřejná relé.</string>
     <string name="public_notif_section">Veřejná schránka relé</string>
     <string name="public_notif_section_explainer_profile">Uživatel přijímá oznámení na těchto přenašečích</string>
     <string name="public_notif_section_explainer">Tento typ relé přijímá všechny odpovědi, komentáře, lajky a zaps k vašim příspěvkům. Vložte mezi 1–3 relé a ujistěte se, že přijímají příspěvky od kohokoli.</string>
@@ -2291,7 +2291,7 @@
     <string name="indexer_section_explainer">Relé, které uchovávají metadata a seznamy přenašečů, např. purplepag.es</string>
     <string name="blocked_relays_title">Blokované Relé</string>
     <string name="blocked_section">Blokované Relé</string>
-    <string name="blocked_section_explainer">Amethyst se k těmto relé nikdy nepřipojí</string>
+    <string name="blocked_section_explainer">Astro se k těmto relé nikdy nepřipojí</string>
     <string name="export_relay_settings">Exportovat nastavení relé</string>
     <string name="export_as_text">Exportovat jako text</string>
     <string name="export_as_zip">Exportovat jako ZIP (JSON)</string>
@@ -2464,7 +2464,7 @@
     <string name="feed_filter_selected">Filtr kanálu, %1$s vybráno</string>
     <string name="feed_filter_select_an_option">Filtr kanálu, %1$s</string>
     <string name="crashreport_found">Nalezen záznam o pádu</string>
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Chcete poslat poslední záznam o pádu do Amethystu v soukromé zprávě? Žádné osobní údaje nebudou sdíleny</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Chcete poslat poslední záznam o pádu do Astrou v soukromé zprávě? Žádné osobní údaje nebudou sdíleny</string>
     <string name="crashreport_found_send">Odeslat</string>
     <string name="this_message_will_disappear_in">Tato zpráva zmizí za %1$s</string>
     <string name="select_signer">Vybrat podepisovatele</string>

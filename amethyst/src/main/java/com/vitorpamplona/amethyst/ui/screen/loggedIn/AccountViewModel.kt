@@ -1110,7 +1110,7 @@ class AccountViewModel(
                 podcast = podcastName,
                 episode = episodeName,
                 action = if (streaming) PodcastBoostagram.ACTION_STREAM else PodcastBoostagram.ACTION_BOOST,
-                appName = "Amethyst",
+                appName = "Astro",
                 valueMsatTotal = totalMilliSats,
                 senderName = account.userProfile().toBestDisplayName(),
             )

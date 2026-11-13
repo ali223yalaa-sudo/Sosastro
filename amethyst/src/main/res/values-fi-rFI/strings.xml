@@ -71,7 +71,7 @@
     <string name="unauthorized_exception_description">Allekirjoittaja ei sallinut salauksen purkua, joka vaaditaan tämän toiminnon suorittamiseen. Ota NIP-44-salauksen purku käyttöön allekirjoittajasovelluksessasi ja yritä uudelleen</string>
     <string name="signer_not_found_exception">Allekirjoittajaa ei löydy</string>
     <string name="signer_not_found_exception_description">Onko allekirjoittajasovellus poistettu? Tarkista, että allekirjoittaja on asennettu ja sillä on tämä tili. Kirjaudu ulos ja uudelleen sisään, jos allekirjoittajasovellus on vaihtunut.</string>
-    <string name="signer_illegal_state_exception_description">Ulkoinen allekirjoittaja palautti pyyntöön nähden odottamattoman tietopaketin. Kyseessä voi olla vika Amethystissä tai allekirjoittajassa.</string>
+    <string name="signer_illegal_state_exception_description">Ulkoinen allekirjoittaja palautti pyyntöön nähden odottamattoman tietopaketin. Kyseessä voi olla vika Astroissä tai allekirjoittajassa.</string>
     <string name="zaps">Zapit</string>
     <string name="boost">Tehosta</string>
     <string name="boosted">tehostettu</string>
@@ -146,7 +146,7 @@
     <string name="send_payment_done">Valmis</string>
     <string name="send_payment_pay_button">Maksa %1$s sats</string>
     <string name="send_payment_pay_button_empty">Maksa</string>
-    <string name="send_payment_no_methods">Tällä profiililla ei ole maksutapoja, joita Amethyst voi maksaa suoraan.</string>
+    <string name="send_payment_no_methods">Tällä profiililla ei ole maksutapoja, joita Astro voi maksaa suoraan.</string>
     <string name="send_payment_min_onchain">On-chain-zapit vaativat vähintään %1$s sats</string>
     <string name="send_payment_cashu_insufficient">Ei riittävästi saldoa tämän vastaanottajan hyväksymässä mintissä. Täytä Cashu-lompakkosi ensin.</string>
     <string name="send_payment_cashu_balance">Käytettävissä tälle vastaanottajalle: %1$s sats</string>
@@ -206,7 +206,7 @@
     <string name="failed_to_save_the_image">Kuvan tallennus epäonnistui</string>
     <string name="video_saved_to_the_gallery">Video tallennettu puhelimen videogalleriaan</string>
     <string name="failed_to_save_the_video">Videon tallentaminen epäonnistui</string>
-    <string name="pdf_saved_to_the_gallery">PDF tallennettu kansioon Lataukset/Amethyst</string>
+    <string name="pdf_saved_to_the_gallery">PDF tallennettu kansioon Lataukset/Astro</string>
     <string name="failed_to_save_the_pdf">PDF:n tallentaminen epäonnistui</string>
     <string name="upload_image">Lataa kuva</string>
     <string name="upload_file">Lataa tiedosto</string>
@@ -347,7 +347,7 @@
     <string name="account_backup_tips2_md" tools:ignore="Typos">        ## Avainten varmuuskopiointi ja turvallisuusvinkit
         \n\nTilisi on suojattu salaisella avaimella. Avain on pitkä merkkijono, joka alkaa **nsec1**:llä. Kuka tahansa, jolla on pääsy tähän salaiseen avaimeen, voi julkaista ja muuttaa henkilöllisyyttäsi.
         \n\n- **Älä** anna salaista avaintasi mihinkään verkkosivustoon tai ohjelmistoon, johon et luota.
-        \n- Amethystin kehittäjät eivät **koskaan** pyydä salaista avaintasi.
+        \n- Astroin kehittäjät eivät **koskaan** pyydä salaista avaintasi.
         \n- **Tee** turvallinen varmuuskopio salaisesta avaimestasi tilin palauttamista varten. Suosittelemme salasananhallintaohjelman käyttöä.
     </string>
     <string name="account_backup_tips3_md" tools:ignore="Typos">        Lisäturvallisuuden vuoksi voit salata avaimesi salasanalla. Tämä avain alkaa **ncryptsec1**:llä eikä sitä voi käyttää ilman salasanaasi.
@@ -385,7 +385,7 @@
     <string name="share_as_image">Jaa kuvana</string>
     <string name="share_as_image_url">Jaa kuvan URL:na</string>
     <string name="share_as_image_generating">Luodaan esikatselua…</string>
-    <string name="share_as_image_watermark">Jaettu Amethystin kautta</string>
+    <string name="share_as_image_watermark">Jaettu Astroin kautta</string>
     <string name="quick_action_copy_user_id">Kirjoittajan tunniste</string>
     <string name="quick_action_copy_note_id">Viestin tunniste</string>
     <string name="quick_action_copy_text">Kopioi teksti</string>
@@ -395,7 +395,7 @@
     <string name="quick_action_request_deletion_gallery_title">Poista galleriasta</string>
     <string name="quick_action_request_deletion_gallery_alert_body_v2">Poista tämä media galleriastasi.</string>
     <string name="quick_action_request_deletion_alert_title">Pyydä poistoa</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst pyytää, että viestisi poistetaan releistä, joihin olet tällä hetkellä yhteydessä. Emme voi taata, että viestisi poistetaan pysyvästi niistä releistä tai muista releistä, joissa se voi olla tallennettuna.</string>
+    <string name="quick_action_request_deletion_alert_body">Astro pyytää, että viestisi poistetaan releistä, joihin olet tällä hetkellä yhteydessä. Emme voi taata, että viestisi poistetaan pysyvästi niistä releistä tai muista releistä, joissa se voi olla tallennettuna.</string>
     <string name="quick_action_block_dialog_btn">Estä</string>
     <string name="quick_action_delete_dialog_btn">Poista</string>
     <string name="quick_action_block">Estä</string>
@@ -599,7 +599,7 @@
     <string name="workout_minutes">Minuutit</string>
     <string name="workout_seconds">Sekunnit</string>
     <string name="workout_suggestion_connect_title">Jaa harjoituksesi</string>
-    <string name="workout_suggestion_connect_message">Anna Amethystin lukea valmiit harjoitukset Health Connectista (Samsung Health, Google Fit, Fitbit, Garmin…) ja ehdottaa julkaisua.</string>
+    <string name="workout_suggestion_connect_message">Anna Astroin lukea valmiit harjoitukset Health Connectista (Samsung Health, Google Fit, Fitbit, Garmin…) ja ehdottaa julkaisua.</string>
     <string name="workout_suggestion_connect_button">Yhdistä</string>
     <string name="workout_from_health_connect">Health Connectista</string>
     <string name="exercise_running">Juoksu</string>
@@ -702,7 +702,7 @@
     <!-- Signer trust levels -->
     <!-- Signer per-op consent dialog -->
     <!-- Signer op labels -->
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <!-- Permissions management screen -->
     <!-- Relay Authentication (NIP-42) settings -->
     <!-- Action-aware titles: %1$s is the person (or "Alice and others"). -->
@@ -845,13 +845,13 @@
     <string name="nest_create_schedule_toggle">Ajasta myöhemmäksi</string>
     <string name="nest_create_when">Valitse aloitusaika</string>
     <string name="nests_servers_title">Nest-palvelimet</string>
-    <string name="nests_servers_explainer">Valitse, mihin MoQ-isäntäpalvelimiin Amethyst julkaisee nestisi. Ensimmäinen merkintä on oletuksena käytössä, kun aloitat uuden tilan.</string>
+    <string name="nests_servers_explainer">Valitse, mihin MoQ-isäntäpalvelimiin Astro julkaisee nestisi. Ensimmäinen merkintä on oletuksena käytössä, kun aloitat uuden tilan.</string>
     <string name="nests_servers_my_section">Omat palvelimesi</string>
     <string name="nests_servers_my_explainer">Tallennetaan kind-10112-korvattavana tapahtumana, jotta muut asiakkaat voivat lukea asetuksesi.</string>
     <string name="nests_servers_add_pair_button">Lisää</string>
     <string name="nests_servers_recommended_section">Suositellut palvelimet</string>
     <string name="nests_servers_recommended_explainer">Sisäänrakennettuja ehdotuksia, jotka voit lisätä listaasi yhdellä napautuksella.</string>
-    <string name="nests_servers_use_defaults">Käytä Amethystin oletuksia</string>
+    <string name="nests_servers_use_defaults">Käytä Astroin oletuksia</string>
     <string name="nests_servers_add_recommended">Lisää palvelin</string>
     <string name="nests_servers_remove">Poista palvelin</string>
     <string name="nests_servers_empty">Ei nest-palvelimia vielä. Lisää yksi alla tai valitse suositeltu palvelin.</string>
@@ -1046,9 +1046,9 @@
     <string name="local_blossom_cache_not_detected">Paikallista välimuistia ei havaittu portissa 24242.</string>
     <string name="local_blossom_cache_profile_pics_only">Välimuistita vain profiilikuvat</string>
     <string name="local_blossom_cache_profile_pics_only_caption">Rajoita paikallinen välimuisti profiilikuviin. Syötteen kuvat ja videot haetaan suoraan alkuperäisiltä palvelimilta.</string>
-    <string name="no_blossom_server_message">Sinulla ei ole Blossom-palvelimia asetettuna. Voit käyttää Amethystin listaa tai lisätä sellaisen alla ↓</string>
+    <string name="no_blossom_server_message">Sinulla ei ole Blossom-palvelimia asetettuna. Voit käyttää Astroin listaa tai lisätä sellaisen alla ↓</string>
     <string name="recommended_media_servers">Suositellut mediapalvelimet</string>
-    <string name="built_in_servers_description">Amethystin oletusluettelo. Voit lisätä ne yksitellen tai lisätä koko luettelon.</string>
+    <string name="built_in_servers_description">Astroin oletusluettelo. Voit lisätä ne yksitellen tai lisätä koko luettelon.</string>
     <string name="use_default_servers">Käytä oletusluetteloa</string>
     <string name="add_media_server">Lisää mediapalvelin</string>
     <string name="delete_media_server">Poista mediapalvelin</string>
@@ -1211,8 +1211,8 @@
     <string name="call_add_participant">Lisää osallistuja</string>
     <string name="call_search_users">Etsi käyttäjiä…</string>
     <string name="call_permission_denied_title">Lupa tarvitaan</string>
-    <string name="call_permission_denied_voice">Amethyst tarvitsee mikrofonin käyttöoikeuden äänipuhelun aloittamiseksi. Ota se käyttöön sovelluksen asetuksissa.</string>
-    <string name="call_permission_denied_video">Amethyst tarvitsee kameran ja mikrofonin käyttöoikeuden videopuhelun aloittamiseksi. Ota ne käyttöön sovelluksen asetuksissa.</string>
+    <string name="call_permission_denied_voice">Astro tarvitsee mikrofonin käyttöoikeuden äänipuhelun aloittamiseksi. Ota se käyttöön sovelluksen asetuksissa.</string>
+    <string name="call_permission_denied_video">Astro tarvitsee kameran ja mikrofonin käyttöoikeuden videopuhelun aloittamiseksi. Ota ne käyttöön sovelluksen asetuksissa.</string>
     <string name="call_permission_denied_open_settings">Avaa asetukset</string>
     <string name="call_permission_denied_cancel">Peruuta</string>
     <string name="call_settings">Puheluasetukset</string>
@@ -1231,7 +1231,7 @@
     <string name="call_settings_turn_username">Käyttäjänimi</string>
     <string name="call_settings_turn_credential">Tunniste</string>
     <string name="always_on_notif_channel_description">Pitää yhteydet inbox-relayihisi aktiivisina reaaliaikaisia ilmoituksia varten</string>
-    <string name="always_on_notif_title">Amethyst-ilmoitukset aktiiviset</string>
+    <string name="always_on_notif_title">Astro-ilmoitukset aktiiviset</string>
     <plurals name="always_on_notif_connected">
         <item quantity="one">Yhdistetty %1$d inbox-relayhin</item>
         <item quantity="other">Yhdistetty %1$d inbox-relayhin</item>
@@ -1250,7 +1250,7 @@
     <string name="notification_tab_following">Seuratut</string>
     <string name="notification_tab_everyone">Kaikki</string>
     <string name="battery_optimization_title">Akun optimointi aktiivinen</string>
-    <string name="battery_optimization_description">Android voi rajoittaa relay-yhteyksiä taustalla. Poista akun optimointi käytöstä Amethystille luotettavien ilmoitusten varmistamiseksi.</string>
+    <string name="battery_optimization_description">Android voi rajoittaa relay-yhteyksiä taustalla. Poista akun optimointi käytöstä Astroille luotettavien ilmoitusten varmistamiseksi.</string>
     <string name="battery_optimization_fix_now">Korjaa nyt</string>
     <string name="reply_notify">Ilmoitus: </string>
     <string name="today">Tänään</string>
@@ -1263,7 +1263,7 @@
     <string name="filter_spam_from_strangers_title">Suodata roskaposti</string>
     <string name="filter_spam_from_strangers_explainer">Piilottaa tuntemattomilta tulleet julkaisut, jotka ovat olleet täsmälleen samat 5 kertaa tai useammin</string>
     <string name="add_client_tag_title">Lisää asiakastunniste tapahtumiin</string>
-    <string name="add_client_tag_explainer">Kun käytössä, Amethyst lisää NIP-89-asiakastunnisteen julkaisemiisi tapahtumiin.</string>
+    <string name="add_client_tag_explainer">Kun käytössä, Astro lisää NIP-89-asiakastunnisteen julkaisemiisi tapahtumiin.</string>
     <string name="warn_when_posts_have_reports_from_your_follows_title">Varoita ilmoituksista</string>
     <string name="warn_when_posts_have_reports_from_your_follows_explainer">Näyttää varoitusviestin kun julkaisuilla tai profiileilla on ilmoituksia seuraamiltasi henkilöiltä</string>
     <string name="report_warning_threshold_title">Ilmoitusvaroituksen kynnys</string>
@@ -1507,12 +1507,12 @@
     <string name="messages_new_subject_message_placeholder">Muuta nimi uusille tavoitteille.</string>
     <string name="paste_from_clipboard">Liitä leikepöydältä</string>
     <string name="couldnt_find_nwc_wallets">Lompakkoa ei löydy</string>
-    <string name="couldnt_find_nwc_wallets_description">Amethyst ei löytänyt yhtään lompakkosovellusta, joka tukee Nostr Wallet Connect (NWC) -toimintoa.
+    <string name="couldnt_find_nwc_wallets_description">Astro ei löytänyt yhtään lompakkosovellusta, joka tukee Nostr Wallet Connect (NWC) -toimintoa.
 \n\nMitä voit tehdä:
 \n\t1. Tarkista NWC-tuki: Varmista, että haluamasi lompakkosovellus on yhteensopiva Nostr Wallet Connectin kanssa.
 \n\t2. Luo yhteys: Siirry lompakkosovellukseesi ja luo uusi NWC-yhteys.
-\n\t3. Linkitä Amethystiin: Lompakkosi tarjoaa yleensä kolme vaihtoehtoa:
-\n\t\t3.1 Automaattinen linkitys: Painike, joka avaa Amethystin ja yhdistää automaattisesti. Jos näet sen, paina painiketta, avaa Amethyst ja tallenna uudella näytöllä.
+\n\t3. Linkitä Astroiin: Lompakkosi tarjoaa yleensä kolme vaihtoehtoa:
+\n\t\t3.1 Automaattinen linkitys: Painike, joka avaa Astroin ja yhdistää automaattisesti. Jos näet sen, paina painiketta, avaa Astro ja tallenna uudella näytöllä.
 \n\t\t3.2 Manuaalinen linkitys: YhteysURI, jonka voit kopioida ja liittää tämän näytön liitä-kuvakkeella.
 \n\t\t3.3 QR-koodi: Lompakko luo QR-koodin, jonka voit lukea tämän näytön QR-koodipainikkeella.
     </string>
@@ -1583,7 +1583,7 @@
     <string name="error_unable_to_fetch_invoice">Laskua ei voi noutaa vastaanottimen palvelimilta</string>
     <string name="wallet_connect_pay_invoice_error_error">Lompakkosi yhteyden tarjoaja palautti seuraavan virheen: %1$s</string>
     <string name="tor_connection_failed_title">Tor ei muodosta yhteyttä</string>
-    <string name="tor_connection_failed_body">Amethyst ei saanut Tor-käynnistystä valmiiksi. Käytetäänkö tavallista (ei-Tor) yhteyttä, jotta syöte voidaan ladata? Muistamme tämän valinnan seuraavaksi tunniksi ja yritämme Toria uudelleen sen jälkeen.</string>
+    <string name="tor_connection_failed_body">Astro ei saanut Tor-käynnistystä valmiiksi. Käytetäänkö tavallista (ei-Tor) yhteyttä, jotta syöte voidaan ladata? Muistamme tämän valinnan seuraavaksi tunniksi ja yritämme Toria uudelleen sen jälkeen.</string>
     <string name="tor_continue_without_for_session">Käytä tavallista yhteyttä</string>
     <string name="tor_keep_waiting">Odota edelleen</string>
     <string name="could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup">Ei voitu koota LNUrlia Lightning-osoitteesta \"%1$s\". Tarkista käyttäjän asetukset</string>
@@ -2123,7 +2123,7 @@
     <string name="show_npub_as_a_qr_code">Näytä npub QR-koodina</string>
     <string name="show_nprofile_as_a_qr_code">Näytä nprofile QR-koodina</string>
     <string name="invalid_nip19_uri">Virheellinen osoite</string>
-    <string name="invalid_nip19_uri_description">Amethyst vastaanotti avattavan URI:n, mutta se oli virheellinen: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro vastaanotti avattavan URI:n, mutta se oli virheellinen: %1$s</string>
     <string name="dm_relays_title">DM-saapuneiden relayit</string>
     <string name="dm_relays_not_found">Määritä yksityisen postilaatikon relayit</string>
     <string name="dm_relays_not_found_description">Tämä asetus kertoo kaikille, mitä relayita käyttää viestien lähettämiseen sinulle. Ilman niitä saatat jäädä paitsi joistakin viesteistä.</string>
@@ -2150,7 +2150,7 @@
     <string name="relay_reorder">Järjestä relay uudelleen</string>
     <string name="public_home_section">Julkiset lähtevien/kodin relayit</string>
     <string name="public_home_section_explainer_profile">Käyttäjä julkaisee sisältönsä näille relayille</string>
-    <string name="public_home_section_explainer">Tämä relay-tyyppi tallentaa kaiken sisältösi. Amethyst lähettää julkaisusi tänne ja muut käyttävät näitä relayita löytääkseen sisältösi. Lisää 1–3 relayia. Ne voivat olla henkilökohtaisia, maksullisia tai julkisia relayita.</string>
+    <string name="public_home_section_explainer">Tämä relay-tyyppi tallentaa kaiken sisältösi. Astro lähettää julkaisusi tänne ja muut käyttävät näitä relayita löytääkseen sisältösi. Lisää 1–3 relayia. Ne voivat olla henkilökohtaisia, maksullisia tai julkisia relayita.</string>
     <string name="public_notif_section">Julkiset saapuvien relayit</string>
     <string name="public_notif_section_explainer_profile">Käyttäjä vastaanottaa ilmoituksia näillä relayilla</string>
     <string name="public_notif_section_explainer">Tämä relay-tyyppi vastaanottaa kaikki vastaukset, kommentit, tykkäykset ja zapit julkaisuihisi. Ne voivat olla maksullisia tai ilmaisia relayita. Relay-operaattorin asettamat rajoitukset voivat rajoittaa vastaanottamiasi ilmoituksia hyvässä ja pahassa. Esimerkiksi jos sinua häiritään kommenttiroskapostilla, maksulliset relayit voivat suodattaa roskapostin pois. Lisää 1–3 relayia.</string>
@@ -2180,13 +2180,13 @@
     <string name="proxy_section_explainer">Aggregaattorirelait, joita sovelluksen täytyy käyttää feedien lataamiseen, kuten filter.nostr.wine. Tämä korvaa outbox-mallin ja saa sovelluksen yhdistämään vain listoissasi oleviin relaihin.</string>
     <string name="broadcast_relays_title">Lähetysrelait</string>
     <string name="broadcast_section">Lähetysrelait</string>
-    <string name="broadcast_section_explainer">Relait, jotka erikoistuvat muistiinpanojesi välittämiseen kaikille muille relaiden, kuten sendit.nosflare.com. Amethyst lisää tämän relayn kaikkiin tekemiisi uusiin tapahtumiin</string>
+    <string name="broadcast_section_explainer">Relait, jotka erikoistuvat muistiinpanojesi välittämiseen kaikille muille relaiden, kuten sendit.nosflare.com. Astro lisää tämän relayn kaikkiin tekemiisi uusiin tapahtumiin</string>
     <string name="indexer_relays_title">Hakemistorelait</string>
     <string name="indexer_section">Hakemistorelait</string>
-    <string name="indexer_section_explainer">Relait, jotka erikoistuvat kaikkien käyttäjien metatietojen ja relaylistojen isännöintiin, kuten purplepag.es. Amethyst käyttää näitä relaita löytääkseen käyttäjiä, jotka eivät ole listoissasi.</string>
+    <string name="indexer_section_explainer">Relait, jotka erikoistuvat kaikkien käyttäjien metatietojen ja relaylistojen isännöintiin, kuten purplepag.es. Astro käyttää näitä relaita löytääkseen käyttäjiä, jotka eivät ole listoissasi.</string>
     <string name="blocked_relays_title">Estetyt relait</string>
     <string name="blocked_section">Estetyt relait</string>
-    <string name="blocked_section_explainer">Amethyst ei koskaan yhdistä näihin relaihin</string>
+    <string name="blocked_section_explainer">Astro ei koskaan yhdistä näihin relaihin</string>
     <string name="export_relay_settings">Vie relay-asetukset</string>
     <string name="export_as_text">Vie tekstinä</string>
     <string name="export_as_zip">Vie ZIP-muodossa (JSON)</string>
@@ -2356,7 +2356,7 @@
     <string name="feed_filter_selected">Feedin suodatin, %1$s valittu</string>
     <string name="feed_filter_select_an_option">Feedin suodatin, %1$s</string>
     <string name="crashreport_found">Kaatumisraportti löydetty</string>
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Haluatko lähettää viimeisimmän kaatumisraportin Amethystille yksityisviestinä? Henkilökohtaisia tietoja ei jaeta</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Haluatko lähettää viimeisimmän kaatumisraportin Astroille yksityisviestinä? Henkilökohtaisia tietoja ei jaeta</string>
     <string name="crashreport_found_send">Lähetä se</string>
     <string name="this_message_will_disappear_in">Tämä viesti katoaa %1$s kuluttua</string>
     <string name="select_signer">Valitse allekirjoittaja</string>

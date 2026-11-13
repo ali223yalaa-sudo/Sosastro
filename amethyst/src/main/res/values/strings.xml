@@ -77,7 +77,7 @@
 
     <string name="signer_not_found_exception">Signer not found</string>
     <string name="signer_not_found_exception_description">Was the Signer app uninstalled? Check if the signer is installed and has this account. Log off and Log in again of the signer app has changed.</string>
-    <string name="signer_illegal_state_exception_description">External signer returned a payload that is strange for the request. There might be a bug on either Amethyst or the Signer.</string>
+    <string name="signer_illegal_state_exception_description">External signer returned a payload that is strange for the request. There might be a bug on either Astro or the Signer.</string>
 
     <string name="zaps">Zaps</string>
     <string name="boost">Boost</string>
@@ -163,7 +163,7 @@
     <string name="send_payment_done">Done</string>
     <string name="send_payment_pay_button">Pay %1$s sats</string>
     <string name="send_payment_pay_button_empty">Pay</string>
-    <string name="send_payment_no_methods">This profile has no payment methods that Amethyst can pay directly.</string>
+    <string name="send_payment_no_methods">This profile has no payment methods that Astro can pay directly.</string>
     <string name="send_payment_min_onchain">On-chain zaps require at least %1$s sats</string>
     <string name="send_payment_cashu_insufficient">Not enough balance in a mint this recipient accepts. Top up your Cashu wallet first.</string>
     <string name="send_payment_cashu_balance">Spendable for this recipient: %1$s sats</string>
@@ -230,7 +230,7 @@
     <string name="failed_to_save_the_image">Failed to save the image</string>
     <string name="video_saved_to_the_gallery">Video saved to the phone\'s video gallery</string>
     <string name="failed_to_save_the_video">Failed to save the video</string>
-    <string name="pdf_saved_to_the_gallery">PDF saved to Downloads/Amethyst</string>
+    <string name="pdf_saved_to_the_gallery">PDF saved to Downloads/Astro</string>
     <string name="failed_to_save_the_pdf">Failed to save the PDF</string>
     <string name="upload_image">Upload Image</string>
     <string name="upload_file">Upload File</string>
@@ -398,7 +398,7 @@
         ## Key Backup and Safety Tips
         \n\nYour account is secured by a secret key. The key is a long sequence of characters starting with **nsec1**. Anyone who has access to this secret key can post and change your identity.
         \n\n- Do **not** put your secret key in any website or software you do not trust.
-        \n- Amethyst developers will **never** ask for your secret key.
+        \n- Astro developers will **never** ask for your secret key.
         \n- **Do** keep a secure backup of your secret key for account recovery. We recommend using a password manager.
     </string>
     <string name="account_backup_tips3_md" tools:ignore="Typos">
@@ -445,7 +445,7 @@
     <string name="share_as_image">Share as Image</string>
     <string name="share_as_image_url">Share as Image Url</string>
     <string name="share_as_image_generating">Generating preview…</string>
-    <string name="share_as_image_watermark">Shared via Amethyst</string>
+    <string name="share_as_image_watermark">Shared via Astro</string>
     <string name="quick_action_copy_user_id">Author ID</string>
     <string name="quick_action_copy_note_id">Note ID</string>
     <string name="quick_action_copy_text">Copy Text</string>
@@ -455,7 +455,7 @@
     <string name="quick_action_request_deletion_gallery_title">Delete from Gallery</string>
     <string name="quick_action_request_deletion_gallery_alert_body_v2">Remove this media from your Gallery.</string>
     <string name="quick_action_request_deletion_alert_title">Request Deletion</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst will request that your note be deleted from the relays you are currently connected to. There is no guarantee that your note will be permanently deleted from those relays, or from other relays where it may be stored.</string>
+    <string name="quick_action_request_deletion_alert_body">Astro will request that your note be deleted from the relays you are currently connected to. There is no guarantee that your note will be permanently deleted from those relays, or from other relays where it may be stored.</string>
     <string name="quick_action_block_dialog_btn">Block</string>
     <string name="quick_action_delete_dialog_btn">Delete</string>
     <string name="quick_action_block">Block</string>
@@ -674,7 +674,7 @@
     <string name="workout_minutes">Minutes</string>
     <string name="workout_seconds">Seconds</string>
     <string name="workout_suggestion_connect_title">Share your workouts</string>
-    <string name="workout_suggestion_connect_message">Let Amethyst read finished workouts from Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) and suggest a post.</string>
+    <string name="workout_suggestion_connect_message">Let Astro read finished workouts from Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) and suggest a post.</string>
     <string name="workout_suggestion_connect_button">Connect</string>
     <string name="workout_suggestion_distance_km">%1$s km</string>
     <string name="workout_from_health_connect">From Health Connect</string>
@@ -820,7 +820,7 @@
     <string name="napplet_op_sign_kind">sign kind %1$d event</string>
     <string name="napplet_op_sign_kind_named">sign for %1$s (kind: %2$d)</string>
     <string name="napplet_op_encrypt">encrypt a message</string>
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <string name="napplet_op_decrypt">read your private messages</string>
 
     <!-- Permissions management screen -->
@@ -1063,7 +1063,7 @@
     <string name="nest_create_schedule_toggle">Schedule for later</string>
     <string name="nest_create_when">Pick a start time</string>
     <string name="nests_servers_title">Nest servers</string>
-    <string name="nests_servers_explainer">Choose which MoQ host servers Amethyst publishes your nests to. The first entry is used by default when you start a new space.</string>
+    <string name="nests_servers_explainer">Choose which MoQ host servers Astro publishes your nests to. The first entry is used by default when you start a new space.</string>
     <string name="nests_servers_my_section">Your servers</string>
     <string name="nests_servers_my_explainer">Saved as a kind-10112 replaceable event so other clients can read your preference.</string>
     <string name="nests_servers_add_relay_field">Relay (WebTransport) URL</string>
@@ -1073,7 +1073,7 @@
     <string name="nests_servers_auth_label">Auth</string>
     <string name="nests_servers_recommended_section">Recommended servers</string>
     <string name="nests_servers_recommended_explainer">Built-in suggestions you can add to your list with one tap.</string>
-    <string name="nests_servers_use_defaults">Use Amethyst defaults</string>
+    <string name="nests_servers_use_defaults">Use Astro defaults</string>
     <string name="nests_servers_add_recommended">Add server</string>
     <string name="nests_servers_remove">Remove server</string>
     <string name="nests_servers_empty">No nest servers yet. Add one below or pick a recommended server.</string>
@@ -1416,10 +1416,10 @@
     <string name="local_blossom_cache_profile_pics_only">Only cache profile pictures</string>
     <string name="local_blossom_cache_profile_pics_only_caption">Restrict the local cache to profile pictures. Feed images and videos will be fetched directly from the original servers.</string>
 
-    <string name="no_blossom_server_message">You have no Blossom servers set. You can use Amethyst\'s list, or add one below ↓</string>
+    <string name="no_blossom_server_message">You have no Blossom servers set. You can use Astro\'s list, or add one below ↓</string>
 
     <string name="recommended_media_servers">Recommended Media Servers</string>
-    <string name="built_in_servers_description">Amethyst\'s default list. You can add them individually or add the list.</string>
+    <string name="built_in_servers_description">Astro\'s default list. You can add them individually or add the list.</string>
     <string name="use_default_servers">Use Default List</string>
     <string name="add_media_server">Add media server</string>
     <string name="delete_media_server">Delete media server</string>
@@ -1641,8 +1641,8 @@
     <string name="call_add_participant">Add participant</string>
     <string name="call_search_users">Search users\u2026</string>
     <string name="call_permission_denied_title">Permission needed</string>
-    <string name="call_permission_denied_voice">Amethyst needs microphone access to start a voice call. Please enable it in the app settings.</string>
-    <string name="call_permission_denied_video">Amethyst needs camera and microphone access to start a video call. Please enable them in the app settings.</string>
+    <string name="call_permission_denied_voice">Astro needs microphone access to start a voice call. Please enable it in the app settings.</string>
+    <string name="call_permission_denied_video">Astro needs camera and microphone access to start a video call. Please enable them in the app settings.</string>
     <string name="call_permission_denied_open_settings">Open settings</string>
     <string name="call_permission_denied_cancel">Cancel</string>
     <string name="call_settings">Call Settings</string>
@@ -1663,7 +1663,7 @@
 
     <string name="always_on_notif_channel_name" translatable="false">Relay Connection Service</string>
     <string name="always_on_notif_channel_description">Keeps connections to your inbox relays active for real-time notifications</string>
-    <string name="always_on_notif_title">Amethyst Notifications Active</string>
+    <string name="always_on_notif_title">Astro Notifications Active</string>
     <plurals name="always_on_notif_connected">
         <item quantity="one">Connected to %1$d inbox relay</item>
         <item quantity="other">Connected to %1$d inbox relays</item>
@@ -1684,7 +1684,7 @@
     <string name="notification_tab_everyone">Everyone</string>
 
     <string name="battery_optimization_title">Battery optimization active</string>
-    <string name="battery_optimization_description">Android may restrict relay connections in the background. Disable battery optimization for Amethyst to ensure reliable notifications.</string>
+    <string name="battery_optimization_description">Android may restrict relay connections in the background. Disable battery optimization for Astro to ensure reliable notifications.</string>
     <string name="battery_optimization_fix_now">Fix now</string>
 
     <string name="reply_notify">Notify: </string>
@@ -1704,7 +1704,7 @@
     <string name="filter_spam_from_strangers_title">Filter spam</string>
     <string name="filter_spam_from_strangers_explainer">Hides posts from strangers that were exactly the same for 5 or more times</string>
     <string name="add_client_tag_title">Add client tag to my events</string>
-    <string name="add_client_tag_explainer">When enabled, Amethyst appends a NIP-89 client tag to events you publish.</string>
+    <string name="add_client_tag_explainer">When enabled, Astro appends a NIP-89 client tag to events you publish.</string>
     <string name="warn_when_posts_have_reports_from_your_follows_title">Warn on reports</string>
     <string name="warn_when_posts_have_reports_from_your_follows_explainer">Shows a warning message when posts or profiles have reports from your follows</string>
     <string name="report_warning_threshold_title">Report warning threshold</string>
@@ -2156,12 +2156,12 @@
 
 
     <string name="couldnt_find_nwc_wallets">Wallet not found</string>
-    <string name="couldnt_find_nwc_wallets_description">Amethyst couldn\'t find any wallet apps that support Nostr Wallet Connect (NWC).
+    <string name="couldnt_find_nwc_wallets_description">Astro couldn\'t find any wallet apps that support Nostr Wallet Connect (NWC).
 \n\nWhat you can do:
 \n\t1. Verify NWC Support: Double-check that your preferred wallet app is compatible with Nostr Wallet Connect.
 \n\t2. Create Connection: Go to your wallet app and create a new NWC connection.
-\n\t3. Link to Amethyst: Your wallet will usually give you three options:
-\n\t\t3.1 Automatic Link: A button to automatically open and connect to Amethyst. If so, click that button, open Amethyst and hit save on the new screen.
+\n\t3. Link to Astro: Your wallet will usually give you three options:
+\n\t\t3.1 Automatic Link: A button to automatically open and connect to Astro. If so, click that button, open Astro and hit save on the new screen.
 \n\t\t3.2 Manual Link: A Connection URI you can copy and click the paste icon on this screen to directly input it.
 \n\t\t3.3 QR Code: The wallet creates a QR code which you can read from the QR code button in this screen.
     </string>
@@ -2259,7 +2259,7 @@
     <string name="wallet_connect_pay_invoice_error_error">Your wallet connect provider returned the following error: %1$s</string>
 
     <string name="tor_connection_failed_title">Tor isn\'t connecting</string>
-    <string name="tor_connection_failed_body">Amethyst couldn\'t finish bootstrapping Tor. Use a regular (non-Tor) connection so the feed can load? We\'ll remember this choice for the next hour and re-try Tor after that.</string>
+    <string name="tor_connection_failed_body">Astro couldn\'t finish bootstrapping Tor. Use a regular (non-Tor) connection so the feed can load? We\'ll remember this choice for the next hour and re-try Tor after that.</string>
     <string name="tor_continue_without_for_session">Use regular connection</string>
     <string name="tor_keep_waiting">Keep waiting</string>
     <string name="could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup">Could not assemble LNUrl from Lightning Address \"%1$s\". Check the user\'s setup</string>
@@ -2288,7 +2288,7 @@
 
     <string name="select_push_server">Select a UnifiedPush App</string>
     <string name="push_server_title">Push provider</string>
-    <string name="push_server_explainer">Pick a UnifiedPush app to deliver notifications when Amethyst is closed.</string>
+    <string name="push_server_explainer">Pick a UnifiedPush app to deliver notifications when Astro is closed.</string>
     <string name="push_server_none">None</string>
     <string name="push_server_none_explainer">Disables Push Notifications</string>
     <string name="push_server_uses_app_explainer">Uses app %1$s</string>
@@ -2870,7 +2870,7 @@
     <string name="profile_ui_setting_followers_feed">Followers Feed</string>
     <string name="profile_ui_setting_onchain_wallet">Bitcoin (on-chain) Wallet</string>
     <string name="profile_layout_settings">Profile Layout</string>
-    <string name="profile_layout_settings_description">Drag to move profile elements and use the corner handle to resize. Publish so other Amethyst users see your layout.</string>
+    <string name="profile_layout_settings_description">Drag to move profile elements and use the corner handle to resize. Publish so other Astro users see your layout.</string>
     <string name="profile_layout_reorder">Reorder</string>
     <string name="profile_layout_block_display_name">Display name</string>
     <string name="profile_layout_block_username">Username</string>
@@ -3010,7 +3010,7 @@
     <string name="show_nprofile_as_a_qr_code">Show nprofile as a QR code</string>
 
     <string name="invalid_nip19_uri">Invalid address</string>
-    <string name="invalid_nip19_uri_description">Amethyst received a URI to open but that uri was invalid: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro received a URI to open but that uri was invalid: %1$s</string>
 
     <string name="dm_relays_title">DM Inbox Relays</string>
     <string name="dm_relays_not_found">Set up your Private Inbox relays</string>
@@ -3042,7 +3042,7 @@
     <string name="relay_reorder">Reorder relay</string>
     <string name="public_home_section">Public Outbox/Home Relays</string>
     <string name="public_home_section_explainer_profile">User is posting his content to these relays</string>
-    <string name="public_home_section_explainer">This relay type stores all your content. Amethyst will send your posts here and others will use these relays to find your content. Insert between 1–3 relays. They can be personal relays, paid relays or public relays.</string>
+    <string name="public_home_section_explainer">This relay type stores all your content. Astro will send your posts here and others will use these relays to find your content. Insert between 1–3 relays. They can be personal relays, paid relays or public relays.</string>
     <string name="public_notif_section">Public Inbox Relays</string>
     <string name="public_notif_section_explainer_profile">User is receiving notifications on these relays</string>
     <string name="public_notif_section_explainer">This relay type receives all replies, comments, likes and zaps to your posts. They can be paid or free relays. Limits set by the relay operator can limit the notifications you receive for the good and for the bad. For example, if you are being attacked by comment spam, paid relays can filter the spam out. Insert between 1–3 relays.</string>
@@ -3080,15 +3080,15 @@
 
     <string name="broadcast_relays_title">Broadcast Relays</string>
     <string name="broadcast_section">Broadcast Relays</string>
-    <string name="broadcast_section_explainer">Relays that specialize in pushing your notes to all of the other relays, like sendit.nosflare.com. Amethyst will add this relay to all new events made by you</string>
+    <string name="broadcast_section_explainer">Relays that specialize in pushing your notes to all of the other relays, like sendit.nosflare.com. Astro will add this relay to all new events made by you</string>
 
     <string name="indexer_relays_title">Indexer Relays</string>
     <string name="indexer_section">Indexer Relays</string>
-    <string name="indexer_section_explainer">Relays that specialize in hosting everyone\'s metadata and relay lists, like purplepag.es. Amethyst will use these relays to find users that are not in your lists.</string>
+    <string name="indexer_section_explainer">Relays that specialize in hosting everyone\'s metadata and relay lists, like purplepag.es. Astro will use these relays to find users that are not in your lists.</string>
 
     <string name="blocked_relays_title">Blocked Relays</string>
     <string name="blocked_section">Blocked Relays</string>
-    <string name="blocked_section_explainer">Amethyst will never connect to these relays</string>
+    <string name="blocked_section_explainer">Astro will never connect to these relays</string>
 
     <string name="export_relay_settings">Export relay settings</string>
     <string name="export_as_text">Export as text</string>
@@ -3359,7 +3359,7 @@
     <string name="feed_filter_select_an_option">Feed filter, %1$s</string>
 
     <string name="crashreport_found">Crash Report found</string>
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Would you like to send the recent crash report to Amethyst in a DM? No personal information will be shared</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Would you like to send the recent crash report to Astro in a DM? No personal information will be shared</string>
     <string name="crashreport_found_send">Send it</string>
     <string name="this_message_will_disappear_in">This message will disappear in %1$s</string>
     <string name="select_signer">Select Signer</string>

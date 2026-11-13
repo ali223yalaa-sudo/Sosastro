@@ -183,7 +183,7 @@
     <string name="quick_action_unfollow">@string/unfollow</string>
     <string name="quick_action_follow">@string/follow</string>
     <string name="quick_action_request_deletion_alert_title">Запросити видалення</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst попросить релеї, до яких ви зараз підключені, видалити цей запис. Однак немає гарантії, що запис буде назавжди видалено цими релеями, або іншими, які вже його зберегли.</string>
+    <string name="quick_action_request_deletion_alert_body">Astro попросить релеї, до яких ви зараз підключені, видалити цей запис. Однак немає гарантії, що запис буде назавжди видалено цими релеями, або іншими, які вже його зберегли.</string>
     <string name="quick_action_block_dialog_btn">@string/block_only</string>
     <string name="quick_action_delete_dialog_btn">Видалити</string>
     <string name="quick_action_block">@string/block_only</string>
@@ -670,11 +670,11 @@
     
     <string name="local_blossom_cache_profile_pics_only_caption">Обмежити локальний кеш лише фотографіями профілів. Зображення та відео зі стрічки завантажуватимуться безпосередньо з оригінальних серверів.</string>
     
-    <string name="no_blossom_server_message">У вас не налаштовано серверів Blossom. Ви можете скористатися списком Amethyst або додати свій нижче ↓</string>
+    <string name="no_blossom_server_message">У вас не налаштовано серверів Blossom. Ви можете скористатися списком Astro або додати свій нижче ↓</string>
     
     <string name="recommended_media_servers">Рекомендовані медіасервери</string>
     
-    <string name="built_in_servers_description">Стандартний список Amethyst. Ви можете додавати їх окремо або додати весь список.</string>
+    <string name="built_in_servers_description">Стандартний список Astro. Ви можете додавати їх окремо або додати весь список.</string>
     
     <string name="use_default_servers">Використовувати стандартний список</string>
     
@@ -982,9 +982,9 @@
     
     <string name="call_permission_denied_title">Потрібен дозвіл</string>
     
-    <string name="call_permission_denied_voice">Amethyst потребує доступу до мікрофона для початку голосового дзвінка. Будь ласка, увімкніть його в налаштуваннях програми.</string>
+    <string name="call_permission_denied_voice">Astro потребує доступу до мікрофона для початку голосового дзвінка. Будь ласка, увімкніть його в налаштуваннях програми.</string>
     
-    <string name="call_permission_denied_video">Amethyst потребує доступу до камери та мікрофона для початку відеодзвінка. Будь ласка, увімкніть їх у налаштуваннях програми.</string>
+    <string name="call_permission_denied_video">Astro потребує доступу до камери та мікрофона для початку відеодзвінка. Будь ласка, увімкніть їх у налаштуваннях програми.</string>
     
     <string name="call_permission_denied_open_settings">Відкрити налаштування</string>
     
@@ -1022,7 +1022,7 @@
     
     <string name="always_on_notif_channel_description">Підтримує активні з\'єднання з вашими inbox relay для сповіщень у реальному часі</string>
     
-    <string name="always_on_notif_title">Сповіщення Amethyst активні</string>
+    <string name="always_on_notif_title">Сповіщення Astro активні</string>
     
     <plurals name="always_on_notif_connected">
     <item quantity="one">Підключено до %1$d inbox relay</item>
@@ -1058,7 +1058,7 @@
     
     <string name="battery_optimization_title">Оптимізація батареї активна</string>
     
-    <string name="battery_optimization_description">Android може обмежувати з\'єднання з relay у фоновому режимі. Вимкніть оптимізацію батареї для Amethyst, щоб забезпечити надійні сповіщення.</string>
+    <string name="battery_optimization_description">Android може обмежувати з\'єднання з relay у фоновому режимі. Вимкніть оптимізацію батареї для Astro, щоб забезпечити надійні сповіщення.</string>
     
     <string name="battery_optimization_fix_now">Виправити зараз</string>
     
@@ -1076,7 +1076,7 @@
     
     <string name="add_client_tag_title">Додавати клієнтський тег до моїх подій</string>
     
-    <string name="add_client_tag_explainer">Коли увімкнено, Amethyst додає NIP-89 клієнтський тег до подій, які ви публікуєте.</string>
+    <string name="add_client_tag_explainer">Коли увімкнено, Astro додає NIP-89 клієнтський тег до подій, які ви публікуєте.</string>
     
     <string name="warn_when_posts_have_reports_from_your_follows_title">Попереджати про скарги</string>
     
@@ -1450,12 +1450,12 @@
     
     <string name="couldnt_find_nwc_wallets">Гаманець не знайдено</string>
     
-    <string name="couldnt_find_nwc_wallets_description">Amethyst не знайшов жодного гаманця, який підтримує Nostr Wallet Connect (NWC).
+    <string name="couldnt_find_nwc_wallets_description">Astro не знайшов жодного гаманця, який підтримує Nostr Wallet Connect (NWC).
 \n\nЩо можна зробити:
 \n\t1. Перевірте підтримку NWC: переконайтеся, що ваш гаманець сумісний з Nostr Wallet Connect.
 \n\t2. Створіть підключення: відкрийте гаманець і створіть нове NWC-підключення.
-\n\t3. Прив\'яжіть до Amethyst: зазвичай гаманець надає три варіанти:
-\n\t\t3.1 Автоматичне підключення: кнопка для автоматичного відкриття та підключення до Amethyst. Якщо так — натисніть її, відкрийте Amethyst і збережіть налаштування на новому екрані.
+\n\t3. Прив\'яжіть до Astro: зазвичай гаманець надає три варіанти:
+\n\t\t3.1 Автоматичне підключення: кнопка для автоматичного відкриття та підключення до Astro. Якщо так — натисніть її, відкрийте Astro і збережіть налаштування на новому екрані.
 \n\t\t3.2 Ручне підключення: URI підключення, який можна скопіювати та вставити за допомогою значка вставки на цьому екрані.
 \n\t\t3.3 QR-код: гаманець створює QR-код, який можна зчитати за допомогою кнопки QR-коду на цьому екрані.
     </string>
@@ -1530,7 +1530,7 @@
     
     <string name="tor_connection_failed_title">Tor не підключається</string>
     
-    <string name="tor_connection_failed_body">Amethyst не зміг завершити завантаження Tor. Використати звичайне (без Tor) підключення, щоб завантажити стрічку? Ми запам\'ятаємо цей вибір на наступну годину і спробуємо Tor знову після цього.</string>
+    <string name="tor_connection_failed_body">Astro не зміг завершити завантаження Tor. Використати звичайне (без Tor) підключення, щоб завантажити стрічку? Ми запам\'ятаємо цей вибір на наступну годину і спробуємо Tor знову після цього.</string>
     
     <string name="tor_continue_without_for_session">Використати звичайне підключення</string>
     
@@ -1572,7 +1572,7 @@
     
     <string name="push_server_title">Постачальник push-сповіщень</string>
     
-    <string name="push_server_explainer">Виберіть додаток UnifiedPush для доставки сповіщень, коли Amethyst закрито.</string>
+    <string name="push_server_explainer">Виберіть додаток UnifiedPush для доставки сповіщень, коли Astro закрито.</string>
     
     <string name="push_server_none">Немає</string>
     
@@ -2588,7 +2588,7 @@
     
     <string name="invalid_nip19_uri">Недійсна адреса</string>
     
-    <string name="invalid_nip19_uri_description">Amethyst отримав URI для відкриття, але цей URI був недійсним: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro отримав URI для відкриття, але цей URI був недійсним: %1$s</string>
     
     <string name="dm_relays_title">Relay-сервери для вхідних DM</string>
     
@@ -2642,7 +2642,7 @@
     
     <string name="public_home_section_explainer_profile">Користувач публікує свій вміст на цих relay-серверах</string>
     
-    <string name="public_home_section_explainer">Цей тип relay-серверів зберігає весь ваш вміст. Amethyst надсилатиме ваші публікації сюди, а інші використовуватимуть ці relay-сервери для пошуку вашого вмісту. Введіть від 1 до 3 relay-серверів. Це можуть бути особисті, платні або публічні relay-сервери.</string>
+    <string name="public_home_section_explainer">Цей тип relay-серверів зберігає весь ваш вміст. Astro надсилатиме ваші публікації сюди, а інші використовуватимуть ці relay-сервери для пошуку вашого вмісту. Введіть від 1 до 3 relay-серверів. Це можуть бути особисті, платні або публічні relay-сервери.</string>
     
     <string name="public_notif_section">Публічні relay-сервери для вхідних повідомлень</string>
     
@@ -2704,19 +2704,19 @@
     
     <string name="broadcast_section">Relay-сервери для розсилки</string>
     
-    <string name="broadcast_section_explainer">Relay-сервери, що спеціалізуються на поширенні ваших нотаток до всіх інших relay-серверів, наприклад sendit.nosflare.com. Amethyst додаватиме цей relay-сервер до всіх нових подій, створених вами</string>
+    <string name="broadcast_section_explainer">Relay-сервери, що спеціалізуються на поширенні ваших нотаток до всіх інших relay-серверів, наприклад sendit.nosflare.com. Astro додаватиме цей relay-сервер до всіх нових подій, створених вами</string>
     
     <string name="indexer_relays_title">Relay-сервери-індексатори</string>
     
     <string name="indexer_section">Relay-сервери-індексатори</string>
     
-    <string name="indexer_section_explainer">Relay-сервери, що спеціалізуються на зберіганні метаданих та списків relay-серверів усіх користувачів, наприклад purplepag.es. Amethyst використовуватиме ці relay-сервери для пошуку користувачів, яких немає у ваших списках.</string>
+    <string name="indexer_section_explainer">Relay-сервери, що спеціалізуються на зберіганні метаданих та списків relay-серверів усіх користувачів, наприклад purplepag.es. Astro використовуватиме ці relay-сервери для пошуку користувачів, яких немає у ваших списках.</string>
     
     <string name="blocked_relays_title">Заблоковані relay-сервери</string>
     
     <string name="blocked_section">Заблоковані relay-сервери</string>
     
-    <string name="blocked_section_explainer">Amethyst ніколи не підключатиметься до цих relay-серверів</string>
+    <string name="blocked_section_explainer">Astro ніколи не підключатиметься до цих relay-серверів</string>
     
     <string name="export_relay_settings">Експортувати налаштування relay-серверів</string>
     
@@ -3062,7 +3062,7 @@
     
     <string name="crashreport_found">Знайдено звіт про збій</string>
     
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Бажаєте надіслати останній звіт про збій у Amethyst через особисте повідомлення? Жодна особиста інформація не буде передана</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Бажаєте надіслати останній звіт про збій у Astro через особисте повідомлення? Жодна особиста інформація не буде передана</string>
     
     <string name="crashreport_found_send">Надіслати</string>
     
@@ -4525,7 +4525,7 @@
 
     <string name="signer_not_found_exception_description">Чи не було видалено застосунок-підписувач? Перевірте, чи встановлено підписувач і чи є в ньому цей обліковий запис. Вийдіть і увійдіть знову, якщо застосунок-підписувач змінився.</string>
 
-    <string name="signer_illegal_state_exception_description">Зовнішній підписувач повернув дані, що не відповідають запиту. Можливо, є помилка в Amethyst або підписувачі.</string>
+    <string name="signer_illegal_state_exception_description">Зовнішній підписувач повернув дані, що не відповідають запиту. Можливо, є помилка в Astro або підписувачі.</string>
 
     <string name="edited">відредаговано</string>
 
@@ -4653,7 +4653,7 @@
 
     <string name="send_payment_pay_button_empty">Сплатити</string>
 
-    <string name="send_payment_no_methods">Цей профіль не має методів оплати, які Amethyst може використати напряму.</string>
+    <string name="send_payment_no_methods">Цей профіль не має методів оплати, які Astro може використати напряму.</string>
 
     <string name="send_payment_min_onchain">Zap на блокчейні потребує щонайменше %1$s sats</string>
 
@@ -4723,7 +4723,7 @@
 
     <string name="failed_to_save_the_video">Не вдалося зберегти відео</string>
 
-    <string name="pdf_saved_to_the_gallery">PDF збережено до Downloads/Amethyst</string>
+    <string name="pdf_saved_to_the_gallery">PDF збережено до Downloads/Astro</string>
 
     <string name="failed_to_save_the_pdf">Не вдалося зберегти PDF</string>
 
@@ -4843,7 +4843,7 @@
         ## Поради щодо резервного копіювання та безпеки ключа
         \n\nВаш обліковий запис захищений секретним ключем. Ключ — це довга послідовність символів, що починається з **nsec1**. Будь-хто, хто має доступ до цього секретного ключа, може публікувати та змінювати вашу особу.
         \n\n- **Не** вводьте свій секретний ключ на жодному сайті чи в програмі, якій ви не довіряєте.
-        \n- Розробники Amethyst **ніколи** не запитуватимуть ваш секретний ключ.
+        \n- Розробники Astro **ніколи** не запитуватимуть ваш секретний ключ.
         \n- **Зробіть** надійне резервне копіювання секретного ключа для відновлення облікового запису. Рекомендуємо використовувати менеджер паролів.
     </string>
 
@@ -4874,7 +4874,7 @@
 
     <string name="share_as_image_generating">Генерація попереднього перегляду…</string>
 
-    <string name="share_as_image_watermark">Поширено через Amethyst</string>
+    <string name="share_as_image_watermark">Поширено через Astro</string>
 
     <string name="quick_action_request_deletion_gallery_title">Видалити з галереї</string>
 
@@ -5243,7 +5243,7 @@
     
     <string name="workout_suggestion_connect_title">Діліться своїми тренуваннями</string>
     
-    <string name="workout_suggestion_connect_message">Дозвольте Amethyst зчитувати завершені тренування з Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) та пропонувати допис.</string>
+    <string name="workout_suggestion_connect_message">Дозвольте Astro зчитувати завершені тренування з Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) та пропонувати допис.</string>
     
     <string name="workout_suggestion_connect_button">Підключити</string>
     
@@ -5736,7 +5736,7 @@
 
     <string name="nests_servers_title">Nest-сервери</string>
 
-    <string name="nests_servers_explainer">Виберіть, на які MoQ-хост-сервери Amethyst публікує ваші nests. Перший запис використовується за замовчуванням під час запуску нового простору.</string>
+    <string name="nests_servers_explainer">Виберіть, на які MoQ-хост-сервери Astro публікує ваші nests. Перший запис використовується за замовчуванням під час запуску нового простору.</string>
 
     <string name="nests_servers_my_section">Ваші сервери</string>
 
@@ -5756,7 +5756,7 @@
 
     <string name="nests_servers_recommended_explainer">Вбудовані пропозиції, які можна додати до списку одним дотиком.</string>
 
-    <string name="nests_servers_use_defaults">Використати типові налаштування Amethyst</string>
+    <string name="nests_servers_use_defaults">Використати типові налаштування Astro</string>
 
     <string name="nests_servers_add_recommended">Додати сервер</string>
 

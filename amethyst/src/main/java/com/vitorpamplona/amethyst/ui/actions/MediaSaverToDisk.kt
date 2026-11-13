@@ -31,7 +31,7 @@ import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
 import androidx.core.net.toFile
 import androidx.core.net.toUri
-import com.vitorpamplona.amethyst.ui.actions.MediaSaverToDisk.AMETHYST_SUBDIRECTORY
+import com.vitorpamplona.amethyst.ui.actions.MediaSaverToDisk.ASTRO_SUBDIRECTORY
 import com.vitorpamplona.quartz.utils.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -95,7 +95,7 @@ object MediaSaverToDisk {
      * http/https. When resolution fails the save reports an error instead of
      * crashing with "expected scheme http or https but was blossom".
      *
-     * @see AMETHYST_SUBDIRECTORY
+     * @see ASTRO_SUBDIRECTORY
      */
     suspend fun downloadAndSave(
         url: String,
@@ -255,7 +255,7 @@ object MediaSaverToDisk {
                 put(MediaStore.MediaColumns.MIME_TYPE, cleanMimeType)
                 put(
                     MediaStore.MediaColumns.RELATIVE_PATH,
-                    baseDir + File.separatorChar + AMETHYST_SUBDIRECTORY,
+                    baseDir + File.separatorChar + ASTRO_SUBDIRECTORY,
                 )
             }
 
@@ -282,7 +282,7 @@ object MediaSaverToDisk {
         val subdirectory =
             File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                AMETHYST_SUBDIRECTORY,
+                ASTRO_SUBDIRECTORY,
             ).apply {
                 if (!exists()) mkdirs()
             }
@@ -307,7 +307,7 @@ object MediaSaverToDisk {
             else -> mimeType
         }
 
-    private const val AMETHYST_SUBDIRECTORY = "Amethyst"
+    private const val ASTRO_SUBDIRECTORY = "Astro"
     private const val PDF_MIME_TYPE = "application/pdf"
     private const val BLOSSOM_SCHEME = "blossom:"
 }

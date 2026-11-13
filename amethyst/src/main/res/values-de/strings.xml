@@ -210,7 +210,7 @@ anz der Bedingungen ist erforderlich</string>
     <string name="account_backup_tips2_md" tools:ignore="Typos">    ## Schlüsselsicherheits-Tipps
     \n\nIhr Konto ist durch einen geheimen Schlüssel gesichert. Der Schlüssel ist eine lange Zeichenfolge, die mit **nsec1** beginnt. Jeder, der Zugriff auf diesen geheimen Schlüssel hat, kann Ihre Identität posten und ändern.
     \n\n- Legen Sie Ihren geheimen Schlüssel **nicht** auf eine Website oder in eine Software, der Sie nicht vertrauen.
-    \n- Die Entwickler von Amethyst werden Sie **niemals** nach Ihrem geheimen Schlüssel fragen.
+    \n- Die Entwickler von Astro werden Sie **niemals** nach Ihrem geheimen Schlüssel fragen.
     \n- **Bewahren Sie** eine sichere Sicherung Ihres geheimen Schlüssels zur Kontowiederherstellung auf. Wir empfehlen die Verwendung eines Passwort-Managers.</string>
     <string name="account_backup_tips3_md" tools:ignore="Typos">    Für zusätzliche Sicherheit können Sie Ihren Schlüssel mit einem Passwort verschlüsseln. Dieser Schlüssel beginnt mit **ncryptsec1** und kann ohne Ihr Passwort nicht verwendet werden.
     \n\nWenn Sie Ihr Passwort verlieren, können Sie Ihren Schlüssel nicht wiederherstellen.</string>
@@ -245,7 +245,7 @@ anz der Bedingungen ist erforderlich</string>
     <string name="quick_action_follow">Folgen</string>
     <string name="quick_action_request_deletion_gallery_title">Aus Galerie löschen</string>
     <string name="quick_action_request_deletion_alert_title">Löschung anfordern</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst wird beantragen, dass Ihre Notiz von den Relays gelöscht wird, mit denen Sie derzeit verbunden sind. Es gibt keine Garantie dafür, dass Ihre Notiz dauerhaft von diesen Relays oder anderen Relays, in denen sie gespeichert sein kann, gelöscht wird.</string>
+    <string name="quick_action_request_deletion_alert_body">Astro wird beantragen, dass Ihre Notiz von den Relays gelöscht wird, mit denen Sie derzeit verbunden sind. Es gibt keine Garantie dafür, dass Ihre Notiz dauerhaft von diesen Relays oder anderen Relays, in denen sie gespeichert sein kann, gelöscht wird.</string>
     <string name="quick_action_block_dialog_btn">Blockieren</string>
     <string name="quick_action_delete_dialog_btn">Löschen</string>
     <string name="quick_action_block">Blockieren</string>
@@ -321,8 +321,8 @@ anz der Bedingungen ist erforderlich</string>
     <string name="file_server_description">Wählen Sie einen Server zum Hochladen dieser Datei</string>
     <string name="media_servers">Medienserver</string>
     <string name="set_preferred_media_servers">Legen Sie Ihre bevorzugten Medienupload Server fest.</string>
-    <string name="no_blossom_server_message">Du hast keine Blossom Server gesetzt. Du kannst die Amethyst-Liste verwenden oder unten einen hinzufügen ↓</string>
-    <string name="built_in_servers_description">Amethysts Standardliste. Sie können sie einzeln hinzufügen oder die Liste hinzufügen.</string>
+    <string name="no_blossom_server_message">Du hast keine Blossom Server gesetzt. Du kannst die Astro-Liste verwenden oder unten einen hinzufügen ↓</string>
+    <string name="built_in_servers_description">Astros Standardliste. Sie können sie einzeln hinzufügen oder die Liste hinzufügen.</string>
     <string name="use_default_servers">Standardliste verwenden</string>
     <string name="add_media_server">Medienserver hinzufügen</string>
     <string name="delete_media_server">Medienserver löschen</string>
@@ -644,7 +644,7 @@ anz der Bedingungen ist erforderlich</string>
     <string name="remove_content_warning">Inhaltswarnung entfernen</string>
     <string name="show_npub_as_a_qr_code">Npub als QR-Code anzeigen</string>
     <string name="invalid_nip19_uri">Ungültige Adresse</string>
-    <string name="invalid_nip19_uri_description">Amethyst hat eine URI zum Öffnen erhalten, aber diese URI war ungültig: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro hat eine URI zum Öffnen erhalten, aber diese URI war ungültig: %1$s</string>
     <string name="dm_relays_title">DM Posteingangs-Relais</string>
     <string name="dm_relays_not_found">Richten Sie Ihre privaten Posteingangs-Relais ein</string>
     <string name="dm_relays_not_found_description">Diese Einstellung lässt alle wissen, welche Relais verwendet werden sollen, wenn sie Nachrichten an Sie senden. Ohne diese könnten Sie einige Nachrichten verpassen.</string>
@@ -658,7 +658,7 @@ anz der Bedingungen ist erforderlich</string>
     <string name="search_relays_not_found_examples">Gute Optionen sind:\n%1$s</string>
     <string name="relay_settings">Relaiseinstellungen</string>
     <string name="public_home_section">Öffentliche Heimrelais</string>
-    <string name="public_home_section_explainer">Dieser Relais-Typ speichert alle Ihre Inhalte. Amethyst sendet Ihre Beiträge hierher und andere werden diese Relais verwenden, um Ihre Inhalte zu finden. Fügen Sie 1–3 Relais ein. Sie können persönliche Relais, bezahlte Relais oder öffentliche Relais sein.</string>
+    <string name="public_home_section_explainer">Dieser Relais-Typ speichert alle Ihre Inhalte. Astro sendet Ihre Beiträge hierher und andere werden diese Relais verwenden, um Ihre Inhalte zu finden. Fügen Sie 1–3 Relais ein. Sie können persönliche Relais, bezahlte Relais oder öffentliche Relais sein.</string>
     <string name="public_notif_section">Öffentliche Posteingangsrelais</string>
     <string name="public_notif_section_explainer">Dieser Relais-Typ empfängt alle Antworten, Kommentare, Likes und Zaps auf Ihre Beiträge. Fügen Sie 1–3 Relais ein und stellen Sie sicher, dass sie Beiträge von jedem akzeptieren.</string>
     <string name="private_inbox_section">DM-Posteingangsrelais</string>
@@ -769,13 +769,13 @@ anz der Bedingungen ist erforderlich</string>
     <string name="proxy_section_explainer">Aggregator-Relays wie filter.nostr.wine, von denen die App deine Feeds herunterlädt</string>
     <string name="broadcast_relays_title">Broadcast-Relays</string>
     <string name="broadcast_section">Broadcast-Relays</string>
-    <string name="broadcast_section_explainer">Relays, die deine Beiträge an andere Relays weiterleiten, z.B. sendit.nosflare.com. Amethyst fügt diesen Relay zu allen neuen Ereignissen hinzu</string>
+    <string name="broadcast_section_explainer">Relays, die deine Beiträge an andere Relays weiterleiten, z.B. sendit.nosflare.com. Astro fügt diesen Relay zu allen neuen Ereignissen hinzu</string>
     <string name="indexer_relays_title">Indexer-Relays</string>
     <string name="indexer_section">Indexer-Relays</string>
-    <string name="indexer_section_explainer">Relays, die Metadaten und Relay-Listen hosten, z.B. purplepag.es. Amethyst verwendet sie, um Benutzer zu finden, die nicht in deinen Listen sind.</string>
+    <string name="indexer_section_explainer">Relays, die Metadaten und Relay-Listen hosten, z.B. purplepag.es. Astro verwendet sie, um Benutzer zu finden, die nicht in deinen Listen sind.</string>
     <string name="blocked_relays_title">Blockierte Relays</string>
     <string name="blocked_section">Blockierte Relays</string>
-    <string name="blocked_section_explainer">Amethyst wird sich niemals mit diesen Relays verbinden</string>
+    <string name="blocked_section_explainer">Astro wird sich niemals mit diesen Relays verbinden</string>
     <string name="public_message">Öffentliche Nachricht</string>
     <string name="option_of">Option %1$s von %2$s</string>
     <string name="feed_filter_selected">Feed-Filter, %1$s ausgewählt</string>
@@ -786,7 +786,7 @@ anz der Bedingungen ist erforderlich</string>
     <string name="public_notif_section_explainer_profile">Der Benutzer erhält Benachrichtigungen auf diesen Relays</string>
     <string name="private_inbox_section_explainer_profile">Der Benutzer empfängt Direktnachrichten auf diesen Relays</string>
     <string name="crashreport_found">Absturzbericht gefunden</string>
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Möchten Sie den letzten Absturzbericht per Direktnachricht an Amethyst senden? Es werden keine persönlichen Daten weitergegeben</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Möchten Sie den letzten Absturzbericht per Direktnachricht an Astro senden? Es werden keine persönlichen Daten weitergegeben</string>
     <string name="crashreport_found_send">Senden</string>
     <string name="guidelines">Richtlinien</string>
     <string name="moderators">Moderatoren</string>
@@ -838,7 +838,7 @@ anz der Bedingungen ist erforderlich</string>
     
 <string name="chat_clip_created_a_clip">hat einen Clip erstellt</string>
     
-<string name="signer_illegal_state_exception_description">Externer Signierer hat Daten zurückgegeben, die für die Anfrage ungewöhnlich sind. Es könnte ein Fehler in Amethyst oder im Signierer vorliegen.</string>
+<string name="signer_illegal_state_exception_description">Externer Signierer hat Daten zurückgegeben, die für die Anfrage ungewöhnlich sind. Es könnte ein Fehler in Astro oder im Signierer vorliegen.</string>
     
 <string name="number_following">"%1$s Folgen"</string>
     
@@ -956,7 +956,7 @@ anz der Bedingungen ist erforderlich</string>
     
 <string name="send_payment_pay_button_empty">Bezahlen</string>
     
-<string name="send_payment_no_methods">Dieses Profil hat keine Zahlungsmethoden, die Amethyst direkt bezahlen kann.</string>
+<string name="send_payment_no_methods">Dieses Profil hat keine Zahlungsmethoden, die Astro direkt bezahlen kann.</string>
     
 <string name="send_payment_min_onchain">On-chain-Zaps erfordern mindestens %1$s Sats</string>
     
@@ -996,7 +996,7 @@ anz der Bedingungen ist erforderlich</string>
     
 <string name="pinned_to_top">Oben angeheftet</string>
     
-<string name="pdf_saved_to_the_gallery">PDF in Downloads/Amethyst gespeichert</string>
+<string name="pdf_saved_to_the_gallery">PDF in Downloads/Astro gespeichert</string>
     
 <string name="failed_to_save_the_pdf">PDF konnte nicht gespeichert werden</string>
     
@@ -1077,7 +1077,7 @@ anz der Bedingungen ist erforderlich</string>
     
 <string name="share_as_image_generating">Vorschau wird erstellt…</string>
     
-<string name="share_as_image_watermark">Geteilt über Amethyst</string>
+<string name="share_as_image_watermark">Geteilt über Astro</string>
     
 <string name="quick_action_request_deletion_gallery_alert_body_v2">Entferne dieses Medium von deiner Galerie.</string>
     
@@ -1422,7 +1422,7 @@ anz der Bedingungen ist erforderlich</string>
     
 <string name="workout_suggestion_connect_title">Teile deine Workouts</string>
     
-<string name="workout_suggestion_connect_message">Lass Amethyst abgeschlossene Workouts aus Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) lesen und einen Beitrag vorschlagen.</string>
+<string name="workout_suggestion_connect_message">Lass Astro abgeschlossene Workouts aus Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) lesen und einen Beitrag vorschlagen.</string>
     
 <string name="workout_suggestion_connect_button">Verbinden</string>
     
@@ -1738,7 +1738,7 @@ anz der Bedingungen ist erforderlich</string>
     
 <string name="nests_servers_title">Nest-Server</string>
     
-<string name="nests_servers_explainer">Wähle, an welche MoQ-Hostserver Amethyst deine Nests veröffentlicht. Der erste Eintrag wird standardmäßig verwendet, wenn du einen neuen Space startest.</string>
+<string name="nests_servers_explainer">Wähle, an welche MoQ-Hostserver Astro deine Nests veröffentlicht. Der erste Eintrag wird standardmäßig verwendet, wenn du einen neuen Space startest.</string>
     
 <string name="nests_servers_my_section">Deine Server</string>
     
@@ -1758,7 +1758,7 @@ anz der Bedingungen ist erforderlich</string>
     
 <string name="nests_servers_recommended_explainer">Eingebaute Vorschläge, die du mit einem Tippen zu deiner Liste hinzufügen kannst.</string>
     
-<string name="nests_servers_use_defaults">Amethyst-Standards verwenden</string>
+<string name="nests_servers_use_defaults">Astro-Standards verwenden</string>
     
 <string name="nests_servers_add_recommended">Server hinzufügen</string>
     
@@ -2219,9 +2219,9 @@ anz der Bedingungen ist erforderlich</string>
     
 <string name="call_permission_denied_title">Berechtigung erforderlich</string>
     
-<string name="call_permission_denied_voice">Amethyst benötigt Zugriff auf das Mikrofon, um einen Sprachanruf zu starten. Bitte aktiviere ihn in den App-Einstellungen.</string>
+<string name="call_permission_denied_voice">Astro benötigt Zugriff auf das Mikrofon, um einen Sprachanruf zu starten. Bitte aktiviere ihn in den App-Einstellungen.</string>
     
-<string name="call_permission_denied_video">Amethyst benötigt Zugriff auf Kamera und Mikrofon, um einen Videoanruf zu starten. Bitte aktiviere sie in den App-Einstellungen.</string>
+<string name="call_permission_denied_video">Astro benötigt Zugriff auf Kamera und Mikrofon, um einen Videoanruf zu starten. Bitte aktiviere sie in den App-Einstellungen.</string>
     
 <string name="call_permission_denied_open_settings">Einstellungen öffnen</string>
     
@@ -2259,7 +2259,7 @@ anz der Bedingungen ist erforderlich</string>
     
 <string name="always_on_notif_channel_description">Hält Verbindungen zu deinen Inbox-Relays aktiv für Echtzeit-Benachrichtigungen</string>
     
-<string name="always_on_notif_title">Amethyst-Benachrichtigungen aktiv</string>
+<string name="always_on_notif_title">Astro-Benachrichtigungen aktiv</string>
     
 <string name="always_on_notif_connecting">Verbinde mit Inbox-Relays\u2026</string>
     
@@ -2277,7 +2277,7 @@ anz der Bedingungen ist erforderlich</string>
     
 <string name="battery_optimization_title">Akkuoptimierung aktiv</string>
     
-<string name="battery_optimization_description">Android kann Relay-Verbindungen im Hintergrund einschränken. Deaktiviere die Akkuoptimierung für Amethyst, um zuverlässige Benachrichtigungen zu gewährleisten.</string>
+<string name="battery_optimization_description">Android kann Relay-Verbindungen im Hintergrund einschränken. Deaktiviere die Akkuoptimierung für Astro, um zuverlässige Benachrichtigungen zu gewährleisten.</string>
     
 <string name="battery_optimization_fix_now">Jetzt beheben</string>
     
@@ -2295,7 +2295,7 @@ anz der Bedingungen ist erforderlich</string>
     
 <string name="add_client_tag_title">Client-Tag zu meinen Ereignissen hinzufügen</string>
     
-<string name="add_client_tag_explainer">Wenn aktiviert, fügt Amethyst Ereignissen, die du veröffentlichst, einen NIP-89-Client-Tag hinzu.</string>
+<string name="add_client_tag_explainer">Wenn aktiviert, fügt Astro Ereignissen, die du veröffentlichst, einen NIP-89-Client-Tag hinzu.</string>
     
 <string name="warn_when_posts_have_reports_from_your_follows_title">Bei Berichten warnen</string>
     
@@ -2557,12 +2557,12 @@ anz der Bedingungen ist erforderlich</string>
     
 <string name="couldnt_find_nwc_wallets">Wallet nicht gefunden</string>
     
-<string name="couldnt_find_nwc_wallets_description">Amethyst konnte keine Wallet-Apps finden, die Nostr Wallet Connect (NWC) unterstützen.
+<string name="couldnt_find_nwc_wallets_description">Astro konnte keine Wallet-Apps finden, die Nostr Wallet Connect (NWC) unterstützen.
 \n\nWas du tun kannst:
 \n\t1. NWC-Unterstützung überprüfen: Stelle sicher, dass deine bevorzugte Wallet-App mit Nostr Wallet Connect kompatibel ist.
 \n\t2. Verbindung erstellen: Öffne deine Wallet-App und erstelle eine neue NWC-Verbindung.
-\n\t3. Mit Amethyst verknüpfen: Deine Wallet bietet normalerweise drei Optionen:
-\n\t\t3.1 Automatische Verknüpfung: Eine Schaltfläche zum automatischen Öffnen und Verbinden mit Amethyst. Klicke darauf, öffne Amethyst und speichere auf dem neuen Bildschirm.
+\n\t3. Mit Astro verknüpfen: Deine Wallet bietet normalerweise drei Optionen:
+\n\t\t3.1 Automatische Verknüpfung: Eine Schaltfläche zum automatischen Öffnen und Verbinden mit Astro. Klicke darauf, öffne Astro und speichere auf dem neuen Bildschirm.
 \n\t\t3.2 Manuelle Verknüpfung: Eine Verbindungs-URI, die du kopieren und über das Einfügesymbol auf diesem Bildschirm einfügen kannst.
 \n\t\t3.3 QR-Code: Die Wallet erstellt einen QR-Code, den du über die QR-Schaltfläche auf diesem Bildschirm scannen kannst.</string>
     
@@ -2596,7 +2596,7 @@ anz der Bedingungen ist erforderlich</string>
     
 <string name="tor_connection_failed_title">Tor verbindet sich nicht</string>
     
-<string name="tor_connection_failed_body">Amethyst konnte den Tor-Start nicht abschließen. Eine reguläre (Nicht-Tor-)Verbindung verwenden, damit der Feed laden kann? Wir merken uns diese Auswahl für die nächste Stunde und versuchen Tor danach erneut.</string>
+<string name="tor_connection_failed_body">Astro konnte den Tor-Start nicht abschließen. Eine reguläre (Nicht-Tor-)Verbindung verwenden, damit der Feed laden kann? Wir merken uns diese Auswahl für die nächste Stunde und versuchen Tor danach erneut.</string>
     
 <string name="tor_continue_without_for_session">Verbindung ohne Tor verwenden</string>
     

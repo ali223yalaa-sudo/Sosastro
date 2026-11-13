@@ -72,7 +72,7 @@
     <string name="unauthorized_exception_description">Imzolovchi ushbu operatsiyani amalga oshirish uchun zarur boʻlgan shifrlashni ochishga ruxsat bermadi. Imzolovchi ilovangizda NIP-44 shifrlashni ochish funksiyasini yoqing va qaytadan urinib koʻring</string>
     <string name="signer_not_found_exception">Imzolovchi ilova topilmadi</string>
     <string name="signer_not_found_exception_description">Imzolovchi ilova oʻchirib tashlandimi? Imzolovchi oʻrnatilganligini va ushbu hisobga ega ekanligini tekshiring. Agar imzolovchi ilova oʻzgargan boʻlsa, tizimdan chiqing va qayta kiring.</string>
-    <string name="signer_illegal_state_exception_description">Tashqi imzolash dasturi so\'rov uchun g\'alati javob qaytardi. Amethyst yoki imzolash dasturida xato bo\'lishi mumkin.</string>
+    <string name="signer_illegal_state_exception_description">Tashqi imzolash dasturi so\'rov uchun g\'alati javob qaytardi. Astro yoki imzolash dasturida xato bo\'lishi mumkin.</string>
     <string name="zaps">Zeplar</string>
     <string name="boost">Targʻib qilish</string>
     <string name="boosted">Targ\'ib qilidi</string>
@@ -152,7 +152,7 @@
     <string name="send_payment_done">Tayyor</string>
     <string name="send_payment_pay_button">%1$s sats to\'lash</string>
     <string name="send_payment_pay_button_empty">To\'lash</string>
-    <string name="send_payment_no_methods">Bu profilning Amethyst to\'g\'ridan-to\'g\'ri to\'lay oladigan to\'lov usullari yo\'q.</string>
+    <string name="send_payment_no_methods">Bu profilning Astro to\'g\'ridan-to\'g\'ri to\'lay oladigan to\'lov usullari yo\'q.</string>
     <string name="send_payment_min_onchain">Zanjirdagi zaplar kamida %1$s sats talab qiladi</string>
     <string name="send_payment_cashu_insufficient">Ushbu qabul qiluvchi qabul qiladigan mintda yetarli balans yo\'q. Avval Cashu hamyoningizni to\'ldiring.</string>
     <string name="send_payment_cashu_balance">Ushbu qabul qiluvchi uchun sarflanishi mumkin: %1$s sats</string>
@@ -212,7 +212,7 @@
     <string name="failed_to_save_the_image">Rasmni saqlash muvaffaqiyatsiz tugadi</string>
     <string name="video_saved_to_the_gallery">Video telefon video galereysiga saqlandi</string>
     <string name="failed_to_save_the_video">Videoni saqlash muvaffaqiyatsiz tugadi</string>
-    <string name="pdf_saved_to_the_gallery">PDF Downloads/Amethyst ga saqlandi</string>
+    <string name="pdf_saved_to_the_gallery">PDF Downloads/Astro ga saqlandi</string>
     <string name="failed_to_save_the_pdf">PDF ni saqlash muvaffaqiyatsiz tugadi</string>
     <string name="upload_image">Rasm yuklash</string>
     <string name="upload_file">Fayl yuklash</string>
@@ -354,7 +354,7 @@
     <string name="account_backup_tips2_md" tools:ignore="Typos">        ## Kalit zaxiralash va xavfsizlik maslahatlari
         \n\nHisobingiz maxfiy kalit bilan himoyalangan. Kalit **nsec1** bilan boshlanadigan uzun belgilar ketma-ketligidir. Ushbu maxfiy kalitga kirish huquqiga ega bo\'lgan har kim sizning nomingizdan post qo\'yishi va identifikatoringizni o\'zgartirishi mumkin.
         \n\n- Maxfiy kalitingizni ishonmagan veb-sayt yoki dasturga **kiritmang**.
-        \n- Amethyst ishlab chiquvchilari maxfiy kalitingizni hech **qachon** so\'ramaydi.
+        \n- Astro ishlab chiquvchilari maxfiy kalitingizni hech **qachon** so\'ramaydi.
         \n- Hisob tiklash uchun maxfiy kalitingizning xavfsiz zaxira nusxasini saqlang. Parol menejeridan foydalanishni tavsiya qilamiz.
     </string>
     <string name="account_backup_tips3_md" tools:ignore="Typos">        Qo\'shimcha xavfsizlik uchun kalitingizni parol bilan shifrlashingiz mumkin. Bu kalit **ncryptsec1** bilan boshlanadi va parolsiz ishlatib bo\'lmaydi.
@@ -392,7 +392,7 @@
     <string name="share_as_image">Rasm sifatida ulashish</string>
     <string name="share_as_image_url">Rasm URL sifatida ulashish</string>
     <string name="share_as_image_generating">Ko\'rinish yaratilmoqda…</string>
-    <string name="share_as_image_watermark">Amethyst orqali ulashildi</string>
+    <string name="share_as_image_watermark">Astro orqali ulashildi</string>
     <string name="quick_action_copy_user_id">Muallif identifikatori</string>
     <string name="quick_action_copy_note_id">Eslatma identifikatori</string>
     <string name="quick_action_copy_text">Matnni nusxalash</string>
@@ -402,7 +402,7 @@
     <string name="quick_action_request_deletion_gallery_title">Galereyadan o\'chirish</string>
     <string name="quick_action_request_deletion_gallery_alert_body_v2">Bu media faylni galereyangizdan olib tashlash.</string>
     <string name="quick_action_request_deletion_alert_title">O\'chirishni so\'rash</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst hozir ulanган relaylardan eslatmangizni o\'chirishni so\'raydi. Eslatmangiz o\'sha relaylardan yoki u saqlangan boshqa relaylardan butunlay o\'chirilishiga kafolat yo\'q.</string>
+    <string name="quick_action_request_deletion_alert_body">Astro hozir ulanган relaylardan eslatmangizni o\'chirishni so\'raydi. Eslatmangiz o\'sha relaylardan yoki u saqlangan boshqa relaylardan butunlay o\'chirilishiga kafolat yo\'q.</string>
     <string name="quick_action_block_dialog_btn">Bloklash</string>
     <string name="quick_action_delete_dialog_btn">O\'chirish</string>
     <string name="quick_action_block">Bloklash</string>
@@ -606,7 +606,7 @@
     <string name="workout_minutes">Daqiqalar</string>
     <string name="workout_seconds">Soniyalar</string>
     <string name="workout_suggestion_connect_title">Mashqlaringizni ulashing</string>
-    <string name="workout_suggestion_connect_message">Amethyst dasturiga Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) dan tugatilgan mashqlarni o\'qish va post taklif qilish imkonini bering.</string>
+    <string name="workout_suggestion_connect_message">Astro dasturiga Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) dan tugatilgan mashqlarni o\'qish va post taklif qilish imkonini bering.</string>
     <string name="workout_suggestion_connect_button">Ulash</string>
     <string name="workout_from_health_connect">Health Connect orqali</string>
     <string name="exercise_running">Yugurish</string>
@@ -709,7 +709,7 @@
     <!-- Signer trust levels -->
     <!-- Signer per-op consent dialog -->
     <!-- Signer op labels -->
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <!-- Permissions management screen -->
     <!-- Relay Authentication (NIP-42) settings -->
     <!-- Action-aware titles: %1$s is the person (or "Alice and others"). -->
@@ -854,13 +854,13 @@
     <string name="nest_create_schedule_toggle">Keyinroq rejalashtirish</string>
     <string name="nest_create_when">Boshlanish vaqtini tanlash</string>
     <string name="nests_servers_title">Nest serverlari</string>
-    <string name="nests_servers_explainer">Amethyst nestlaringizni qaysi MoQ host serverlariga nashr etishini tanlang. Yangi makon boshlaganingizda, ro\'yxatdagi birinchi yozuv standart sifatida ishlatiladi.</string>
+    <string name="nests_servers_explainer">Astro nestlaringizni qaysi MoQ host serverlariga nashr etishini tanlang. Yangi makon boshlaganingizda, ro\'yxatdagi birinchi yozuv standart sifatida ishlatiladi.</string>
     <string name="nests_servers_my_section">Sizning serverlaringiz</string>
     <string name="nests_servers_my_explainer">Boshqa mijozlar sozlamasini o\'qiy olishi uchun kind-10112 almashtiriladigan voqea sifatida saqlanadi.</string>
     <string name="nests_servers_add_pair_button">Qo\'shish</string>
     <string name="nests_servers_recommended_section">Tavsiya etilgan serverlar</string>
     <string name="nests_servers_recommended_explainer">Bir marta bosib ro\'yxatingizga qo\'shishingiz mumkin bo\'lgan o\'rnatilgan takliflar.</string>
-    <string name="nests_servers_use_defaults">Amethyst standartlarini ishlatish</string>
+    <string name="nests_servers_use_defaults">Astro standartlarini ishlatish</string>
     <string name="nests_servers_add_recommended">Server qo\'shish</string>
     <string name="nests_servers_remove">Serverni o\'chirish</string>
     <string name="nests_servers_empty">Hozircha nest serverlari yo\'q. Quyida birini qo\'shing yoki tavsiya etilgan serverni tanlang.</string>
@@ -1055,9 +1055,9 @@
     <string name="local_blossom_cache_not_detected">24242 portida mahalliy kesh aniqlanmadi.</string>
     <string name="local_blossom_cache_profile_pics_only">Faqat profil rasmlarini keshlash</string>
     <string name="local_blossom_cache_profile_pics_only_caption">Mahalliy keshni faqat profil rasmlari bilan cheklash. Ozuqa rasmlari va videolar to\'g\'ridan-to\'g\'ri asl serverlardan yuklanadi.</string>
-    <string name="no_blossom_server_message">Blossom serverlari belgilanmagan. Amethyst\'ning ro\'yxatidan foydalanishingiz yoki quyida birini qo\'shishingiz mumkin ↓</string>
+    <string name="no_blossom_server_message">Blossom serverlari belgilanmagan. Astro\'ning ro\'yxatidan foydalanishingiz yoki quyida birini qo\'shishingiz mumkin ↓</string>
     <string name="recommended_media_servers">Tavsiya Etilgan Media Serverlari</string>
-    <string name="built_in_servers_description">Amethyst\'ning standart ro\'yxati. Ularni alohida yoki ro\'yxat sifatida qo\'shishingiz mumkin.</string>
+    <string name="built_in_servers_description">Astro\'ning standart ro\'yxati. Ularni alohida yoki ro\'yxat sifatida qo\'shishingiz mumkin.</string>
     <string name="use_default_servers">Standart Ro\'yxatni Ishlatish</string>
     <string name="add_media_server">Media server qo\'shish</string>
     <string name="delete_media_server">Media serverni o\'chirish</string>
@@ -1220,8 +1220,8 @@
     <string name="call_add_participant">Ishtirokchi qo\'shish</string>
     <string name="call_search_users">Foydalanuvchilarni qidirish…</string>
     <string name="call_permission_denied_title">Ruxsat kerak</string>
-    <string name="call_permission_denied_voice">Amethyst ovozli qo\'ng\'iroqni boshlash uchun mikrofonga kirish kerak. Iltimos, ilova sozlamalarida yoqing.</string>
-    <string name="call_permission_denied_video">Amethyst video qo\'ng\'iroqni boshlash uchun kamera va mikrofonga kirish kerak. Iltimos, ilova sozlamalarida yoqing.</string>
+    <string name="call_permission_denied_voice">Astro ovozli qo\'ng\'iroqni boshlash uchun mikrofonga kirish kerak. Iltimos, ilova sozlamalarida yoqing.</string>
+    <string name="call_permission_denied_video">Astro video qo\'ng\'iroqni boshlash uchun kamera va mikrofonga kirish kerak. Iltimos, ilova sozlamalarida yoqing.</string>
     <string name="call_permission_denied_open_settings">Sozlamalarni ochish</string>
     <string name="call_permission_denied_cancel">Bekor qilish</string>
     <string name="call_settings">Qo\'ng\'iroq Sozlamalari</string>
@@ -1240,7 +1240,7 @@
     <string name="call_settings_turn_username">Foydalanuvchi nomi</string>
     <string name="call_settings_turn_credential">Hisob ma\'lumotlari</string>
     <string name="always_on_notif_channel_description">Real vaqtli bildirishnomalar uchun kirish relaylaringizga ulanishni faol saqlaydi</string>
-    <string name="always_on_notif_title">Amethyst Bildirishnomalari Faol</string>
+    <string name="always_on_notif_title">Astro Bildirishnomalari Faol</string>
     <plurals name="always_on_notif_connected">
         <item quantity="one">%1$d kirish relay\'iga ulangan</item>
         <item quantity="other">%1$d kirish relay\'lariga ulangan</item>
@@ -1259,7 +1259,7 @@
     <string name="notification_tab_following">Kuzatilayotganlar</string>
     <string name="notification_tab_everyone">Hamma</string>
     <string name="battery_optimization_title">Batareya optimallashtirish faol</string>
-    <string name="battery_optimization_description">Android fon rejimida relay ulanishlarini cheklashi mumkin. Ishonchli bildirishnomalarni ta\'minlash uchun Amethyst uchun batareya optimallashtirishni o\'chiring.</string>
+    <string name="battery_optimization_description">Android fon rejimida relay ulanishlarini cheklashi mumkin. Ishonchli bildirishnomalarni ta\'minlash uchun Astro uchun batareya optimallashtirishni o\'chiring.</string>
     <string name="battery_optimization_fix_now">Hozir tuzatish</string>
     <string name="reply_notify">Xabar berish: </string>
     <string name="today">Bugun</string>
@@ -1272,7 +1272,7 @@
     <string name="filter_spam_from_strangers_title">Spamni filtrlash</string>
     <string name="filter_spam_from_strangers_explainer">Noma\'lum shaxslardan 5 yoki undan ko\'p marta aynan bir xil bo\'lgan postlarni yashiradi</string>
     <string name="add_client_tag_title">Voqealarimga mijoz tegi qo\'shish</string>
-    <string name="add_client_tag_explainer">Yoqilganda, Amethyst siz nashr etgan voqealarga NIP-89 mijoz tegini qo\'shadi.</string>
+    <string name="add_client_tag_explainer">Yoqilganda, Astro siz nashr etgan voqealarga NIP-89 mijoz tegini qo\'shadi.</string>
     <string name="warn_when_posts_have_reports_from_your_follows_title">Hisobotlar haqida ogohlantirish</string>
     <string name="warn_when_posts_have_reports_from_your_follows_explainer">Postlar yoki profillar kuzatayotganlaringizdan hisobotlarga ega bo\'lganda ogohlantirish xabarini ko\'rsatadi</string>
     <string name="report_warning_threshold_title">Hisobot ogohlantirish chegarasi</string>
@@ -1515,12 +1515,12 @@
     <string name="messages_new_subject_message_placeholder">Yangi maqsadlar uchun nom o\'zgartirilmoqda.</string>
     <string name="paste_from_clipboard">Buferdan joylashtirish</string>
     <string name="couldnt_find_nwc_wallets">Hamyon topilmadi</string>
-    <string name="couldnt_find_nwc_wallets_description">Amethyst Nostr Wallet Connect (NWC) ni qo\'llab-quvvatlaydigan hech qanday hamyon ilovasini topa olmadi.
+    <string name="couldnt_find_nwc_wallets_description">Astro Nostr Wallet Connect (NWC) ni qo\'llab-quvvatlaydigan hech qanday hamyon ilovasini topa olmadi.
 \n\nNima qilishingiz mumkin:
 \n\t1. NWC qo\'llab-quvvatlashini tekshirish: Tanlagan hamyon ilovangiz Nostr Wallet Connect bilan mos kelishini ikki marta tekshiring.
 \n\t2. Ulanish yaratish: Hamyon ilovangizga o\'ting va yangi NWC ulanishini yarating.
-\n\t3. Amethyst ga bog\'lash: Hamyoningiz odatda uchta variant taqdim etadi:
-\n\t\t3.1 Avtomatik bog\'lash: Amethyst ni avtomatik ochish va ulash tugmasi. Agar shunday bo\'lsa, ushbu tugmani bosing, Amethyst ni oching va yangi ekranda saqlash tugmasini bosing.
+\n\t3. Astro ga bog\'lash: Hamyoningiz odatda uchta variant taqdim etadi:
+\n\t\t3.1 Avtomatik bog\'lash: Astro ni avtomatik ochish va ulash tugmasi. Agar shunday bo\'lsa, ushbu tugmani bosing, Astro ni oching va yangi ekranda saqlash tugmasini bosing.
 \n\t\t3.2 Qo\'lda bog\'lash: Nusxa olishingiz va to\'g\'ridan-to\'g\'ri kiritish uchun ushbu ekrandagi joylashtirish belgisini bosishingiz mumkin bo\'lgan Ulanish URI si.
 \n\t\t3.3 QR kod: Hamyon ushbu ekrandagi QR kod tugmasidan o\'qishingiz mumkin bo\'lgan QR kod yaratadi.
     </string>
@@ -1590,7 +1590,7 @@
     <string name="error_unable_to_fetch_invoice">Qabul qiluvchining serverlaridan hisob-faktura olishda xato</string>
     <string name="wallet_connect_pay_invoice_error_error">Wallet connect provayderingiz quyidagi xatoni qaytardi: %1$s</string>
     <string name="tor_connection_failed_title">Tor ulanmayapti</string>
-    <string name="tor_connection_failed_body">Amethyst Tor ni yuklashni tugatmadi. Tasma yuklanishi uchun oddiy (Tor bo\'lmagan) ulanishdan foydalanasizmi? Bu tanlovni keyingi bir soatga eslab qolamiz va shundan so\'ng Tor ni qayta sinab ko\'ramiz.</string>
+    <string name="tor_connection_failed_body">Astro Tor ni yuklashni tugatmadi. Tasma yuklanishi uchun oddiy (Tor bo\'lmagan) ulanishdan foydalanasizmi? Bu tanlovni keyingi bir soatga eslab qolamiz va shundan so\'ng Tor ni qayta sinab ko\'ramiz.</string>
     <string name="tor_continue_without_for_session">Oddiy ulanishdan foydalanish</string>
     <string name="tor_keep_waiting">Kutishda davom etish</string>
     <string name="could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup">Lightning manzilidan LNUrl yig\'ib bo\'lmadi \"%1$s\". Foydalanuvchi sozlamasini tekshiring</string>
@@ -1611,7 +1611,7 @@
     <string name="notification_channel_status_off">O\'chirilgan</string>
     <string name="select_push_server">UnifiedPush ilovasini tanlang</string>
     <string name="push_server_title">Push provayder</string>
-    <string name="push_server_explainer">Amethyst yopilganda bildirishnomalarni yetkazib berish uchun UnifiedPush ilovasini tanlang.</string>
+    <string name="push_server_explainer">Astro yopilganda bildirishnomalarni yetkazib berish uchun UnifiedPush ilovasini tanlang.</string>
     <string name="push_server_none">Yo\'q</string>
     <string name="push_server_none_explainer">Push bildirishnomalarini o\'chiradi</string>
     <string name="push_server_uses_app_explainer">%1$s ilovasidan foydalanadi</string>
@@ -2130,7 +2130,7 @@
     <string name="show_npub_as_a_qr_code">npub ni QR kod sifatida ko\'rsatish</string>
     <string name="show_nprofile_as_a_qr_code">nprofile ni QR kod sifatida ko\'rsatish</string>
     <string name="invalid_nip19_uri">Noto\'g\'ri manzil</string>
-    <string name="invalid_nip19_uri_description">Amethyst ochish uchun URI qabul qildi, lekin u URI noto\'g\'ri edi: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro ochish uchun URI qabul qildi, lekin u URI noto\'g\'ri edi: %1$s</string>
     <string name="dm_relays_title">DM Kirish qutisi Relaylari</string>
     <string name="dm_relays_not_found">Shaxsiy kirish qutisi relaylarini sozlang</string>
     <string name="dm_relays_not_found_description">Bu sozlama hamma sizga xabar yuborishda qaysi relaylardan foydalanishini bilishga imkon beradi. Ularsiz ba\'zi xabarlarni o\'tkazib yuborishingiz mumkin.</string>
@@ -2157,7 +2157,7 @@
     <string name="relay_reorder">Relayni qayta tartiblash</string>
     <string name="public_home_section">Umumiy chiqish/Asosiy Relaylar</string>
     <string name="public_home_section_explainer_profile">Foydalanuvchi kontentini ushbu relaylarga joylashtirmoqda</string>
-    <string name="public_home_section_explainer">Bu relay turi barcha kontentingizni saqlaydi. Amethyst postlaringizni bu yerga yuboradi va boshqalar kontentingizni topish uchun ushbu relaylardan foydalanadi. 1–3 relay kiriting. Ular shaxsiy relaylar, pullik relaylar yoki umumiy relaylar bo\'lishi mumkin.</string>
+    <string name="public_home_section_explainer">Bu relay turi barcha kontentingizni saqlaydi. Astro postlaringizni bu yerga yuboradi va boshqalar kontentingizni topish uchun ushbu relaylardan foydalanadi. 1–3 relay kiriting. Ular shaxsiy relaylar, pullik relaylar yoki umumiy relaylar bo\'lishi mumkin.</string>
     <string name="public_notif_section">Umumiy kirish qutisi Relaylari</string>
     <string name="public_notif_section_explainer_profile">Foydalanuvchi ushbu relaylarda bildirishnomalar qabul qilmoqda</string>
     <string name="public_notif_section_explainer">Ushbu relay turi sizning postlaringizga barcha javoblar, izohlar, yoqtirishlar va Zap larni qabul qiladi. Ular pullik yoki bepul relay lar bo\'lishi mumkin. Relay operatori tomonidan belgilangan cheklovlar siz qabul qiladigan bildirishnomalarni yaxshi yoki yomon tomonga cheklashi mumkin. Masalan, agar siz izoh spami hujumiga uchrasangiz, pullik relay lar spamni filtrlashi mumkin. 1–3 ta relay kiriting.</string>
@@ -2188,13 +2188,13 @@
     <string name="proxy_section_explainer">Ilovaning tasmalangizni yuklab olish uchun foydalanishi kerak bo\'lgan agregator relay lar, masalan filter.nostr.wine. Bu chiqib ketish modelini almashtiradi va ilovani faqat ro\'yxatlaringizdagi relay larga ulanishga majbur qiladi.</string>
     <string name="broadcast_relays_title">Translyatsiya Relay lari</string>
     <string name="broadcast_section">Translyatsiya Relay lari</string>
-    <string name="broadcast_section_explainer">Sizning eslatmalaringizni boshqa barcha relay larga yuborishda ixtisoslashgan relay lar, masalan sendit.nosflare.com. Amethyst ushbu relay ni siz tomonidan qilingan barcha yangi hodisalarga qo\'shadi</string>
+    <string name="broadcast_section_explainer">Sizning eslatmalaringizni boshqa barcha relay larga yuborishda ixtisoslashgan relay lar, masalan sendit.nosflare.com. Astro ushbu relay ni siz tomonidan qilingan barcha yangi hodisalarga qo\'shadi</string>
     <string name="indexer_relays_title">Indeksator Relay lar</string>
     <string name="indexer_section">Indeksator Relay lar</string>
-    <string name="indexer_section_explainer">Hamma metama\'lumotlar va relay ro\'yxatlarini saqlashda ixtisoslashgan relay lar, masalan purplepag.es. Amethyst ro\'yxatlaringizda bo\'lmagan foydalanuvchilarni topish uchun ushbu relay lardan foydalanadi.</string>
+    <string name="indexer_section_explainer">Hamma metama\'lumotlar va relay ro\'yxatlarini saqlashda ixtisoslashgan relay lar, masalan purplepag.es. Astro ro\'yxatlaringizda bo\'lmagan foydalanuvchilarni topish uchun ushbu relay lardan foydalanadi.</string>
     <string name="blocked_relays_title">Bloklangan Relay lar</string>
     <string name="blocked_section">Bloklangan Relay lar</string>
-    <string name="blocked_section_explainer">Amethyst bu relay larga hech qachon ulanmaydi</string>
+    <string name="blocked_section_explainer">Astro bu relay larga hech qachon ulanmaydi</string>
     <string name="export_relay_settings">Relay sozlamalarini eksport qilish</string>
     <string name="export_as_text">Matn sifatida eksport qilish</string>
     <string name="export_as_zip">ZIP sifatida eksport qilish (JSON)</string>
@@ -2363,7 +2363,7 @@
     <string name="feed_filter_selected">Tasma filtri, %1$s tanlangan</string>
     <string name="feed_filter_select_an_option">Tasma filtri, %1$s</string>
     <string name="crashreport_found">Halokat Hisoboti Topildi</string>
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">So\'nggi halokat hisobotini Amethyst ga DM orqali yubormoqchimisiz? Hech qanday shaxsiy ma\'lumot ulashilmaydi</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">So\'nggi halokat hisobotini Astro ga DM orqali yubormoqchimisiz? Hech qanday shaxsiy ma\'lumot ulashilmaydi</string>
     <string name="crashreport_found_send">Yuborish</string>
     <string name="this_message_will_disappear_in">Ushbu xabar %1$s da yo\'qoladi</string>
     <string name="select_signer">Imzolovchini Tanlash</string>

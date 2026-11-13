@@ -43,7 +43,7 @@ import java.awt.TrayIcon
  * per app.
  */
 class AwtTrayNotifier(
-    private val appLabel: String = "Amethyst",
+    private val appLabel: String = "Astro",
     private val iconBytes: () -> ByteArray? = { null },
 ) {
     private val supported: Boolean = SystemTray.isSupported()

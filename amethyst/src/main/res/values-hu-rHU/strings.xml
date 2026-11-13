@@ -72,7 +72,7 @@
     <string name="unauthorized_exception_description">Az aláíró nem engedélyezte a művelet végrehajtásához szükséges visszafejtést. Aktiválja az NIP-44 visszafejtést az aláíró alkalmazásban, és próbálja meg újra</string>
     <string name="signer_not_found_exception">Nem található az aláíró</string>
     <string name="signer_not_found_exception_description">Az aláíró alkalmazás el lett távolítva? Ellenőrizze, hogy az aláíró telepítve van-e és rendelkezik-e ezzel a fiókkal. Jelentkezzen ki és jelentkezzen be újra, ha az aláíró alkalmazás megváltozott.</string>
-    <string name="signer_illegal_state_exception_description">A külső aláíró a kéréstől eltérő, szokatlan választ küldött. Lehet, hogy hiba lépett fel az Amethystben vagy az aláíró alkalmazásban.</string>
+    <string name="signer_illegal_state_exception_description">A külső aláíró a kéréstől eltérő, szokatlan választ küldött. Lehet, hogy hiba lépett fel az Astroben vagy az aláíró alkalmazásban.</string>
     <string name="zaps">Zapek</string>
     <string name="boost">Megtolás</string>
     <string name="boosted">megtolta</string>
@@ -154,7 +154,7 @@
     <string name="send_payment_done">Kész</string>
     <string name="send_payment_pay_button">%1$s satoshi kifizetése</string>
     <string name="send_payment_pay_button_empty">Fizetés</string>
-    <string name="send_payment_no_methods">Ennek a profilnak nincsenek olyan fizetési módjai, amelyeket az Amethyst közvetlenül ki tudna fizetni.</string>
+    <string name="send_payment_no_methods">Ennek a profilnak nincsenek olyan fizetési módjai, amelyeket az Astro közvetlenül ki tudna fizetni.</string>
     <string name="send_payment_min_onchain">A láncon belüli zapekhez legalább %1$s satoshi szükséges</string>
     <string name="send_payment_cashu_insufficient">Nincs elegendő egyenleg egy olyan pénzverdében, amit ez a címzett elfogad. Előbb fel kell tölteni a cashu-pénztárcát.</string>
     <string name="send_payment_cashu_balance">A címzett számára elküldhető összeg: %1$s satoshi</string>
@@ -216,7 +216,7 @@
     <string name="failed_to_save_the_image">Nem sikerült menteni a képet</string>
     <string name="video_saved_to_the_gallery">Videó mentve a videógalériába</string>
     <string name="failed_to_save_the_video">Nem sikerült menteni a videót</string>
-    <string name="pdf_saved_to_the_gallery">A PDF-fájl a Letöltések/Amethyst mappába lett mentve</string>
+    <string name="pdf_saved_to_the_gallery">A PDF-fájl a Letöltések/Astro mappába lett mentve</string>
     <string name="failed_to_save_the_pdf">Nem sikerült menteni a PDF-fájlt</string>
     <string name="upload_image">Kép feltöltése</string>
     <string name="upload_file">Fájl feltöltése</string>
@@ -358,7 +358,7 @@
     <string name="account_backup_tips2_md" tools:ignore="Typos">        ## Kulcs- és biztonsági mentési tippek
         \n\nFiókját egy titkos kulcs védi. A kulcs egy hosszú véletlenszerű karakterlánc, amely **nsec1**-vel kezdődik. Bárki, aki az Ön titkos kulcsához hozzáfér, az Ön személyazonosságának használatával bármilyen tartalmat közzétehet.
         \n\n- **Ne** helyezze el a titkos kulcsát olyan webhelyen vagy szoftverben, amelyben nem bízik.
-        \n- Az Amethyst fejlesztői az Ön titkos kulcsát **soha** nem fogják Öntől elkérni.
+        \n- Az Astro fejlesztői az Ön titkos kulcsát **soha** nem fogják Öntől elkérni.
         \n- A fiók-helyreállításának érdekében, a titkos kulcsáról **mindig** készítsen biztonsági másolatot. Javasoljuk egy jelszókezelő használatát.
     </string>
     <string name="account_backup_tips3_md" tools:ignore="Typos">        A nagyobb biztonság érdekében titkosítsa egy jelszóval. A jelszóval védett kulcs **ncryptsec1**-vel kezdődik, és a jelszava nélkül nem használható.
@@ -396,7 +396,7 @@
     <string name="share_as_image">Megosztás képként</string>
     <string name="share_as_image_url">Kép webcímének megosztása</string>
     <string name="share_as_image_generating">Előnézet előállítása…</string>
-    <string name="share_as_image_watermark">Megosztva az Amethysten keresztül·</string>
+    <string name="share_as_image_watermark">Megosztva az Astroen keresztül·</string>
     <string name="quick_action_copy_user_id">Szerző-azonosító</string>
     <string name="quick_action_copy_note_id">Bejegyzés-azonosító</string>
     <string name="quick_action_copy_text">Szöveg másolása</string>
@@ -406,7 +406,7 @@
     <string name="quick_action_request_deletion_gallery_title">Törlés a galériából</string>
     <string name="quick_action_request_deletion_gallery_alert_body_v2">Távolítsa el ezt a médiát a galériából.</string>
     <string name="quick_action_request_deletion_alert_title">Törlés kérése</string>
-    <string name="quick_action_request_deletion_alert_body">Az Amethyst kérni fogja, hogy a bejegyzését töröljék azokról az átjátszókról, amelyekhez jelenleg csatlakozik. Nem garantálható, hogy a bejegyzése véglegesen törlődik ezekről az átjátszókról, vagy más átjátszókról, ahol esetleg tárolva van.</string>
+    <string name="quick_action_request_deletion_alert_body">Az Astro kérni fogja, hogy a bejegyzését töröljék azokról az átjátszókról, amelyekhez jelenleg csatlakozik. Nem garantálható, hogy a bejegyzése véglegesen törlődik ezekről az átjátszókról, vagy más átjátszókról, ahol esetleg tárolva van.</string>
     <string name="quick_action_block_dialog_btn">Letiltás</string>
     <string name="quick_action_delete_dialog_btn">Törlés</string>
     <string name="quick_action_block">Letiltás</string>
@@ -620,7 +620,7 @@
     <string name="workout_minutes">Perc</string>
     <string name="workout_seconds">Másodperc</string>
     <string name="workout_suggestion_connect_title">Edzések megosztása</string>
-    <string name="workout_suggestion_connect_message">Engedélyezze az Amethyst alkalmazás számára, hogy beolvassa a befejezett edzéseit a Health Connectből (Samsung Health, Google Fit, Fitbit, Garmin…), és bejegyzést javasoljon.</string>
+    <string name="workout_suggestion_connect_message">Engedélyezze az Astro alkalmazás számára, hogy beolvassa a befejezett edzéseit a Health Connectből (Samsung Health, Google Fit, Fitbit, Garmin…), és bejegyzést javasoljon.</string>
     <string name="workout_suggestion_connect_button">Kapcsolódás</string>
     <string name="workout_suggestion_distance_km">%1$s km</string>
     <string name="workout_from_health_connect">Health Connectből</string>
@@ -762,7 +762,7 @@
     <string name="napplet_op_sign_kind">%1$d típusú esemény aláírása</string>
     <string name="napplet_op_sign_kind_named">aláírás a következőhöz: %1$s (típus: %2$d)</string>
     <string name="napplet_op_encrypt">egy üzenet titkosítása</string>
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <string name="napplet_op_decrypt">saját privát üzenetek olvasása</string>
     <!-- Permissions management screen -->
     <string name="napplet_permissions_title">Összekapcsolt alkalmazások</string>
@@ -973,7 +973,7 @@
     <string name="nest_create_schedule_toggle">Ütemezés későbbre</string>
     <string name="nest_create_when">Válasszon kezdési időpontot</string>
     <string name="nests_servers_title">Hangszoba-kiszolgálók</string>
-    <string name="nests_servers_explainer">Válassza ki, hogy az Amethyst mely MoQ-kiszolgálókon tegye közzé a hangszobáit. Új tér indításakor alapértelmezetten az első bejegyzés kerül felhasználásra.</string>
+    <string name="nests_servers_explainer">Válassza ki, hogy az Astro mely MoQ-kiszolgálókon tegye közzé a hangszobáit. Új tér indításakor alapértelmezetten az első bejegyzés kerül felhasználásra.</string>
     <string name="nests_servers_my_section">Saját kiszolgálók</string>
     <string name="nests_servers_my_explainer">Kind-10112 típusú cserélhető eseményként mentve, így más kliensek is olvashatják az Ön beállítását.</string>
     <string name="nests_servers_add_relay_field">Átjátszó (WebTransport) webcíme</string>
@@ -983,7 +983,7 @@
     <string name="nests_servers_auth_label">Hitelesítés</string>
     <string name="nests_servers_recommended_section">Ajánlott kiszolgálók</string>
     <string name="nests_servers_recommended_explainer">Beépített javaslatok, melyeket egy koppintással hozzáadhat a listájához.</string>
-    <string name="nests_servers_use_defaults">Az Amethyst alapértelmezésének használata</string>
+    <string name="nests_servers_use_defaults">Az Astro alapértelmezésének használata</string>
     <string name="nests_servers_add_recommended">Kiszolgáló hozzáadása</string>
     <string name="nests_servers_remove">Kiszolgáló eltávolítása</string>
     <string name="nests_servers_empty">Még nincsenek hangszoba-kiszolgálók. Adjon hozzá egyet alább, vagy válasszon egy ajánlott kiszolgálót.</string>
@@ -1296,9 +1296,9 @@
     <string name="local_blossom_cache_not_detected">Helyi gyorsítótár nem található a 24242-es porton.</string>
     <string name="local_blossom_cache_profile_pics_only">Csak a profilképek gyorsítótárazása</string>
     <string name="local_blossom_cache_profile_pics_only_caption">A helyi gyorsítótár korlátozása csak a profilképekre. A hírfolyamban megjelenő képek és videók közvetlenül az eredeti kiszolgálókról lesznek letöltve.</string>
-    <string name="no_blossom_server_message">Nincsenek Blossom-kiszolgálók beállítva. Használhatja az Amethyst listáját, vagy hozzáadhat egyet az alábbiakból ↓</string>
+    <string name="no_blossom_server_message">Nincsenek Blossom-kiszolgálók beállítva. Használhatja az Astro listáját, vagy hozzáadhat egyet az alábbiakból ↓</string>
     <string name="recommended_media_servers">Ajánlott médiakiszolgálók</string>
-    <string name="built_in_servers_description">Az Amethyst alapértelmezett listája. Hozzáadhatja őket egyenként, vagy hozzáadhatja a listát.</string>
+    <string name="built_in_servers_description">Az Astro alapértelmezett listája. Hozzáadhatja őket egyenként, vagy hozzáadhatja a listát.</string>
     <string name="use_default_servers">Alapértelmezett lista használata</string>
     <string name="add_media_server">Médiakiszolgáló hozzáadása</string>
     <string name="delete_media_server">Médiakiszolgáló törlése</string>
@@ -1465,8 +1465,8 @@
     <string name="call_add_participant">Résztvevő hozzáadása</string>
     <string name="call_search_users">Felhasználók keresése\u2026</string>
     <string name="call_permission_denied_title">Engedély szükséges</string>
-    <string name="call_permission_denied_voice">Az Amethyst alkalmazásnak hozzáférésre van szüksége a mikrofonhoz a hanghívások kezdeményezéséhez. Engedélyezze ezt az alkalmazás beállításaiban.</string>
-    <string name="call_permission_denied_video">Az Amethyst alkalmazásnak hozzáférésre van szüksége a kamerához és a mikrofonhoz a videohívások kezdeményezéséhez. Engedélyezze ezeket az alkalmazás beállításaiban.</string>
+    <string name="call_permission_denied_voice">Az Astro alkalmazásnak hozzáférésre van szüksége a mikrofonhoz a hanghívások kezdeményezéséhez. Engedélyezze ezt az alkalmazás beállításaiban.</string>
+    <string name="call_permission_denied_video">Az Astro alkalmazásnak hozzáférésre van szüksége a kamerához és a mikrofonhoz a videohívások kezdeményezéséhez. Engedélyezze ezeket az alkalmazás beállításaiban.</string>
     <string name="call_permission_denied_open_settings">Beállítások megnyitása</string>
     <string name="call_permission_denied_cancel">Mégse</string>
     <string name="call_settings">Hívásbeállítások</string>
@@ -1485,7 +1485,7 @@
     <string name="call_settings_turn_username">Felhasználónév</string>
     <string name="call_settings_turn_credential">Hitelesítési adatok</string>
     <string name="always_on_notif_channel_description">Aktív kapcsolatot tart fenn a beérkező üzenetek átjátszóival a valós idejű értesítések érdekében</string>
-    <string name="always_on_notif_title">Amethyst értesítések aktíválva</string>
+    <string name="always_on_notif_title">Astro értesítések aktíválva</string>
     <plurals name="always_on_notif_connected">
         <item quantity="one">Kapcsolódva %1$d beérkező üzenetátjátszóhoz</item>
         <item quantity="other">Kapcsolódva %1$d beérkező üzenetátjátszóhoz</item>
@@ -1504,7 +1504,7 @@
     <string name="notification_tab_following">Követés</string>
     <string name="notification_tab_everyone">Mindenki</string>
     <string name="battery_optimization_title">Akkumulátor-optimalizálás aktív</string>
-    <string name="battery_optimization_description">Az Android korlátozhatja a háttérben futó átjátszókapcsolatokat. Az Amethyst esetében tiltsa le az akkumulátor-optimalizálást a megbízható értesítések biztosítása érdekében.</string>
+    <string name="battery_optimization_description">Az Android korlátozhatja a háttérben futó átjátszókapcsolatokat. Az Astro esetében tiltsa le az akkumulátor-optimalizálást a megbízható értesítések biztosítása érdekében.</string>
     <string name="battery_optimization_fix_now">Javítás most</string>
     <string name="reply_notify">Értesítés: </string>
     <string name="today">Ma</string>
@@ -1517,7 +1517,7 @@
     <string name="filter_spam_from_strangers_title">Kéretlen tartalomszűrő</string>
     <string name="filter_spam_from_strangers_explainer">Elrejti az ismeretlen felhasználók hozzászólásait, amelyek pontosan ugyanazok voltak 5 vagy több alkalommal</string>
     <string name="add_client_tag_title">Klienscímke hozzáadása a saját eseményekhez</string>
-    <string name="add_client_tag_explainer">Ha engedélyezve van, az Amethyst egy NIP-89 klienscímkét fűz hozzá a közzétett eseményekhez.</string>
+    <string name="add_client_tag_explainer">Ha engedélyezve van, az Astro egy NIP-89 klienscímkét fűz hozzá a közzétett eseményekhez.</string>
     <string name="warn_when_posts_have_reports_from_your_follows_title">Figyelmeztetés a jelentésekre</string>
     <string name="warn_when_posts_have_reports_from_your_follows_explainer">Figyelmeztető üzenetet jelenít meg, ha az Ön követői bejelentést tettek bejegyzésekről vagy profilokról</string>
     <string name="report_warning_threshold_title">Jelentési figyelmeztetés küszöbértéke</string>
@@ -1891,12 +1891,12 @@
     <string name="messages_new_subject_message_placeholder">Név megváltoztatása az új célok érdekében.</string>
     <string name="paste_from_clipboard">Beszúrás vágólapról</string>
     <string name="couldnt_find_nwc_wallets">Nem található pénztárca</string>
-    <string name="couldnt_find_nwc_wallets_description">Az Amethyst nem talált olyan pénztárca-alkalmazást, amely támogatja a Nostr Wallet Connect (NWC) szolgáltatást.
+    <string name="couldnt_find_nwc_wallets_description">Az Astro nem talált olyan pénztárca-alkalmazást, amely támogatja a Nostr Wallet Connect (NWC) szolgáltatást.
 \n\nAmit tehet:
 \n\t1. NWC-támogatás ellenőrzése: Ellenőrizze, hogy a kívánt pénztárca-alkalmazás kompatibilis-e a Nostr Wallet Connect szolgáltatással.
 \n\t2. Kapcsolat létrehozása: Nyissa meg a pénztárcaalkalmazást, és hozzon létre egy új NWC-kapcsolatot.
-\n\t3. Kapcsolódás az Amethysthez: A pénztárcája általában három lehetőséget kínál:
-\n\t\t3.1 Automatikus kapcsolódás: Egy gomb az Amethyst automatikus megnyitásához és kapcsolódáshoz. Koppintson erre a gombra, nyissa meg az Amethyst alkalmazást, és mentse el az új képernyőn.
+\n\t3. Kapcsolódás az Astrohez: A pénztárcája általában három lehetőséget kínál:
+\n\t\t3.1 Automatikus kapcsolódás: Egy gomb az Astro automatikus megnyitásához és kapcsolódáshoz. Koppintson erre a gombra, nyissa meg az Astro alkalmazást, és mentse el az új képernyőn.
 \n\t\t3.2 Kézi kapcsolódás: Egy kapcsolódási cím, amelyet kimásolhat, és a képernyőn található beillesztés gombra koppintva közvetlenül beírhatja.
 \n\t\t3.3 QR-kód: A pénztárca létrehoz egy QR-kódot, amelyet a képernyőn található QR-kód gombról olvashat be.
     </string>
@@ -1967,7 +1967,7 @@
     <string name="error_unable_to_fetch_invoice">Nem sikerült a számlát a kedvezményezett kiszolgálóiról lekérni</string>
     <string name="wallet_connect_pay_invoice_error_error">A Wallet Connect szolgáltatója a következő hibával tért vissza: %1$s</string>
     <string name="tor_connection_failed_title">Nem sikerült kapcsolódni a Tor hálózathoz</string>
-    <string name="tor_connection_failed_body">Az Amethystnek nem sikerült befejeznie a Tor előkészítését. Legyen normál (nem Tor) kapcsolat használva a hírfolyam betöltéséhez? A választás egy óráig érvényes, utána a rendszer ismételten megkísérli a Tor hálózathoz való kapcsolódást.</string>
+    <string name="tor_connection_failed_body">Az Astronek nem sikerült befejeznie a Tor előkészítését. Legyen normál (nem Tor) kapcsolat használva a hírfolyam betöltéséhez? A választás egy óráig érvényes, utána a rendszer ismételten megkísérli a Tor hálózathoz való kapcsolódást.</string>
     <string name="tor_continue_without_for_session">Normál kapcsolat használata</string>
     <string name="tor_keep_waiting">Tovább várok</string>
     <string name="could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup">Nem sikerült az LN-webcímet a(z) „%1$s” Lightning-címről összeállítani. Ellenőrizze a felhasználó beállításait</string>
@@ -1988,7 +1988,7 @@
     <string name="notification_channel_status_off">Ki</string>
     <string name="select_push_server">UnifiedPush-alkalmazás kiválasztása</string>
     <string name="push_server_title">Push-szolgáltató</string>
-    <string name="push_server_explainer">Válasszon egy UnifiedPush alkalmazást, amely értesítéseket küld, ha az Amethyst be van zárva.</string>
+    <string name="push_server_explainer">Válasszon egy UnifiedPush alkalmazást, amely értesítéseket küld, ha az Astro be van zárva.</string>
     <string name="push_server_none">Nincs</string>
     <string name="push_server_none_explainer">Push-értesítések letiltása</string>
     <string name="push_server_uses_app_explainer">%1$s alkalmazást használ</string>
@@ -2558,7 +2558,7 @@
     <string name="show_npub_as_a_qr_code">Az npub-kulcs megjelenítése QR-kódként</string>
     <string name="show_nprofile_as_a_qr_code">nprofile-kulcs megjelenítése QR-kódként</string>
     <string name="invalid_nip19_uri">Érvénytelen cím</string>
-    <string name="invalid_nip19_uri_description">Az Amethyst kapott egy URI-t a megnyitáshoz, de az érvénytelen volt: %1$s</string>
+    <string name="invalid_nip19_uri_description">Az Astro kapott egy URI-t a megnyitáshoz, de az érvénytelen volt: %1$s</string>
     <string name="dm_relays_title">Bejövő átjátszók a privát üzenetekhez</string>
     <string name="dm_relays_not_found">Bejövő átjátszók beállítása a privát üzenetekhez</string>
     <string name="dm_relays_not_found_description">Ez a beállítás mindenkit tájékoztat arról, hogy Ön melyik átjátszót használja, amikor üzeneteket küldenek Önnek. Ezek nélkül néhány üzenetről lemaradhat.</string>
@@ -2585,7 +2585,7 @@
     <string name="relay_reorder">Átjátszók átrendezése</string>
     <string name="public_home_section">Nyilvános kimenő és saját átjátszók</string>
     <string name="public_home_section_explainer_profile">A felhasználó a bejegyzéseit ezeken az átjátszókon teszi közzé</string>
-    <string name="public_home_section_explainer">Ez az átjátszótípus tárolja az összes tartalmat. Az Amethyst ide küldi az Ön bejegyzéseit, és mások ezeket az átjátszókat fogják használni, hogy megtalálják az Ön tartalmát. Adjon hozzá 1–3 átjátszót. Ezek lehetnek személyes-, fizetett- vagy nyilvános átjátszók.</string>
+    <string name="public_home_section_explainer">Ez az átjátszótípus tárolja az összes tartalmat. Az Astro ide küldi az Ön bejegyzéseit, és mások ezeket az átjátszókat fogják használni, hogy megtalálják az Ön tartalmát. Adjon hozzá 1–3 átjátszót. Ezek lehetnek személyes-, fizetett- vagy nyilvános átjátszók.</string>
     <string name="public_notif_section">Nyilvános bejövő átjátszók</string>
     <string name="public_notif_section_explainer_profile">A felhasználó ezeken az átjátszókon keresztül fogadja az értesítéseket</string>
     <string name="public_notif_section_explainer">Ez az átjátszótípus fogadja az összes választ, hozzászólást, kedvelést és zapet az Ön bejegyzéseire. Ezek lehetnek fizetős vagy ingyenes átjátszók. Az átjátszó üzemeltetője által beállított korlátok korlátozhatják a jó és a rossz értesítések számát. Ha például a hozzászólásokban kéretlen üzenet-támadások érik, a fizetős átjátszók kiszűrhetik a kéretlen tartalmakat. Vegyen fel 1–3 átjátszót.</string>
@@ -2616,13 +2616,13 @@
     <string name="proxy_section_explainer">Összesítő átjátszók, amelyeket az alkalmazásnak használnia kell a hírfolyamok letöltéséhez, például filter.nostr.wine. Ez helyettesíti a kimeneti modellt, és az alkalmazás csak a listákban szereplő átjátszókhoz fog csatlakozni.</string>
     <string name="broadcast_relays_title">Műsorszóró átjátszók</string>
     <string name="broadcast_section">Műsorszóró átjátszók</string>
-    <string name="broadcast_section_explainer">Olyan átjátszók, amelyek arra specializálódtak, hogy továbbítsák a bejegyzéseket az összes többi átjátszónak, mint például a sendit.nosflare.com. Az Amethyst hozzáadja ezt az átjátszót az összes új eseményhez, amelyet Ön készített</string>
+    <string name="broadcast_section_explainer">Olyan átjátszók, amelyek arra specializálódtak, hogy továbbítsák a bejegyzéseket az összes többi átjátszónak, mint például a sendit.nosflare.com. Az Astro hozzáadja ezt az átjátszót az összes új eseményhez, amelyet Ön készített</string>
     <string name="indexer_relays_title">Indexelő átjátszók</string>
     <string name="indexer_section">Indexelő átjátszók</string>
-    <string name="indexer_section_explainer">Olyan átjátszók, amelyek mindenki metaadatainak és átjátszólistáinak tárolására specializálódtak, mint például a purplepag.es. Az Amethyst ezeket az átjátszókat használja arra, hogy megtalálja azokat a felhasználókat, akik nem szerepelnek az Ön listáin.</string>
+    <string name="indexer_section_explainer">Olyan átjátszók, amelyek mindenki metaadatainak és átjátszólistáinak tárolására specializálódtak, mint például a purplepag.es. Az Astro ezeket az átjátszókat használja arra, hogy megtalálja azokat a felhasználókat, akik nem szerepelnek az Ön listáin.</string>
     <string name="blocked_relays_title">Letiltott átjátszók</string>
     <string name="blocked_section">Letiltott átjátszók</string>
-    <string name="blocked_section_explainer">Az Amethyst soha nem fog csatlakozni ezekhez az átjátszókhoz</string>
+    <string name="blocked_section_explainer">Az Astro soha nem fog csatlakozni ezekhez az átjátszókhoz</string>
     <string name="export_relay_settings">Átjátszóbeállítások exportálása</string>
     <string name="export_as_text">Exportálás szövegként</string>
     <string name="export_as_zip">Exportálás ZIP-fájlként (JSON)</string>
@@ -2869,7 +2869,7 @@
     <string name="feed_filter_selected">%1$s hírfolyamszűrő kiválasztva</string>
     <string name="feed_filter_select_an_option">%1$s hírforfolyamszűrő</string>
     <string name="crashreport_found">Összeomlási jelentés megtalálva</string>
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Szeretné elküldeni a legutóbbi összeomlási jelentést az Amethystnek egy közvetlen üzenetben? A személyes adatait nem osztja meg</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Szeretné elküldeni a legutóbbi összeomlási jelentést az Astronek egy közvetlen üzenetben? A személyes adatait nem osztja meg</string>
     <string name="crashreport_found_send">Küldés</string>
     <string name="this_message_will_disappear_in">Ez az üzenet %1$s után eltűnik</string>
     <string name="select_signer">Aláíró kiválasztása</string>

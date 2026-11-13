@@ -72,7 +72,7 @@
     <string name="unauthorized_exception_description">Signatären har inte godkänt den dekryptering som krävs. Aktivera NIP-44-dekryptering i din signeringsapp och försök igen</string>
     <string name="signer_not_found_exception">Signatör saknas</string>
     <string name="signer_not_found_exception_description">Har signeringsappen avinstallerats? Kontrollera om den är installerad och innehåller det här kontot. Logga ut och in igen om den har ändrats.</string>
-    <string name="signer_illegal_state_exception_description">Extern signatär returnerade data som är ovanliga för begäran. Det kan finnas en bugg i antingen Amethyst eller signatären.</string>
+    <string name="signer_illegal_state_exception_description">Extern signatär returnerade data som är ovanliga för begäran. Det kan finnas en bugg i antingen Astro eller signatären.</string>
     <string name="zaps">Zaps</string>
     <string name="boost">Boosta</string>
     <string name="boosted">boostad</string>
@@ -154,7 +154,7 @@
     <string name="send_payment_done">Klar</string>
     <string name="send_payment_pay_button">Betala %1$s sats</string>
     <string name="send_payment_pay_button_empty">Betala</string>
-    <string name="send_payment_no_methods">Denna profil har inga betalningsmetoder som Amethyst kan betala direkt.</string>
+    <string name="send_payment_no_methods">Denna profil har inga betalningsmetoder som Astro kan betala direkt.</string>
     <string name="send_payment_min_onchain">On-chain-zaps kräver minst %1$s sats</string>
     <string name="send_payment_cashu_insufficient">Inte tillräckligt saldo i en mint som denna mottagare accepterar. Fyll på din Cashu-plånbok först.</string>
     <string name="send_payment_cashu_balance">Tillgängligt för denna mottagare: %1$s sats</string>
@@ -216,7 +216,7 @@
     <string name="failed_to_save_the_image">Misslyckades att spara bilden</string>
     <string name="video_saved_to_the_gallery">Videon sparad i telefonens videogalleri</string>
     <string name="failed_to_save_the_video">Det gick inte att spara videon</string>
-    <string name="pdf_saved_to_the_gallery">PDF sparad i Downloads/Amethyst</string>
+    <string name="pdf_saved_to_the_gallery">PDF sparad i Downloads/Astro</string>
     <string name="failed_to_save_the_pdf">Det gick inte att spara PDF:en</string>
     <string name="upload_image">Ladda upp bilden</string>
     <string name="upload_file">Ladda upp fil</string>
@@ -358,7 +358,7 @@
     <string name="account_backup_tips2_md" tools:ignore="Typos">    ## Nyckelsäkerhetsråd
     \n\nDitt konto är säkrat med en hemlig nyckel. Nyckeln är en lång följd av tecken som börjar med **nsec1**. Den som har tillgång till denna hemliga nyckel kan posta och ändra din identitet.
     \n\n- **Lägg inte** din hemliga nyckel på någon webbplats eller i någon mjukvara som du inte litar på.
-    \n- Utvecklarna av Amethyst kommer **aldrig** att be om din hemliga nyckel.
+    \n- Utvecklarna av Astro kommer **aldrig** att be om din hemliga nyckel.
     \n- **Spara** en säkerhetskopia av din hemliga nyckel för återställning av kontot. Vi rekommenderar att du använder en lösenordshanterare.</string>
     <string name="account_backup_tips3_md" tools:ignore="Typos">    För extra säkerhet kan du kryptera din nyckel med ett lösenord. Denna nyckel börjar med **ncryptsec1** och kan inte användas utan ditt lösenord.
     \n\nOm du tappar bort ditt lösenord kommer du inte att kunna återställa din nyckel.</string>
@@ -394,7 +394,7 @@
     <string name="share_as_image">Dela som bild</string>
     <string name="share_as_image_url">Dela som bild-URL</string>
     <string name="share_as_image_generating">Genererar förhandsvisning…</string>
-    <string name="share_as_image_watermark">Delad via Amethyst</string>
+    <string name="share_as_image_watermark">Delad via Astro</string>
     <string name="quick_action_copy_user_id">Användar ID</string>
     <string name="quick_action_copy_note_id">Antecknings ID</string>
     <string name="quick_action_copy_text">Kopiera Text</string>
@@ -404,7 +404,7 @@
     <string name="quick_action_request_deletion_gallery_title">Ta bort från galleriet</string>
     <string name="quick_action_request_deletion_gallery_alert_body_v2">Ta bort detta media från ditt galleri.</string>
     <string name="quick_action_request_deletion_alert_title">Begär radering</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst kommer att begära att din anteckning tas bort från de reläer du för närvarande är ansluten till. Det finns ingen garanti för att din anteckning kommer att raderas permanent från dessa reläer eller från andra reläer där den kan lagras.</string>
+    <string name="quick_action_request_deletion_alert_body">Astro kommer att begära att din anteckning tas bort från de reläer du för närvarande är ansluten till. Det finns ingen garanti för att din anteckning kommer att raderas permanent från dessa reläer eller från andra reläer där den kan lagras.</string>
     <string name="quick_action_block_dialog_btn">Blockera</string>
     <string name="quick_action_delete_dialog_btn">Radera</string>
     <string name="quick_action_block">Blockera</string>
@@ -611,7 +611,7 @@
     <string name="workout_minutes">Minuter</string>
     <string name="workout_seconds">Sekunder</string>
     <string name="workout_suggestion_connect_title">Dela dina träningspass</string>
-    <string name="workout_suggestion_connect_message">Låt Amethyst läsa avslutade träningspass från Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) och föreslå ett inlägg.</string>
+    <string name="workout_suggestion_connect_message">Låt Astro läsa avslutade träningspass från Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) och föreslå ett inlägg.</string>
     <string name="workout_suggestion_connect_button">Anslut</string>
     <string name="workout_from_health_connect">Från Health Connect</string>
     <string name="exercise_running">Löpning</string>
@@ -713,7 +713,7 @@
     <!-- Signer trust levels -->
     <!-- Signer per-op consent dialog -->
     <!-- Signer op labels -->
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <!-- Permissions management screen -->
     <!-- Relay Authentication (NIP-42) settings -->
     <!-- Action-aware titles: %1$s is the person (or "Alice and others"). -->
@@ -861,7 +861,7 @@
     <string name="nest_create_schedule_toggle">Schemalägg för senare</string>
     <string name="nest_create_when">Välj starttid</string>
     <string name="nests_servers_title">Nest-servrar</string>
-    <string name="nests_servers_explainer">Välj vilka MoQ-värdservrar Amethyst publicerar dina nests till. Den första posten används som standard när du startar ett nytt utrymme.</string>
+    <string name="nests_servers_explainer">Välj vilka MoQ-värdservrar Astro publicerar dina nests till. Den första posten används som standard när du startar ett nytt utrymme.</string>
     <string name="nests_servers_my_section">Dina servrar</string>
     <string name="nests_servers_my_explainer">Sparas som en utbytbar händelse av typ kind-10112 så andra klienter kan läsa dina inställningar.</string>
     <string name="nests_servers_add_relay_field">Relä-URL (WebTransport)</string>
@@ -871,7 +871,7 @@
     <string name="nests_servers_auth_label">Autentisering</string>
     <string name="nests_servers_recommended_section">Rekommenderade servrar</string>
     <string name="nests_servers_recommended_explainer">Inbyggda förslag som du kan lägga till i din lista med ett tryck.</string>
-    <string name="nests_servers_use_defaults">Använd Amethysts standard</string>
+    <string name="nests_servers_use_defaults">Använd Astros standard</string>
     <string name="nests_servers_add_recommended">Lägg till server</string>
     <string name="nests_servers_remove">Ta bort server</string>
     <string name="nests_servers_empty">Inga nest-servrar än. Lägg till en nedan eller välj en rekommenderad server.</string>
@@ -1068,9 +1068,9 @@
     <string name="local_blossom_cache_not_detected">Ingen lokal cache hittad på port 24242.</string>
     <string name="local_blossom_cache_profile_pics_only">Cacha endast profilbilder</string>
     <string name="local_blossom_cache_profile_pics_only_caption">Begränsa den lokala cachen till profilbilder. Bilder och videor i flödet hämtas direkt från originalservrarna.</string>
-    <string name="no_blossom_server_message">Du har inga Blossom servrar satta. Du kan använda Amethyst\'s lista, eller lägga till en nedan ↓</string>
+    <string name="no_blossom_server_message">Du har inga Blossom servrar satta. Du kan använda Astro\'s lista, eller lägga till en nedan ↓</string>
     <string name="recommended_media_servers">Rekommenderade Mediaservrar</string>
-    <string name="built_in_servers_description">Amethysts standardlista. Du kan lägga till dem individuellt eller lägga till listan.</string>
+    <string name="built_in_servers_description">Astros standardlista. Du kan lägga till dem individuellt eller lägga till listan.</string>
     <string name="use_default_servers">Använd standardlistan</string>
     <string name="add_media_server">Lägg till mediaserver</string>
     <string name="delete_media_server">Radera mediaserver</string>
@@ -1237,8 +1237,8 @@
     <string name="call_add_participant">Lägg till deltagare</string>
     <string name="call_search_users">Sök användare\u2026</string>
     <string name="call_permission_denied_title">Behörighet krävs</string>
-    <string name="call_permission_denied_voice">Amethyst behöver åtkomst till mikrofonen för att starta ett röstsamtal. Aktivera den i appens inställningar.</string>
-    <string name="call_permission_denied_video">Amethyst behöver åtkomst till kameran och mikrofonen för att starta ett videosamtal. Aktivera dem i appens inställningar.</string>
+    <string name="call_permission_denied_voice">Astro behöver åtkomst till mikrofonen för att starta ett röstsamtal. Aktivera den i appens inställningar.</string>
+    <string name="call_permission_denied_video">Astro behöver åtkomst till kameran och mikrofonen för att starta ett videosamtal. Aktivera dem i appens inställningar.</string>
     <string name="call_permission_denied_open_settings">Öppna inställningar</string>
     <string name="call_permission_denied_cancel">Avbryt</string>
     <string name="call_settings">Samtalsinställningar</string>
@@ -1257,7 +1257,7 @@
     <string name="call_settings_turn_username">Användarnamn</string>
     <string name="call_settings_turn_credential">Inloggningsuppgift</string>
     <string name="always_on_notif_channel_description">Håller anslutningarna till dina inbox-relän aktiva för realtidsnotifieringar</string>
-    <string name="always_on_notif_title">Amethyst-notifieringar aktiva</string>
+    <string name="always_on_notif_title">Astro-notifieringar aktiva</string>
     <plurals name="always_on_notif_connected">
         <item quantity="one">Ansluten till %1$d inkorgsrelä</item>
         <item quantity="other">Ansluten till %1$d inkorgsreläer</item>
@@ -1276,7 +1276,7 @@
     <string name="notification_tab_following">Följer</string>
     <string name="notification_tab_everyone">Alla</string>
     <string name="battery_optimization_title">Batterioptimering aktiv</string>
-    <string name="battery_optimization_description">Android kan begränsa reläanslutningar i bakgrunden. Inaktivera batterioptimering för Amethyst för att säkerställa tillförlitliga notifieringar.</string>
+    <string name="battery_optimization_description">Android kan begränsa reläanslutningar i bakgrunden. Inaktivera batterioptimering för Astro för att säkerställa tillförlitliga notifieringar.</string>
     <string name="battery_optimization_fix_now">Åtgärda nu</string>
     <string name="reply_notify">Meddela: </string>
     <string name="today">Idag</string>
@@ -1289,7 +1289,7 @@
     <string name="filter_spam_from_strangers_title">Filtrera spam</string>
     <string name="filter_spam_from_strangers_explainer">Döljer inlägg från främlingar som var exakt samma för 5 eller fler gånger</string>
     <string name="add_client_tag_title">Lägg till klient-tagg i mina händelser</string>
-    <string name="add_client_tag_explainer">När det är aktiverat lägger Amethyst till en NIP-89-klient-tagg i händelser du publicerar.</string>
+    <string name="add_client_tag_explainer">När det är aktiverat lägger Astro till en NIP-89-klient-tagg i händelser du publicerar.</string>
     <string name="warn_when_posts_have_reports_from_your_follows_title">Varna vid rapporter</string>
     <string name="warn_when_posts_have_reports_from_your_follows_explainer">Visar ett varningsmeddelande när inlägg har 5 eller fler rapporter från följande</string>
     <string name="report_warning_threshold_title">Tröskel för rapportvarning</string>
@@ -1539,12 +1539,12 @@
     <string name="messages_new_subject_message_placeholder">Ändra namnet för de nya målen.</string>
     <string name="paste_from_clipboard">Klistra in från urklipp</string>
     <string name="couldnt_find_nwc_wallets">Plånbok hittades inte</string>
-    <string name="couldnt_find_nwc_wallets_description">Amethyst kunde inte hitta några plånboksappar som stöder Nostr Wallet Connect (NWC).
+    <string name="couldnt_find_nwc_wallets_description">Astro kunde inte hitta några plånboksappar som stöder Nostr Wallet Connect (NWC).
 \n\nVad du kan göra:
 \n\t1. Verifiera NWC-stöd: Kontrollera att din föredragna plånbok stöder Nostr Wallet Connect.
 \n\t2. Skapa anslutning: Gå till din plånbok och skapa en ny NWC-anslutning.
-\n\t3. Länka till Amethyst: Din plånbok erbjuder vanligtvis tre alternativ:
-\n\t\t3.1 Automatisk länk: En knapp för att automatiskt öppna och ansluta till Amethyst. Klicka på den, öppna Amethyst och spara på den nya skärmen.
+\n\t3. Länka till Astro: Din plånbok erbjuder vanligtvis tre alternativ:
+\n\t\t3.1 Automatisk länk: En knapp för att automatiskt öppna och ansluta till Astro. Klicka på den, öppna Astro och spara på den nya skärmen.
 \n\t\t3.2 Manuell länk: En anslutnings-URI som du kan kopiera och klistra in via klistra-ikonen på den här skärmen.
 \n\t\t3.3 QR-kod: Plånboken skapar en QR-kod som du kan skanna med QR-knappens funktion på den här skärmen.</string>
     <string name="language_description">För appens gränssnitt</string>
@@ -1614,7 +1614,7 @@
     <string name="error_unable_to_fetch_invoice">Kunde inte hämta fakturan från mottagarens servrar</string>
     <string name="wallet_connect_pay_invoice_error_error">Din Wallet Connect-leverantör returnerade följande fel: %1$s</string>
     <string name="tor_connection_failed_title">Tor ansluter inte</string>
-    <string name="tor_connection_failed_body">Amethyst kunde inte slutföra uppstart av Tor. Vill du använda en vanlig (icke-Tor) anslutning så att flödet kan laddas? Vi kommer ihåg ditt val under nästa timme och försöker sedan Tor igen.</string>
+    <string name="tor_connection_failed_body">Astro kunde inte slutföra uppstart av Tor. Vill du använda en vanlig (icke-Tor) anslutning så att flödet kan laddas? Vi kommer ihåg ditt val under nästa timme och försöker sedan Tor igen.</string>
     <string name="tor_continue_without_for_session">Använd vanlig anslutning</string>
     <string name="tor_keep_waiting">Fortsätt vänta</string>
     <string name="could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup">Kunde inte montera LNUrl från Lightning Address \"%1$s\". Kontrollera användarens konfiguration</string>
@@ -2174,7 +2174,7 @@
     <string name="show_npub_as_a_qr_code">Visa npub som en QR-kod</string>
     <string name="show_nprofile_as_a_qr_code">Visa nprofile som QR-kod</string>
     <string name="invalid_nip19_uri">Ogiltig adress</string>
-    <string name="invalid_nip19_uri_description">Amethyst fick en URI att öppna men den URI var ogiltig: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro fick en URI att öppna men den URI var ogiltig: %1$s</string>
     <string name="dm_relays_title">DM Inkorg Reläer</string>
     <string name="dm_relays_not_found">Ställ in dina privata inkorgsreläer</string>
     <string name="dm_relays_not_found_description">Denna inställning låter alla veta vilka reläer som ska användas när de skickar meddelanden till dig. Utan dem kan du missa vissa meddelanden.</string>
@@ -2201,7 +2201,7 @@
     <string name="relay_reorder">Ordna om relä</string>
     <string name="public_home_section">Offentliga hemreläer</string>
     <string name="public_home_section_explainer_profile">Användaren publicerar sitt innehåll på dessa reläer</string>
-    <string name="public_home_section_explainer">Denna typ av relä lagrar allt ditt innehåll. Amethyst skickar dina inlägg hit och andra kommer att använda dessa reläer för att hitta ditt innehåll. Sätt in mellan 1–3 reläer. De kan vara personliga reläer, betalda reläer eller offentliga reläer.</string>
+    <string name="public_home_section_explainer">Denna typ av relä lagrar allt ditt innehåll. Astro skickar dina inlägg hit och andra kommer att använda dessa reläer för att hitta ditt innehåll. Sätt in mellan 1–3 reläer. De kan vara personliga reläer, betalda reläer eller offentliga reläer.</string>
     <string name="public_notif_section">Offentliga inkorgsreläer</string>
     <string name="public_notif_section_explainer_profile">Användaren tar emot aviseringar på dessa reläer</string>
     <string name="public_notif_section_explainer">Denna typ av relä tar emot alla svar, kommentarer, gillanden och zaps till dina inlägg. Sätt in mellan 1–3 reläer och se till att de accepterar inlägg från vem som helst.</string>
@@ -2238,7 +2238,7 @@
     <string name="indexer_section_explainer">Reläer som lagrar metadata och listor över reläer, t.ex. purplepag.es</string>
     <string name="blocked_relays_title">Blockerade reläer</string>
     <string name="blocked_section">Blockerade reläer</string>
-    <string name="blocked_section_explainer">Amethyst kommer aldrig att ansluta till dessa reläer</string>
+    <string name="blocked_section_explainer">Astro kommer aldrig att ansluta till dessa reläer</string>
     <string name="export_relay_settings">Exportera relay-inställningar</string>
     <string name="export_as_text">Exportera som text</string>
     <string name="export_as_zip">Exportera som ZIP (JSON)</string>
@@ -2411,7 +2411,7 @@
     <string name="feed_filter_selected">Flödesfilter, %1$s valt</string>
     <string name="feed_filter_select_an_option">Flödesfilter, %1$s</string>
     <string name="crashreport_found">Kraschrapport hittad</string>
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Vill du skicka den senaste kraschrapporten till Amethyst i ett DM? Ingen personlig information kommer att delas</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Vill du skicka den senaste kraschrapporten till Astro i ett DM? Ingen personlig information kommer att delas</string>
     <string name="crashreport_found_send">Skicka</string>
     <string name="this_message_will_disappear_in">Detta meddelande försvinner om %1$s</string>
     <string name="select_signer">Välj signatör</string>

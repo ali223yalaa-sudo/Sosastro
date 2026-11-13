@@ -1089,9 +1089,9 @@
     
     <string name="call_permission_denied_title">مجوز لازم است</string>
     
-    <string name="call_permission_denied_voice">Amethyst برای شروع تماس صوتی به دسترسی میکروفون نیاز دارد. لطفاً آن را در تنظیمات برنامه فعال کنید.</string>
+    <string name="call_permission_denied_voice">Astro برای شروع تماس صوتی به دسترسی میکروفون نیاز دارد. لطفاً آن را در تنظیمات برنامه فعال کنید.</string>
     
-    <string name="call_permission_denied_video">Amethyst برای شروع تماس تصویری به دسترسی دوربین و میکروفون نیاز دارد. لطفاً آن‌ها را در تنظیمات برنامه فعال کنید.</string>
+    <string name="call_permission_denied_video">Astro برای شروع تماس تصویری به دسترسی دوربین و میکروفون نیاز دارد. لطفاً آن‌ها را در تنظیمات برنامه فعال کنید.</string>
     
     <string name="call_permission_denied_open_settings">باز کردن تنظیمات</string>
     
@@ -1129,7 +1129,7 @@
     
     <string name="always_on_notif_channel_description">اتصالات به relay های صندوق ورودی شما را برای اعلان‌های بلادرنگ فعال نگه می‌دارد</string>
     
-    <string name="always_on_notif_title">اعلان‌های Amethyst فعال است</string>
+    <string name="always_on_notif_title">اعلان‌های Astro فعال است</string>
     
     <plurals name="always_on_notif_connected">
     <item quantity="one">متصل به %1$d relay صندوق ورودی</item>
@@ -1161,7 +1161,7 @@
 
     <string name="battery_optimization_title">بهینه‌سازی باتری فعال است</string>
     
-    <string name="battery_optimization_description">اندروید ممکن است اتصالات relay را در پس‌زمینه محدود کند. بهینه‌سازی باتری را برای Amethyst غیرفعال کنید تا اعلان‌های مطمئن داشته باشید.</string>
+    <string name="battery_optimization_description">اندروید ممکن است اتصالات relay را در پس‌زمینه محدود کند. بهینه‌سازی باتری را برای Astro غیرفعال کنید تا اعلان‌های مطمئن داشته باشید.</string>
     
     <string name="battery_optimization_fix_now">رفع الان</string>
     
@@ -1179,7 +1179,7 @@
     
     <string name="add_client_tag_title">افزودن برچسب کلاینت به رویدادهایم</string>
     
-    <string name="add_client_tag_explainer">وقتی فعال باشد، Amethyst یک برچسب کلاینت NIP-89 به رویدادهایی که منتشر می‌کنید اضافه می‌کند.</string>
+    <string name="add_client_tag_explainer">وقتی فعال باشد، Astro یک برچسب کلاینت NIP-89 به رویدادهایی که منتشر می‌کنید اضافه می‌کند.</string>
     
     <string name="warn_when_posts_have_reports_from_your_follows_title">هشدار درباره گزارش‌ها</string>
     
@@ -1465,12 +1465,12 @@
     
     <string name="couldnt_find_nwc_wallets">کیف پول یافت نشد</string>
     
-    <string name="couldnt_find_nwc_wallets_description">Amethyst هیچ برنامه کیف پولی که از Nostr Wallet Connect (NWC) پشتیبانی کند پیدا نکرد.
+    <string name="couldnt_find_nwc_wallets_description">Astro هیچ برنامه کیف پولی که از Nostr Wallet Connect (NWC) پشتیبانی کند پیدا نکرد.
 \n\nکارهایی که می‌توانید انجام دهید:
 \n\t1. بررسی پشتیبانی NWC: مطمئن شوید که برنامه کیف پول مورد نظر شما با Nostr Wallet Connect سازگار است.
 \n\t2. ایجاد اتصال: به برنامه کیف پول خود بروید و یک اتصال NWC جدید ایجاد کنید.
-\n\t3. اتصال به Amethyst: کیف پول شما معمولاً سه گزینه ارائه می‌دهد:
-\n\t\t3.1 اتصال خودکار: دکمه‌ای برای باز کردن و اتصال خودکار به Amethyst. اگر این گزینه وجود دارد، آن دکمه را بزنید، Amethyst را باز کنید و روی صفحه جدید ذخیره کنید.
+\n\t3. اتصال به Astro: کیف پول شما معمولاً سه گزینه ارائه می‌دهد:
+\n\t\t3.1 اتصال خودکار: دکمه‌ای برای باز کردن و اتصال خودکار به Astro. اگر این گزینه وجود دارد، آن دکمه را بزنید، Astro را باز کنید و روی صفحه جدید ذخیره کنید.
 \n\t\t3.2 اتصال دستی: یک URI اتصال که می‌توانید کپی کنید و با کلیک روی آیکون paste در این صفحه مستقیماً وارد کنید.
 \n\t\t3.3 کد QR: کیف پول یک کد QR ایجاد می‌کند که می‌توانید با دکمه کد QR در این صفحه آن را بخوانید.
     </string>
@@ -1511,7 +1511,7 @@
     
     <string name="tor_connection_failed_title">Tor متصل نمی‌شود</string>
     
-    <string name="tor_connection_failed_body">Amethyst نتوانست راه‌اندازی اولیه Tor را تکمیل کند. از یک اتصال معمولی (بدون Tor) استفاده کنید تا فید بارگذاری شود؟ این انتخاب را برای یک ساعت آینده به خاطر می‌سپاریم و بعد از آن دوباره Tor را امتحان می‌کنیم.</string>
+    <string name="tor_connection_failed_body">Astro نتوانست راه‌اندازی اولیه Tor را تکمیل کند. از یک اتصال معمولی (بدون Tor) استفاده کنید تا فید بارگذاری شود؟ این انتخاب را برای یک ساعت آینده به خاطر می‌سپاریم و بعد از آن دوباره Tor را امتحان می‌کنیم.</string>
     
     <string name="tor_continue_without_for_session">استفاده از اتصال معمولی</string>
     
@@ -2458,19 +2458,19 @@
     
     <string name="broadcast_section">relay های پخش</string>
     
-    <string name="broadcast_section_explainer">relay هایی که در ارسال یادداشت‌های شما به سایر relay ها تخصص دارند، مانند sendit.nosflare.com. Amethyst این relay را به همه رویدادهای جدید ساخته شده توسط شما اضافه می‌کند</string>
+    <string name="broadcast_section_explainer">relay هایی که در ارسال یادداشت‌های شما به سایر relay ها تخصص دارند، مانند sendit.nosflare.com. Astro این relay را به همه رویدادهای جدید ساخته شده توسط شما اضافه می‌کند</string>
     
     <string name="indexer_relays_title">relay های ایندکسر</string>
     
     <string name="indexer_section">relay های ایندکسر</string>
     
-    <string name="indexer_section_explainer">relay هایی که در میزبانی متادیتا و لیست relay های همه تخصص دارند، مانند purplepag.es. Amethyst از این relay ها برای یافتن کاربرانی که در لیست‌های شما نیستند استفاده می‌کند.</string>
+    <string name="indexer_section_explainer">relay هایی که در میزبانی متادیتا و لیست relay های همه تخصص دارند، مانند purplepag.es. Astro از این relay ها برای یافتن کاربرانی که در لیست‌های شما نیستند استفاده می‌کند.</string>
 
     <string name="blocked_relays_title">relay‌های مسدود شده</string>
     
     <string name="blocked_section">relay‌های مسدود شده</string>
     
-    <string name="blocked_section_explainer">Amethyst هرگز به این relay‌ها متصل نخواهد شد</string>
+    <string name="blocked_section_explainer">Astro هرگز به این relay‌ها متصل نخواهد شد</string>
     
     <string name="export_relay_settings">خروجی تنظیمات relay</string>
     
@@ -2664,7 +2664,7 @@
     
     <string name="crashreport_found">گزارش خرابی یافت شد</string>
     
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">آیا می‌خواهید گزارش خرابی اخیر را از طریق پیام مستقیم به Amethyst ارسال کنید؟ هیچ اطلاعات شخصی به اشتراک گذاشته نخواهد شد</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">آیا می‌خواهید گزارش خرابی اخیر را از طریق پیام مستقیم به Astro ارسال کنید؟ هیچ اطلاعات شخصی به اشتراک گذاشته نخواهد شد</string>
     
     <string name="crashreport_found_send">ارسال</string>
     
@@ -4063,7 +4063,7 @@
     
     <string name="signer_not_found_exception_description">آیا اپلیکیشن signer حذف شده؟ بررسی کنید که signer نصب شده و این حساب را دارد. از اپلیکیشن signer خارج شوید و دوباره وارد شوید اگر signer تغییر کرده است.</string>
     
-    <string name="signer_illegal_state_exception_description">signer خارجی یک پاسخ عجیب برای درخواست بازگرداند. ممکن است باگی در Amethyst یا در signer وجود داشته باشد.</string>
+    <string name="signer_illegal_state_exception_description">signer خارجی یک پاسخ عجیب برای درخواست بازگرداند. ممکن است باگی در Astro یا در signer وجود داشته باشد.</string>
     
     <string name="number_following">"%1$s دنبال‌شده"</string>
     
@@ -4181,7 +4181,7 @@
     
     <string name="send_payment_pay_button_empty">پرداخت</string>
     
-    <string name="send_payment_no_methods">این پروفایل هیچ روش پرداختی ندارد که Amethyst بتواند مستقیماً پرداخت کند.</string>
+    <string name="send_payment_no_methods">این پروفایل هیچ روش پرداختی ندارد که Astro بتواند مستقیماً پرداخت کند.</string>
     
     <string name="send_payment_min_onchain">zap های آنچین حداقل %1$s sats نیاز دارند</string>
     
@@ -4221,7 +4221,7 @@
     
     <string name="pinned_to_top">سنجاق شده به بالا</string>
     
-    <string name="pdf_saved_to_the_gallery">PDF در Downloads/Amethyst ذخیره شد</string>
+    <string name="pdf_saved_to_the_gallery">PDF در Downloads/Astro ذخیره شد</string>
     
     <string name="failed_to_save_the_pdf">ذخیره PDF ناموفق بود</string>
     
@@ -4322,7 +4322,7 @@
     
     <string name="share_as_image_generating">در حال تولید پیش‌نمایش…</string>
     
-    <string name="share_as_image_watermark">به اشتراک گذاشته شده از طریق Amethyst</string>
+    <string name="share_as_image_watermark">به اشتراک گذاشته شده از طریق Astro</string>
     
     <string name="quick_action_request_deletion_gallery_alert_body_v2">این رسانه را از گالری خود حذف کنید.</string>
     
@@ -4677,7 +4677,7 @@
 
     <string name="workout_suggestion_connect_title">تمرینات خود را به اشتراک بگذارید</string>
 
-    <string name="workout_suggestion_connect_message">اجازه دهید Amethyst تمرینات تمام شده را از Health Connect (Samsung Health، Google Fit، Fitbit، Garmin…) بخواند و پیشنهاد پست بدهد.</string>
+    <string name="workout_suggestion_connect_message">اجازه دهید Astro تمرینات تمام شده را از Health Connect (Samsung Health، Google Fit، Fitbit، Garmin…) بخواند و پیشنهاد پست بدهد.</string>
 
     <string name="workout_suggestion_connect_button">اتصال</string>
 
@@ -5166,7 +5166,7 @@
     
     <string name="nests_servers_title">سرورهای Nest</string>
     
-    <string name="nests_servers_explainer">انتخاب کنید Amethyst nest های شما را در کدام سرورهای MoQ منتشر کند. اولین مورد به صورت پیش‌فرض هنگام شروع فضای جدید استفاده می‌شود.</string>
+    <string name="nests_servers_explainer">انتخاب کنید Astro nest های شما را در کدام سرورهای MoQ منتشر کند. اولین مورد به صورت پیش‌فرض هنگام شروع فضای جدید استفاده می‌شود.</string>
     
     <string name="nests_servers_my_section">سرورهای شما</string>
     
@@ -5186,7 +5186,7 @@
     
     <string name="nests_servers_recommended_explainer">پیشنهادات داخلی که می‌توانید با یک ضربه به لیستتان اضافه کنید.</string>
     
-    <string name="nests_servers_use_defaults">استفاده از پیش‌فرض‌های Amethyst</string>
+    <string name="nests_servers_use_defaults">استفاده از پیش‌فرض‌های Astro</string>
     
     <string name="nests_servers_add_recommended">افزودن سرور</string>
     

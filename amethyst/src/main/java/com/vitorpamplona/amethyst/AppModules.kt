@@ -156,7 +156,7 @@ import java.io.File
 class AppModules(
     val appContext: Context,
 ) {
-    val appAgent = "Amethyst/${BuildConfig.VERSION_NAME}"
+    val appAgent = "Astro/${BuildConfig.VERSION_NAME}"
 
     // Exists to avoid exceptions stopping the coroutine
     val exceptionHandler =

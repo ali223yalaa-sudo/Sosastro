@@ -642,3 +642,25 @@ what stops the "entered but nothing happens" confusion in a weak network.
 - Bottom-of-room text was too small: the composer text + placeholder are
   now 16 sp (`NestEditFieldRow.kt`) and the error status strip is
   `bodyMedium` (`ActionBarStatusStrip` in `NestActionBar.kt`).
+
+## Branding: display name is Astro, code identity stays amethyst
+
+The product is **Astro**. The app label (`app_name`) already said Astro, but
+plenty of user-visible copy still said "Amethyst". Rules:
+
+- **User-visible text → Astro.** Every `res/values*/strings.xml` locale was
+  rewritten (`Amethyst` → `Astro`, ~1500 strings across 57 files). Keep new
+  strings saying Astro.
+- **App-level literals → Astro.** `AppModules.appAgent` (HTTP User-Agent
+  `Astro/<version>`), `AccountViewModel` PodcastBoostagram `appName`, the
+  AWT tray `appLabel`, the media-saver subfolder (`ASTRO_SUBDIRECTORY =
+  "Astro"`), and the app-function messages all say Astro now.
+- **The launch/login/sign-up logo is the app icon.** `ic_astro_logo` (a
+  cropped copy of `ic_launcher_foreground`, per-dpi PNGs) replaces the
+  `CustomHashTagIcons.Amethyst` vector on `LoginScreen`/`SignUpScreen`.
+- **Do NOT rename code identity.** Package `com.vitorpamplona.amethyst`,
+  the `Amethyst` class, module names (`:amethyst`, …), the applicationId,
+  and the NIP-89 `client` tag (`AccountCacheState.CLIENT_TAG_NAME`) stay as
+  they are: the client tag is a protocol identifier that other clients match
+  on, and a package rename touches every import + the manifest. `Amethyst`
+  in comments/Kdoc is fine to leave.

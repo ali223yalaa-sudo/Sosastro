@@ -72,7 +72,7 @@
     <string name="unauthorized_exception_description">সাইনার এই অপারেশন সম্পন্ন করতে প্রয়োজনীয় একটি ডিক্রিপশন অনুমোদন করেনি। আপনার সাইনার অ্যাপে NIP-44 ডিক্রিপশন সক্রিয় করুন এবং আবার চেষ্টা করুন</string>
     <string name="signer_not_found_exception">সাইনার পাওয়া যায়নি</string>
     <string name="signer_not_found_exception_description">সাইনার অ্যাপটি কি আনইনস্টল করা হয়েছে? সাইনারটি ইনস্টল আছে এবং এই অ্যাকাউন্টটি আছে কিনা পরীক্ষা করুন। সাইনার অ্যাপ পরিবর্তন হলে লগ আউট করুন এবং আবার লগইন করুন।</string>
-    <string name="signer_illegal_state_exception_description">এক্সটার্নাল সাইনার অনুরোধের জন্য একটি অপরিচিত পেলোড ফেরত দিয়েছে। Amethyst বা সাইনারে একটি বাগ থাকতে পারে।</string>
+    <string name="signer_illegal_state_exception_description">এক্সটার্নাল সাইনার অনুরোধের জন্য একটি অপরিচিত পেলোড ফেরত দিয়েছে। Astro বা সাইনারে একটি বাগ থাকতে পারে।</string>
     <string name="zaps">জ্যাপস</string>
     <string name="boost">বুস্ট</string>
     <string name="boosted">বুস্ট করা হয়েছে</string>
@@ -152,7 +152,7 @@
     <string name="send_payment_done">সম্পন্ন</string>
     <string name="send_payment_pay_button">%1$s sats পরিশোধ করুন</string>
     <string name="send_payment_pay_button_empty">পরিশোধ করুন</string>
-    <string name="send_payment_no_methods">এই প্রোফাইলে এমন কোনো পেমেন্ট পদ্ধতি নেই যা Amethyst সরাসরি পরিশোধ করতে পারে।</string>
+    <string name="send_payment_no_methods">এই প্রোফাইলে এমন কোনো পেমেন্ট পদ্ধতি নেই যা Astro সরাসরি পরিশোধ করতে পারে।</string>
     <string name="send_payment_min_onchain">অন-চেইন zap-এর জন্য কমপক্ষে %1$s sats প্রয়োজন</string>
     <string name="send_payment_cashu_insufficient">এই প্রাপক যে মিন্ট গ্রহণ করে তাতে পর্যাপ্ত ব্যালেন্স নেই। প্রথমে আপনার Cashu ওয়ালেট টপ আপ করুন।</string>
     <string name="send_payment_cashu_balance">এই প্রাপকের জন্য ব্যয়যোগ্য: %1$s sats</string>
@@ -213,7 +213,7 @@
     <string name="failed_to_save_the_image">ছবিটি সফলভাবে সংরক্ষণ করা যায় নি</string>
     <string name="video_saved_to_the_gallery">ফোনের ভিডিও গ্যালারিতে ভিডিও সেভ করা হয়েছে</string>
     <string name="failed_to_save_the_video">ভিডিও সেভ করতে ব্যর্থ হয়েছে</string>
-    <string name="pdf_saved_to_the_gallery">Downloads/Amethyst-এ PDF সেভ করা হয়েছে</string>
+    <string name="pdf_saved_to_the_gallery">Downloads/Astro-এ PDF সেভ করা হয়েছে</string>
     <string name="failed_to_save_the_pdf">PDF সেভ করতে ব্যর্থ হয়েছে</string>
     <string name="upload_image">ছবিটি আপলোড করুন</string>
     <string name="upload_file">ফাইল আপলোড করুন</string>
@@ -393,7 +393,7 @@
     <string name="share_as_image">ছবি হিসেবে শেয়ার করুন</string>
     <string name="share_as_image_url">ছবির URL হিসেবে শেয়ার করুন</string>
     <string name="share_as_image_generating">প্রিভিউ তৈরি হচ্ছে…</string>
-    <string name="share_as_image_watermark">Amethyst-এর মাধ্যমে শেয়ার করা হয়েছে</string>
+    <string name="share_as_image_watermark">Astro-এর মাধ্যমে শেয়ার করা হয়েছে</string>
     <string name="quick_action_copy_user_id">লেখকের আইডি</string>
     <string name="quick_action_copy_note_id">নোটের আইডি</string>
     <string name="quick_action_copy_text">টেক্সটটি কপি করুন</string>
@@ -608,7 +608,7 @@
     <string name="workout_minutes">মিনিট</string>
     <string name="workout_seconds">সেকেন্ড</string>
     <string name="workout_suggestion_connect_title">আপনার ওয়ার্কআউট শেয়ার করুন</string>
-    <string name="workout_suggestion_connect_message">Amethyst-কে Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) থেকে সম্পন্ন ওয়ার্কআউট পড়তে এবং একটি পোস্ট পরামর্শ দিতে দিন।</string>
+    <string name="workout_suggestion_connect_message">Astro-কে Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) থেকে সম্পন্ন ওয়ার্কআউট পড়তে এবং একটি পোস্ট পরামর্শ দিতে দিন।</string>
     <string name="workout_suggestion_connect_button">সংযোগ করুন</string>
     <string name="workout_suggestion_distance_km">%1$s কিমি</string>
     <string name="workout_from_health_connect">Health Connect থেকে</string>
@@ -712,7 +712,7 @@
     <!-- Signer trust levels -->
     <!-- Signer per-op consent dialog -->
     <!-- Signer op labels -->
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <!-- Permissions management screen -->
     <!-- Relay Authentication (NIP-42) settings -->
     <!-- Action-aware titles: %1$s is the person (or "Alice and others"). -->
@@ -856,13 +856,13 @@
     <string name="nest_create_schedule_toggle">পরে নির্ধারণ করুন</string>
     <string name="nest_create_when">শুরুর সময় বেছে নিন</string>
     <string name="nests_servers_title">নেস্ট সার্ভার</string>
-    <string name="nests_servers_explainer">Amethyst আপনার নেস্ট কোন MoQ হোস্ট সার্ভারে প্রকাশ করবে তা বেছে নিন। নতুন স্পেস শুরু করার সময় প্রথম এন্ট্রি ডিফল্ট হিসেবে ব্যবহার হয়।</string>
+    <string name="nests_servers_explainer">Astro আপনার নেস্ট কোন MoQ হোস্ট সার্ভারে প্রকাশ করবে তা বেছে নিন। নতুন স্পেস শুরু করার সময় প্রথম এন্ট্রি ডিফল্ট হিসেবে ব্যবহার হয়।</string>
     <string name="nests_servers_my_section">আপনার সার্ভার</string>
     <string name="nests_servers_my_explainer">kind-10112 রিপ্লেসযোগ্য ইভেন্ট হিসেবে সংরক্ষিত যাতে অন্য ক্লায়েন্টরা আপনার পছন্দ পড়তে পারে।</string>
     <string name="nests_servers_add_pair_button">যোগ করুন</string>
     <string name="nests_servers_recommended_section">প্রস্তাবিত সার্ভার</string>
     <string name="nests_servers_recommended_explainer">বিল্ট-ইন পরামর্শ যা এক ট্যাপে আপনার তালিকায় যোগ করা যাবে।</string>
-    <string name="nests_servers_use_defaults">Amethyst ডিফল্ট ব্যবহার করুন</string>
+    <string name="nests_servers_use_defaults">Astro ডিফল্ট ব্যবহার করুন</string>
     <string name="nests_servers_add_recommended">সার্ভার যোগ করুন</string>
     <string name="nests_servers_remove">সার্ভার সরান</string>
     <string name="nests_servers_empty">এখনো কোনো নেস্ট সার্ভার নেই। নিচে একটি যোগ করুন বা প্রস্তাবিত সার্ভার বেছে নিন।</string>
@@ -1058,9 +1058,9 @@
     <string name="local_blossom_cache_not_detected">পোর্ট 24242-এ স্থানীয় ক্যাশ সনাক্ত হয়নি।</string>
     <string name="local_blossom_cache_profile_pics_only">শুধুমাত্র প্রোফাইল ছবি ক্যাশ করুন</string>
     <string name="local_blossom_cache_profile_pics_only_caption">স্থানীয় ক্যাশকে শুধুমাত্র প্রোফাইল ছবিতে সীমিত করুন। ফিডের ছবি ও ভিডিও সরাসরি মূল সার্ভার থেকে আনা হবে।</string>
-    <string name="no_blossom_server_message">আপনার কোনো Blossom সার্ভার সেট নেই। আপনি Amethyst-এর তালিকা ব্যবহার করতে পারেন, অথবা নিচে একটি যোগ করুন ↓</string>
+    <string name="no_blossom_server_message">আপনার কোনো Blossom সার্ভার সেট নেই। আপনি Astro-এর তালিকা ব্যবহার করতে পারেন, অথবা নিচে একটি যোগ করুন ↓</string>
     <string name="recommended_media_servers">প্রস্তাবিত মিডিয়া সার্ভার</string>
-    <string name="built_in_servers_description">Amethyst-এর ডিফল্ট তালিকা। আপনি এগুলো আলাদাভাবে বা তালিকা হিসেবে যোগ করতে পারেন।</string>
+    <string name="built_in_servers_description">Astro-এর ডিফল্ট তালিকা। আপনি এগুলো আলাদাভাবে বা তালিকা হিসেবে যোগ করতে পারেন।</string>
     <string name="use_default_servers">ডিফল্ট তালিকা ব্যবহার করুন</string>
     <string name="add_media_server">মিডিয়া সার্ভার যোগ করুন</string>
     <string name="delete_media_server">মিডিয়া সার্ভার মুছুন</string>
@@ -1223,8 +1223,8 @@
     <string name="call_add_participant">অংশগ্রহণকারী যোগ করুন</string>
     <string name="call_search_users">ব্যবহারকারী খুঁজুন…</string>
     <string name="call_permission_denied_title">অনুমতি প্রয়োজন</string>
-    <string name="call_permission_denied_voice">ভয়েস কল শুরু করতে Amethyst-এর মাইক্রোফোনের অ্যাক্সেস প্রয়োজন। অ্যাপ সেটিংসে এটি সক্ষম করুন।</string>
-    <string name="call_permission_denied_video">ভিডিও কল শুরু করতে Amethyst-এর ক্যামেরা ও মাইক্রোফোনের অ্যাক্সেস প্রয়োজন। অ্যাপ সেটিংসে এগুলো সক্ষম করুন।</string>
+    <string name="call_permission_denied_voice">ভয়েস কল শুরু করতে Astro-এর মাইক্রোফোনের অ্যাক্সেস প্রয়োজন। অ্যাপ সেটিংসে এটি সক্ষম করুন।</string>
+    <string name="call_permission_denied_video">ভিডিও কল শুরু করতে Astro-এর ক্যামেরা ও মাইক্রোফোনের অ্যাক্সেস প্রয়োজন। অ্যাপ সেটিংসে এগুলো সক্ষম করুন।</string>
     <string name="call_permission_denied_open_settings">সেটিংস খুলুন</string>
     <string name="call_permission_denied_cancel">বাতিল করুন</string>
     <string name="call_settings">কল সেটিংস</string>
@@ -1243,7 +1243,7 @@
     <string name="call_settings_turn_username">ব্যবহারকারীর নাম</string>
     <string name="call_settings_turn_credential">পরিচয়পত্র</string>
     <string name="always_on_notif_channel_description">রিয়েল-টাইম বিজ্ঞপ্তির জন্য আপনার ইনবক্স relays-এর সাথে সংযোগ সক্রিয় রাখে</string>
-    <string name="always_on_notif_title">Amethyst বিজ্ঞপ্তি সক্রিয়</string>
+    <string name="always_on_notif_title">Astro বিজ্ঞপ্তি সক্রিয়</string>
     <plurals name="always_on_notif_connected">
         <item quantity="one">%1$d টি ইনবক্স relay-তে সংযুক্ত</item>
         <item quantity="other">%1$d টি ইনবক্স relay-তে সংযুক্ত</item>
@@ -1261,7 +1261,7 @@
     <string name="show_messages_in_notifications_setting_description">বিজ্ঞপ্তি ট্যাবে সরাসরি ও গ্রুপ বার্তা অন্তর্ভুক্ত করুন। বার্তাগুলো শুধুমাত্র বার্তা ট্যাবে রাখতে বন্ধ করুন।</string>
     <string name="notification_tab_everyone">সবাই</string>
     <string name="battery_optimization_title">ব্যাটারি অপ্টিমাইজেশন সক্রিয়</string>
-    <string name="battery_optimization_description">Android ব্যাকগ্রাউন্ডে relay সংযোগ সীমিত করতে পারে। নির্ভরযোগ্য বিজ্ঞপ্তি নিশ্চিত করতে Amethyst-এর জন্য ব্যাটারি অপ্টিমাইজেশন অক্ষম করুন।</string>
+    <string name="battery_optimization_description">Android ব্যাকগ্রাউন্ডে relay সংযোগ সীমিত করতে পারে। নির্ভরযোগ্য বিজ্ঞপ্তি নিশ্চিত করতে Astro-এর জন্য ব্যাটারি অপ্টিমাইজেশন অক্ষম করুন।</string>
     <string name="battery_optimization_fix_now">এখনই ঠিক করুন</string>
     <string name="reply_notify">অবহিত করুন: </string>
     <string name="today">আজ</string>
@@ -1274,7 +1274,7 @@
     <string name="filter_spam_from_strangers_title">স্প্যাম ফিল্টার করুন</string>
     <string name="filter_spam_from_strangers_explainer">অপরিচিতদের পোস্ট লুকায় যা ৫ বা তার বেশি বার হুবহু একই ছিল</string>
     <string name="add_client_tag_title">আমার ইভেন্টে ক্লায়েন্ট ট্যাগ যোগ করুন</string>
-    <string name="add_client_tag_explainer">সক্ষম করলে, Amethyst আপনার প্রকাশিত ইভেন্টে একটি NIP-89 ক্লায়েন্ট ট্যাগ যোগ করে।</string>
+    <string name="add_client_tag_explainer">সক্ষম করলে, Astro আপনার প্রকাশিত ইভেন্টে একটি NIP-89 ক্লায়েন্ট ট্যাগ যোগ করে।</string>
     <string name="warn_when_posts_have_reports_from_your_follows_title">রিপোর্টে সতর্ক করুন</string>
     <string name="warn_when_posts_have_reports_from_your_follows_explainer">পোস্ট বা প্রোফাইলে আপনার ফলো করা লোকদের রিপোর্ট থাকলে সতর্কবার্তা দেখায়</string>
     <string name="report_warning_threshold_title">রিপোর্ট সতর্কতার সীমা</string>
@@ -1519,12 +1519,12 @@
     <string name="messages_new_subject_message_placeholder">নতুন লক্ষ্যের জন্য নাম পরিবর্তন করা হচ্ছে।</string>
     <string name="paste_from_clipboard">ক্লিপবোর্ড থেকে পেস্ট করুন</string>
     <string name="couldnt_find_nwc_wallets">ওয়ালেট পাওয়া যায়নি</string>
-    <string name="couldnt_find_nwc_wallets_description">Amethyst কোনো ওয়ালেট অ্যাপ খুঁজে পায়নি যা Nostr Wallet Connect (NWC) সমর্থন করে।
+    <string name="couldnt_find_nwc_wallets_description">Astro কোনো ওয়ালেট অ্যাপ খুঁজে পায়নি যা Nostr Wallet Connect (NWC) সমর্থন করে।
 \n\nআপনি যা করতে পারেন:
 \n\t১. NWC সমর্থন যাচাই করুন: নিশ্চিত করুন যে আপনার পছন্দের ওয়ালেট অ্যাপ Nostr Wallet Connect-এর সাথে সামঞ্জস্যপূর্ণ।
 \n\t২. সংযোগ তৈরি করুন: আপনার ওয়ালেট অ্যাপে যান এবং একটি নতুন NWC সংযোগ তৈরি করুন।
-\n\t৩. Amethyst-এ লিঙ্ক করুন: আপনার ওয়ালেট সাধারণত তিনটি বিকল্প দেবে:
-\n\t\t৩.১ স্বয়ংক্রিয় লিঙ্ক: একটি বোতাম যা স্বয়ংক্রিয়ভাবে Amethyst খুলে সংযুক্ত করবে। যদি তাই হয়, সেই বোতামে ক্লিক করুন, Amethyst খুলুন এবং নতুন স্ক্রিনে সেভ চাপুন।
+\n\t৩. Astro-এ লিঙ্ক করুন: আপনার ওয়ালেট সাধারণত তিনটি বিকল্প দেবে:
+\n\t\t৩.১ স্বয়ংক্রিয় লিঙ্ক: একটি বোতাম যা স্বয়ংক্রিয়ভাবে Astro খুলে সংযুক্ত করবে। যদি তাই হয়, সেই বোতামে ক্লিক করুন, Astro খুলুন এবং নতুন স্ক্রিনে সেভ চাপুন।
 \n\t\t৩.২ ম্যানুয়াল লিঙ্ক: একটি Connection URI যা কপি করে এই স্ক্রিনের পেস্ট আইকনে ক্লিক করে সরাসরি ইনপুট করতে পারবেন।
 \n\t\t৩.৩ QR কোড: ওয়ালেট একটি QR কোড তৈরি করে যা আপনি এই স্ক্রিনের QR কোড বোতাম থেকে পড়তে পারবেন।
     </string>
@@ -1595,7 +1595,7 @@
     <string name="error_unable_to_fetch_invoice">প্রাপকের সার্ভার থেকে ইনভয়েস আনতে পারছে না</string>
     <string name="wallet_connect_pay_invoice_error_error">আপনার wallet connect প্রোভাইডার নিম্নলিখিত ত্রুটি ফিরিয়ে দিয়েছে: %1$s</string>
     <string name="tor_connection_failed_title">Tor সংযুক্ত হচ্ছে না</string>
-    <string name="tor_connection_failed_body">Amethyst Tor বুটস্ট্র্যাপিং শেষ করতে পারেনি। ফিড লোড করতে একটি সাধারণ (Tor-বিহীন) সংযোগ ব্যবহার করবেন? আমরা পরের এক ঘণ্টার জন্য এই পছন্দ মনে রাখব এবং তারপর আবার Tor চেষ্টা করব।</string>
+    <string name="tor_connection_failed_body">Astro Tor বুটস্ট্র্যাপিং শেষ করতে পারেনি। ফিড লোড করতে একটি সাধারণ (Tor-বিহীন) সংযোগ ব্যবহার করবেন? আমরা পরের এক ঘণ্টার জন্য এই পছন্দ মনে রাখব এবং তারপর আবার Tor চেষ্টা করব।</string>
     <string name="tor_continue_without_for_session">সাধারণ সংযোগ ব্যবহার করুন</string>
     <string name="tor_keep_waiting">অপেক্ষা করতে থাকুন</string>
     <string name="could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup">Lightning Address \"%1$s\" থেকে LNUrl তৈরি করা যায়নি। ব্যবহারকারীর সেটআপ পরীক্ষা করুন</string>
@@ -1616,7 +1616,7 @@
     <string name="notification_channel_status_off">বন্ধ</string>
     <string name="select_push_server">একটি নির্বাচন করুন UnifiedPush অ্যাপ</string>
     <string name="push_server_title">Push প্রোভাইডার</string>
-    <string name="push_server_explainer">Amethyst বন্ধ থাকলে বিজ্ঞপ্তি পাঠাতে একটি UnifiedPush অ্যাপ বেছে নিন।</string>
+    <string name="push_server_explainer">Astro বন্ধ থাকলে বিজ্ঞপ্তি পাঠাতে একটি UnifiedPush অ্যাপ বেছে নিন।</string>
     <string name="push_server_none">কোনটি নয়</string>
     <string name="push_server_none_explainer">Push বিজ্ঞপ্তি নিষ্ক্রিয় করে</string>
     <string name="push_server_uses_app_explainer">অ্যাপ %1$s ব্যবহার করে</string>
@@ -2137,7 +2137,7 @@
     <string name="show_npub_as_a_qr_code">npub QR কোড হিসেবে দেখান</string>
     <string name="show_nprofile_as_a_qr_code">nprofile QR কোড হিসেবে দেখান</string>
     <string name="invalid_nip19_uri">ঠিকানা সঠিক নয়</string>
-    <string name="invalid_nip19_uri_description">Amethyst একটি URI খোলার জন্য পেয়েছে কিন্তু সেই URI টি অবৈধ ছিল: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro একটি URI খোলার জন্য পেয়েছে কিন্তু সেই URI টি অবৈধ ছিল: %1$s</string>
     <string name="dm_relays_title">DM ইনবক্স Relay</string>
     <string name="dm_relays_not_found">আপনার প্রাইভেট ইনবক্স relay সেট আপ করুন</string>
     <string name="dm_relays_not_found_description">এই সেটিং সবাইকে জানায় যে আপনাকে বার্তা পাঠাতে কোন relay ব্যবহার করতে হবে। এগুলো ছাড়া আপনি কিছু বার্তা মিস করতে পারেন।</string>
@@ -2164,7 +2164,7 @@
     <string name="relay_reorder">Relay পুনর্বিন্যাস করুন</string>
     <string name="public_home_section">পাবলিক আউটবক্স/হোম Relay</string>
     <string name="public_home_section_explainer_profile">ব্যবহারকারী এই relay গুলোতে তার কন্টেন্ট পোস্ট করছেন</string>
-    <string name="public_home_section_explainer">এই relay ধরনটি আপনার সমস্ত কন্টেন্ট সংরক্ষণ করে। Amethyst এখানে আপনার পোস্ট পাঠাবে এবং অন্যরা আপনার কন্টেন্ট খুঁজে পেতে এই relay গুলো ব্যবহার করবে। ১–৩টি relay ঢোকান। সেগুলো ব্যক্তিগত relay, পেইড relay বা পাবলিক relay হতে পারে।</string>
+    <string name="public_home_section_explainer">এই relay ধরনটি আপনার সমস্ত কন্টেন্ট সংরক্ষণ করে। Astro এখানে আপনার পোস্ট পাঠাবে এবং অন্যরা আপনার কন্টেন্ট খুঁজে পেতে এই relay গুলো ব্যবহার করবে। ১–৩টি relay ঢোকান। সেগুলো ব্যক্তিগত relay, পেইড relay বা পাবলিক relay হতে পারে।</string>
     <string name="public_notif_section">পাবলিক ইনবক্স Relay</string>
     <string name="public_notif_section_explainer_profile">ব্যবহারকারী এই relay গুলোতে বিজ্ঞপ্তি পাচ্ছেন</string>
     <string name="public_notif_section_explainer">এই relay ধরনটি আপনার পোস্টে সব উত্তর, মন্তব্য, পছন্দ এবং Zap গ্রহণ করে। সেগুলো পেইড বা বিনামূল্যে relay হতে পারে। relay অপারেটর কর্তৃক নির্ধারিত সীমা আপনি যে বিজ্ঞপ্তি পান তা ভালো এবং খারাপ উভয়ের জন্য সীমিত করতে পারে। উদাহরণস্বরূপ, যদি আপনি মন্তব্য স্প্যামের আক্রমণের শিকার হন, পেইড relay স্প্যাম ফিল্টার করতে পারে। ১–৩টি relay ঢোকান।</string>
@@ -2194,13 +2194,13 @@
     <string name="proxy_section_explainer">অ্যাগ্রিগেটর relay যা অ্যাপটিকে আপনার ফিড ডাউনলোড করতে অবশ্যই ব্যবহার করতে হবে, যেমন filter.nostr.wine। এটি আউটবক্স মডেলকে প্রতিস্থাপন করে এবং অ্যাপটিকে শুধুমাত্র আপনার তালিকার relay গুলোতে সংযুক্ত করবে।</string>
     <string name="broadcast_relays_title">ব্রডকাস্ট Relay</string>
     <string name="broadcast_section">ব্রডকাস্ট Relay</string>
-    <string name="broadcast_section_explainer">Relay যেগুলো আপনার নোটগুলো অন্য সব relay-এ পুশ করতে বিশেষজ্ঞ, যেমন sendit.nosflare.com। Amethyst আপনার তৈরি সব নতুন ইভেন্টে এই relay যোগ করবে</string>
+    <string name="broadcast_section_explainer">Relay যেগুলো আপনার নোটগুলো অন্য সব relay-এ পুশ করতে বিশেষজ্ঞ, যেমন sendit.nosflare.com। Astro আপনার তৈরি সব নতুন ইভেন্টে এই relay যোগ করবে</string>
     <string name="indexer_relays_title">ইন্ডেক্সার Relay</string>
     <string name="indexer_section">ইন্ডেক্সার Relay</string>
-    <string name="indexer_section_explainer">Relay যেগুলো সবার মেটাডেটা এবং relay তালিকা হোস্ট করতে বিশেষজ্ঞ, যেমন purplepag.es। Amethyst আপনার তালিকায় নেই এমন ব্যবহারকারীদের খুঁজে পেতে এই relay গুলো ব্যবহার করবে।</string>
+    <string name="indexer_section_explainer">Relay যেগুলো সবার মেটাডেটা এবং relay তালিকা হোস্ট করতে বিশেষজ্ঞ, যেমন purplepag.es। Astro আপনার তালিকায় নেই এমন ব্যবহারকারীদের খুঁজে পেতে এই relay গুলো ব্যবহার করবে।</string>
     <string name="blocked_relays_title">ব্লক করা Relay</string>
     <string name="blocked_section">ব্লক করা Relay</string>
-    <string name="blocked_section_explainer">Amethyst কখনও এই relay গুলোতে সংযুক্ত হবে না</string>
+    <string name="blocked_section_explainer">Astro কখনও এই relay গুলোতে সংযুক্ত হবে না</string>
     <string name="export_relay_settings">relay সেটিংস এক্সপোর্ট করুন</string>
     <string name="export_as_text">টেক্সট হিসেবে এক্সপোর্ট করুন</string>
     <string name="export_as_zip">ZIP (JSON) হিসেবে এক্সপোর্ট করুন</string>
@@ -2370,7 +2370,7 @@
     <string name="feed_filter_selected">ফিড ফিল্টার, %1$s নির্বাচিত</string>
     <string name="feed_filter_select_an_option">ফিড ফিল্টার, %1$s</string>
     <string name="crashreport_found">ক্র্যাশ রিপোর্ট পাওয়া গেছে</string>
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">আপনি কি সাম্প্রতিক ক্র্যাশ রিপোর্টটি DM-এ Amethyst-এ পাঠাতে চান? কোনো ব্যক্তিগত তথ্য শেয়ার করা হবে না</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">আপনি কি সাম্প্রতিক ক্র্যাশ রিপোর্টটি DM-এ Astro-এ পাঠাতে চান? কোনো ব্যক্তিগত তথ্য শেয়ার করা হবে না</string>
     <string name="crashreport_found_send">পাঠান</string>
     <string name="this_message_will_disappear_in">এই বার্তাটি %1$s-এ অদৃশ্য হয়ে যাবে</string>
     <string name="select_signer">Signer নির্বাচন করুন</string>

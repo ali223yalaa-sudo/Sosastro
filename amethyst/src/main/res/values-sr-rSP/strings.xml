@@ -74,7 +74,7 @@
     <string name="unauthorized_exception_description">Potpisnik nije odobrio dešifrovanje koje je potrebno za ovu operaciju. Aktivirajte NIP-44 dešifrovanja u svojoj aplikaciji za potpisivanje i pokušajte ponovo</string>
     <string name="signer_not_found_exception">Potpisnik nije pronađen</string>
     <string name="signer_not_found_exception_description">Da li je aplikacija za potpisivanje deinstalirana? Proverite da li je potpisnik instaliran i da li ima ovaj nalog. Odjavite se i ponovo prijavite ako se aplikacija za potpisivanje promenila.</string>
-    <string name="signer_illegal_state_exception_description">Spoljni potpisnik je vratio podatke koji su neočekivani za zahtev. Možda postoji greška u Amethyst-u ili aplikaciji za potpisivanje.</string>
+    <string name="signer_illegal_state_exception_description">Spoljni potpisnik je vratio podatke koji su neočekivani za zahtev. Možda postoji greška u Astro-u ili aplikaciji za potpisivanje.</string>
     <string name="edited">izmenjeno</string>
     <string name="edited_number">izmena #%1$s</string>
     <string name="quote">Citat</string>
@@ -148,7 +148,7 @@
     <string name="send_payment_done">Gotovo</string>
     <string name="send_payment_pay_button">Plati %1$s sats</string>
     <string name="send_payment_pay_button_empty">Plati</string>
-    <string name="send_payment_no_methods">Ovaj profil nema načine plaćanja koje Amethyst može da plati direktno.</string>
+    <string name="send_payment_no_methods">Ovaj profil nema načine plaćanja koje Astro može da plati direktno.</string>
     <string name="send_payment_min_onchain">On-chain Zap-ovi zahtevaju najmanje %1$s sats</string>
     <string name="send_payment_cashu_insufficient">Nema dovoljno stanja u mint-u koji ovaj primalac prihvata. Prvo dopunite Cashu novčanik.</string>
     <string name="send_payment_cashu_balance">Potrošivo za ovog primaoca: %1$s sats</string>
@@ -208,7 +208,7 @@
     <string name="failed_to_save_the_image">Čuvanje slike nije uspelo</string>
     <string name="video_saved_to_the_gallery">Video je sačuvan u galeriji videa telefona</string>
     <string name="failed_to_save_the_video">Čuvanje videa nije uspelo</string>
-    <string name="pdf_saved_to_the_gallery">PDF je sačuvan u Downloads/Amethyst</string>
+    <string name="pdf_saved_to_the_gallery">PDF je sačuvan u Downloads/Astro</string>
     <string name="failed_to_save_the_pdf">Čuvanje PDF-a nije uspelo</string>
     <string name="upload_image">Otpremi sliku</string>
     <string name="upload_file">Otpremi datoteku</string>
@@ -347,7 +347,7 @@
     <string name="account_backup_tips2_md" tools:ignore="Typos">        ## Saveti za bekap ključa i bezbednost
         \n\nVaš nalog je zaštićen tajnim ključem. Ključ je dugačak niz znakova koji počinje sa **nsec1**. Svako ko ima pristup ovom tajnom ključu može da objavljuje i menja vaš identitet.
         \n\n- **Ne** unosite vaš tajni ključ ni na jedan veb-sajt ili softver kojemu ne verujete.
-        \n- Amethyst programeri **nikada** neće tražiti vaš tajni ključ.
+        \n- Astro programeri **nikada** neće tražiti vaš tajni ključ.
         \n- **Čuvajte** bezbednu kopiju vašeg tajnog ključa radi oporavka naloga. Preporučujemo korišćenje menadžera lozinki.
     </string>
     <string name="account_backup_tips3_md" tools:ignore="Typos">        Za dodatnu bezbednost, možete šifrovati vaš ključ lozinkom. Ovaj ključ počinje sa **ncryptsec1** i ne može se koristiti bez vaše lozinke.
@@ -385,7 +385,7 @@
     <string name="share_as_image">Podeli kao sliku</string>
     <string name="share_as_image_url">Podeli kao URL slike</string>
     <string name="share_as_image_generating">Generisanje pregleda…</string>
-    <string name="share_as_image_watermark">Podeljeno putem Amethyst</string>
+    <string name="share_as_image_watermark">Podeljeno putem Astro</string>
     <string name="quick_action_copy_user_id">ID autora</string>
     <string name="quick_action_copy_note_id">ID beleške</string>
     <string name="quick_action_copy_text">Kopiraj tekst</string>
@@ -395,7 +395,7 @@
     <string name="quick_action_request_deletion_gallery_title">Obriši iz galerije</string>
     <string name="quick_action_request_deletion_gallery_alert_body_v2">Ukloni ovaj medijski sadržaj iz vaše galerije.</string>
     <string name="quick_action_request_deletion_alert_title">Zahtev za brisanje</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst će zatražiti brisanje vaše beleške sa relay-a na koje ste trenutno povezani. Ne postoji garancija da će vaša beleška biti trajno obrisana sa tih relay-a, niti sa drugih relay-a gde može biti uskladištena.</string>
+    <string name="quick_action_request_deletion_alert_body">Astro će zatražiti brisanje vaše beleške sa relay-a na koje ste trenutno povezani. Ne postoji garancija da će vaša beleška biti trajno obrisana sa tih relay-a, niti sa drugih relay-a gde može biti uskladištena.</string>
     <string name="quick_action_block_dialog_btn">Blokiraj</string>
     <string name="quick_action_delete_dialog_btn">Obriši</string>
     <string name="quick_action_block">Blokiraj</string>
@@ -604,7 +604,7 @@
     <string name="workout_minutes">Minuti</string>
     <string name="workout_seconds">Sekunde</string>
     <string name="workout_suggestion_connect_title">Podelite svoje treninge</string>
-    <string name="workout_suggestion_connect_message">Dozvolite Amethyst-u da čita završene treninge iz Health Connect-a (Samsung Health, Google Fit, Fitbit, Garmin…) i predloži objavu.</string>
+    <string name="workout_suggestion_connect_message">Dozvolite Astro-u da čita završene treninge iz Health Connect-a (Samsung Health, Google Fit, Fitbit, Garmin…) i predloži objavu.</string>
     <string name="workout_suggestion_connect_button">Poveži</string>
     <string name="workout_from_health_connect">Iz Health Connect-a</string>
     <string name="exercise_running">Trčanje</string>
@@ -707,7 +707,7 @@
     <!-- Signer trust levels -->
     <!-- Signer per-op consent dialog -->
     <!-- Signer op labels -->
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <!-- Permissions management screen -->
     <!-- Relay Authentication (NIP-42) settings -->
     <!-- Action-aware titles: %1$s is the person (or "Alice and others"). -->
@@ -852,13 +852,13 @@
     <string name="nest_create_schedule_toggle">Zakaži za kasnije</string>
     <string name="nest_create_when">Izaberi vreme početka</string>
     <string name="nests_servers_title">Nest serveri</string>
-    <string name="nests_servers_explainer">Izaberite na koje MoQ host servere Amethyst objavljuje vaše nestove. Prva stavka se koristi podrazumevano kada pokrenete novi prostor.</string>
+    <string name="nests_servers_explainer">Izaberite na koje MoQ host servere Astro objavljuje vaše nestove. Prva stavka se koristi podrazumevano kada pokrenete novi prostor.</string>
     <string name="nests_servers_my_section">Vaši serveri</string>
     <string name="nests_servers_my_explainer">Sačuvano kao kind-10112 zamenljivi događaj kako bi drugi klijenti mogli da pročitaju vaše preference.</string>
     <string name="nests_servers_add_pair_button">Dodaj</string>
     <string name="nests_servers_recommended_section">Preporučeni serveri</string>
     <string name="nests_servers_recommended_explainer">Ugrađeni predlozi koje možete dodati na svoju listu jednim dodirom.</string>
-    <string name="nests_servers_use_defaults">Koristi Amethyst podrazumevane</string>
+    <string name="nests_servers_use_defaults">Koristi Astro podrazumevane</string>
     <string name="nests_servers_add_recommended">Dodaj server</string>
     <string name="nests_servers_remove">Ukloni server</string>
     <string name="nests_servers_empty">Još nema nest servera. Dodajte jedan ispod ili izaberite preporučeni server.</string>
@@ -1052,9 +1052,9 @@
     <string name="local_blossom_cache_not_detected">Lokalni keš nije otkriven na portu 24242.</string>
     <string name="local_blossom_cache_profile_pics_only">Keširaj samo profilne slike</string>
     <string name="local_blossom_cache_profile_pics_only_caption">Ograničite lokalni keš na profilne slike. Slike i videi iz feeda biće preuzeti direktno sa originalnih servera.</string>
-    <string name="no_blossom_server_message">Nemate podešene Blossom servere. Možete koristiti Amethyst listu ili dodati jedan ispod ↓</string>
+    <string name="no_blossom_server_message">Nemate podešene Blossom servere. Možete koristiti Astro listu ili dodati jedan ispod ↓</string>
     <string name="recommended_media_servers">Preporučeni medijski serveri</string>
-    <string name="built_in_servers_description">Amethyst-ova podrazumevana lista. Možete dodati pojedinačno ili dodati celu listu.</string>
+    <string name="built_in_servers_description">Astro-ova podrazumevana lista. Možete dodati pojedinačno ili dodati celu listu.</string>
     <string name="use_default_servers">Koristi podrazumevanu listu</string>
     <string name="add_media_server">Dodaj medijski server</string>
     <string name="delete_media_server">Obriši medijski server</string>
@@ -1216,8 +1216,8 @@
     <string name="call_add_participant">Dodaj učesnika</string>
     <string name="call_search_users">Traži korisnike…</string>
     <string name="call_permission_denied_title">Potrebna dozvola</string>
-    <string name="call_permission_denied_voice">Amethyst potreban pristup mikrofonu za pokretanje glasovnog poziva. Omogućite ga u podešavanjima aplikacije.</string>
-    <string name="call_permission_denied_video">Amethyst potreban pristup kameri i mikrofonu za pokretanje video poziva. Omogućite ih u podešavanjima aplikacije.</string>
+    <string name="call_permission_denied_voice">Astro potreban pristup mikrofonu za pokretanje glasovnog poziva. Omogućite ga u podešavanjima aplikacije.</string>
+    <string name="call_permission_denied_video">Astro potreban pristup kameri i mikrofonu za pokretanje video poziva. Omogućite ih u podešavanjima aplikacije.</string>
     <string name="call_permission_denied_open_settings">Otvori podešavanja</string>
     <string name="call_permission_denied_cancel">Otkaži</string>
     <string name="call_settings">Podešavanja poziva</string>
@@ -1236,7 +1236,7 @@
     <string name="call_settings_turn_username">Korisničko ime</string>
     <string name="call_settings_turn_credential">Akreditiv</string>
     <string name="always_on_notif_channel_description">Održava veze sa vašim inbox relays aktivnim za obaveštenja u realnom vremenu</string>
-    <string name="always_on_notif_title">Amethyst obaveštenja aktivna</string>
+    <string name="always_on_notif_title">Astro obaveštenja aktivna</string>
     <plurals name="always_on_notif_connected">
         <item quantity="one">Povezan sa %1$d dolaznim relay-om</item>
         <item quantity="few">Povezan sa %1$d dolazna relay-a</item>
@@ -1257,7 +1257,7 @@
     <string name="notification_tab_following">Praćeni</string>
     <string name="notification_tab_everyone">Svi</string>
     <string name="battery_optimization_title">Optimizacija baterije je aktivna</string>
-    <string name="battery_optimization_description">Android može ograničiti veze sa relay-ima u pozadini. Onemogućite optimizaciju baterije za Amethyst kako biste osigurali pouzdana obaveštenja.</string>
+    <string name="battery_optimization_description">Android može ograničiti veze sa relay-ima u pozadini. Onemogućite optimizaciju baterije za Astro kako biste osigurali pouzdana obaveštenja.</string>
     <string name="battery_optimization_fix_now">Popravi odmah</string>
     <string name="reply_notify">Obavesti: </string>
     <string name="today">Danas</string>
@@ -1270,7 +1270,7 @@
     <string name="filter_spam_from_strangers_title">Filtriraj neželjene poruke</string>
     <string name="filter_spam_from_strangers_explainer">Sakriva objave od stranaca koje su bile potpuno iste 5 ili više puta</string>
     <string name="add_client_tag_title">Dodaj klijentsku oznaku mojim događajima</string>
-    <string name="add_client_tag_explainer">Kada je omogućeno, Amethyst dodaje NIP-89 klijentsku oznaku događajima koje objavljujete.</string>
+    <string name="add_client_tag_explainer">Kada je omogućeno, Astro dodaje NIP-89 klijentsku oznaku događajima koje objavljujete.</string>
     <string name="warn_when_posts_have_reports_from_your_follows_title">Upozori na prijave</string>
     <string name="warn_when_posts_have_reports_from_your_follows_explainer">Prikazuje poruku upozorenja kada objave ili profili imaju prijave od vaših praćenih</string>
     <string name="report_warning_threshold_title">Prag upozorenja za prijave</string>
@@ -1516,12 +1516,12 @@
     <string name="messages_new_subject_message_placeholder">Menjam naziv zbog novih ciljeva.</string>
     <string name="paste_from_clipboard">Nalepi iz privremene memorije</string>
     <string name="couldnt_find_nwc_wallets">Novčanik nije pronađen</string>
-    <string name="couldnt_find_nwc_wallets_description">Amethyst nije mogao da pronađe nijednu aplikaciju novčanika koja podržava Nostr Wallet Connect (NWC).
+    <string name="couldnt_find_nwc_wallets_description">Astro nije mogao da pronađe nijednu aplikaciju novčanika koja podržava Nostr Wallet Connect (NWC).
 \n\nŠta možete da uradite:
 \n\t1. Proverite NWC podršku: Proverite da li vaša preferovana aplikacija novčanika podržava Nostr Wallet Connect.
 \n\t2. Kreirajte vezu: Idite na aplikaciju novčanika i kreirajte novu NWC vezu.
-\n\t3. Povežite sa Amethyst: Vaš novčanik će obično ponuditi tri opcije:
-\n\t\t3.1 Automatska veza: Dugme za automatsko otvaranje i povezivanje sa Amethyst. Ako postoji, kliknite to dugme, otvorite Amethyst i pritisnite sačuvaj na novom ekranu.
+\n\t3. Povežite sa Astro: Vaš novčanik će obično ponuditi tri opcije:
+\n\t\t3.1 Automatska veza: Dugme za automatsko otvaranje i povezivanje sa Astro. Ako postoji, kliknite to dugme, otvorite Astro i pritisnite sačuvaj na novom ekranu.
 \n\t\t3.2 Ručna veza: URI veze koji možete kopirati i kliknuti ikonu za nalepljivanje na ovom ekranu da ga direktno unesete.
 \n\t\t3.3 QR kod: Novčanik kreira QR kod koji možete očitati dugmetom za QR kod na ovom ekranu.
     </string>
@@ -1592,7 +1592,7 @@
     <string name="error_unable_to_fetch_invoice">Nije moguće dohvatiti fakturu sa servera primaoca</string>
     <string name="wallet_connect_pay_invoice_error_error">Vaš Wallet Connect provajder je vratio sledeću grešku: %1$s</string>
     <string name="tor_connection_failed_title">Tor se ne povezuje</string>
-    <string name="tor_connection_failed_body">Amethyst nije mogao da završi pokretanje Tor-a. Koristiti regularnu (ne-Tor) vezu kako bi se kanal mogao učitati? Zapamtićemo ovaj izbor za naredni sat i pokušati ponovo sa Tor-om nakon toga.</string>
+    <string name="tor_connection_failed_body">Astro nije mogao da završi pokretanje Tor-a. Koristiti regularnu (ne-Tor) vezu kako bi se kanal mogao učitati? Zapamtićemo ovaj izbor za naredni sat i pokušati ponovo sa Tor-om nakon toga.</string>
     <string name="tor_continue_without_for_session">Koristi regularnu vezu</string>
     <string name="tor_keep_waiting">Nastavi čekanje</string>
     <string name="could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup">Nije moguće sastaviti LNUrl iz Lightning adrese \"%1$s\". Proverite podešavanja korisnika</string>
@@ -1613,7 +1613,7 @@
     <string name="notification_channel_status_off">Isključeno</string>
     <string name="select_push_server">Izaberite UnifiedPush aplikaciju</string>
     <string name="push_server_title">Push provajder</string>
-    <string name="push_server_explainer">Odaberite UnifiedPush aplikaciju za dostavu obaveštenja kada je Amethyst zatvoren.</string>
+    <string name="push_server_explainer">Odaberite UnifiedPush aplikaciju za dostavu obaveštenja kada je Astro zatvoren.</string>
     <string name="push_server_none">Nijedno</string>
     <string name="push_server_none_explainer">Onemogućava push obaveštenja</string>
     <string name="push_server_uses_app_explainer">Koristi aplikaciju %1$s</string>
@@ -2140,7 +2140,7 @@
     <string name="show_npub_as_a_qr_code">Prikaži npub kao QR kod</string>
     <string name="show_nprofile_as_a_qr_code">Prikaži nprofile kao QR kod</string>
     <string name="invalid_nip19_uri">Nevažeća adresa</string>
-    <string name="invalid_nip19_uri_description">Amethyst je primio URI za otvaranje, ali taj URI je bio nevažeći: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro je primio URI za otvaranje, ali taj URI je bio nevažeći: %1$s</string>
     <string name="dm_relays_title">DM Inbox Relay-i</string>
     <string name="dm_relays_not_found">Podesite vaše privatne inbox relay-e</string>
     <string name="dm_relays_not_found_description">Ovo podešavanje daje svima do znanja koje relay-e da koriste kada vam šalju poruke. Bez njih možete propustiti neke poruke.</string>
@@ -2167,7 +2167,7 @@
     <string name="relay_reorder">Promeni redosled relay-a</string>
     <string name="public_home_section">Javni Outbox/Home Relay-i</string>
     <string name="public_home_section_explainer_profile">Korisnik objavljuje sadržaj na ove relay-e</string>
-    <string name="public_home_section_explainer">Ovaj tip relay-a čuva sav vaš sadržaj. Amethyst će ovde slati vaše objave i drugi će koristiti ove relay-e da pronađu vaš sadržaj. Unesite između 1–3 relay-a. Mogu biti lični, plaćeni ili javni relay-i.</string>
+    <string name="public_home_section_explainer">Ovaj tip relay-a čuva sav vaš sadržaj. Astro će ovde slati vaše objave i drugi će koristiti ove relay-e da pronađu vaš sadržaj. Unesite između 1–3 relay-a. Mogu biti lični, plaćeni ili javni relay-i.</string>
     <string name="public_notif_section">Javni Inbox Relay-i</string>
     <string name="public_notif_section_explainer_profile">Korisnik prima obaveštenja na ovim relay-ima</string>
     <string name="public_notif_section_explainer">Ovaj tip relay-a prima sve odgovore, komentare, sviđanja i zaps na vaše objave. Mogu biti plaćeni ili besplatni relay-i. Ograničenja postavljena od strane operatora relay-a mogu ograničiti obaveštenja koja primate na bolje i gore. Na primer, ako vas napadaju spam komentarima, plaćeni relay-i mogu filtrirati spam. Unesite između 1–3 relay-a.</string>
@@ -2197,13 +2197,13 @@
     <string name="proxy_section_explainer">Agregatorni relay-i koje aplikacija mora koristiti za preuzimanje vaših feedova, poput filter.nostr.wine. Ovo zamenjuje outbox model i čini da se aplikacija povezuje samo na relay-e u vašim listama.</string>
     <string name="broadcast_relays_title">Broadcast Relay-i</string>
     <string name="broadcast_section">Broadcast Relay-i</string>
-    <string name="broadcast_section_explainer">Relay-i specijalizovani za guranje vaših beleški na sve ostale relay-e, poput sendit.nosflare.com. Amethyst će dodati ovaj relay svim novim događajima koje vi napravite</string>
+    <string name="broadcast_section_explainer">Relay-i specijalizovani za guranje vaših beleški na sve ostale relay-e, poput sendit.nosflare.com. Astro će dodati ovaj relay svim novim događajima koje vi napravite</string>
     <string name="indexer_relays_title">Indexer Relay-i</string>
     <string name="indexer_section">Indexer Relay-i</string>
-    <string name="indexer_section_explainer">Relay-i specijalizovani za hostovanje metapodataka i lista relay-a svih korisnika, poput purplepag.es. Amethyst će koristiti ove relay-e da pronađe korisnike koji nisu u vašim listama.</string>
+    <string name="indexer_section_explainer">Relay-i specijalizovani za hostovanje metapodataka i lista relay-a svih korisnika, poput purplepag.es. Astro će koristiti ove relay-e da pronađe korisnike koji nisu u vašim listama.</string>
     <string name="blocked_relays_title">Blokirani Relay-i</string>
     <string name="blocked_section">Blokirani Relay-i</string>
-    <string name="blocked_section_explainer">Amethyst se nikada neće povezati na ove relay-e</string>
+    <string name="blocked_section_explainer">Astro se nikada neće povezati na ove relay-e</string>
     <string name="export_relay_settings">Izvezi podešavanja relay-a</string>
     <string name="export_as_text">Izvezi kao tekst</string>
     <string name="export_as_zip">Izvezi kao ZIP (JSON)</string>
@@ -2371,7 +2371,7 @@
     <string name="feed_filter_selected">Filter feeda, izabrano %1$s</string>
     <string name="feed_filter_select_an_option">Filter feeda, %1$s</string>
     <string name="crashreport_found">Pronađen izveštaj o padu</string>
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Da li biste želeli da pošaljete nedavni izveštaj o padu aplikaciji Amethyst putem DM-a? Neće biti deljeni nikakvi lični podaci</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Da li biste želeli da pošaljete nedavni izveštaj o padu aplikaciji Astro putem DM-a? Neće biti deljeni nikakvi lični podaci</string>
     <string name="crashreport_found_send">Pošalji</string>
     <string name="this_message_will_disappear_in">Ova poruka će nestati za %1$s</string>
     <string name="select_signer">Odaberi potpisnika</string>

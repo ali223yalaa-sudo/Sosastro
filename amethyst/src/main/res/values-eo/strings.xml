@@ -171,7 +171,7 @@
     <string name="quick_action_unfollow">Malsekvi</string>
     <string name="quick_action_follow">Sekvi</string>
     <string name="quick_action_request_deletion_alert_title">Peti Forigiton</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst petos, ke via noto estu forigita el la plusendiloj al kiuj vi estas aktuale konektita. Ne estas garantio, ke via noto estos porĉiame forigita el tiuj plusendiloj, aŭ el aliaj plusendiloj, kie ĝi povus esti konservita.</string>
+    <string name="quick_action_request_deletion_alert_body">Astro petos, ke via noto estu forigita el la plusendiloj al kiuj vi estas aktuale konektita. Ne estas garantio, ke via noto estos porĉiame forigita el tiuj plusendiloj, aŭ el aliaj plusendiloj, kie ĝi povus esti konservita.</string>
     <string name="quick_action_block_dialog_btn">Bloki</string>
     <string name="quick_action_delete_dialog_btn">Forigi</string>
     <string name="quick_action_block">Bloki</string>
@@ -362,7 +362,7 @@
 <string name="unauthorized_exception_description">La subskribanto ne aŭtorizis malĉifradon kiu estas necesa por plenumi tiun ĉi operacion. Aktivigu NIP-44 malĉifradojn en via subskribanta app kaj provu denove</string>
 <string name="signer_not_found_exception">Subskribanto ne trovita</string>
 <string name="signer_not_found_exception_description">Ĉu la Subskribanta app estis malinstalita? Kontrolu ĉu la subskribanto estas instalita kaj havas tiun ĉi konton. Elsalutu kaj ensalutu denove se la subskribanta app ŝanĝiĝis.</string>
-<string name="signer_illegal_state_exception_description">La ekstera subskribanto resendis utilan ŝarĝon kiu estas stranga por la peto. Povas ekzisti eraro en Amethyst aŭ en la Subskribanto.</string>
+<string name="signer_illegal_state_exception_description">La ekstera subskribanto resendis utilan ŝarĝon kiu estas stranga por la peto. Povas ekzisti eraro en Astro aŭ en la Subskribanto.</string>
 <string name="edited">redaktita</string>
 <string name="edited_number">redakto #%1$s</string>
 <string name="original">originala</string>
@@ -426,7 +426,7 @@
 <string name="send_payment_done">Farite</string>
 <string name="send_payment_pay_button">Pagi %1$s sats</string>
 <string name="send_payment_pay_button_empty">Pagi</string>
-<string name="send_payment_no_methods">Tiu ĉi profilo havas neniujn pagmetodojn kiujn Amethyst povas pagi rekte.</string>
+<string name="send_payment_no_methods">Tiu ĉi profilo havas neniujn pagmetodojn kiujn Astro povas pagi rekte.</string>
 <string name="send_payment_min_onchain">Ĉen-suraj Zap-oj bezonas almenaŭ %1$s sats</string>
 <string name="send_payment_cashu_insufficient">Nesufiĉa saldo en monkreiston kiun tiu ĉi ricevanto akceptas. Plenigi vian Cashu-monujon unue.</string>
 <string name="send_payment_cashu_balance">Elspendebla por tiu ĉi ricevanto: %1$s sats</string>
@@ -461,7 +461,7 @@
 <string name="pinned_to_top">Alpinglita supren</string>
 <string name="video_saved_to_the_gallery">Video konservita en la telefona videogalerio</string>
 <string name="failed_to_save_the_video">Malsukcesis konservi la videon</string>
-<string name="pdf_saved_to_the_gallery">PDF konservita en Elŝutoj/Amethyst</string>
+<string name="pdf_saved_to_the_gallery">PDF konservita en Elŝutoj/Astro</string>
 <string name="failed_to_save_the_pdf">Malsukcesis konservi la PDF</string>
 <string name="upload_file">Alŝuti Dosieron</string>
 <string name="take_a_picture">Foti</string>
@@ -535,7 +535,7 @@
 <string name="share_as_image">Kunhavigi kiel Bildon</string>
 <string name="share_as_image_url">Kunhavigi kiel Bildan URL</string>
 <string name="share_as_image_generating">Generante antaŭrigardon…</string>
-<string name="share_as_image_watermark">Kunhavigita per Amethyst</string>
+<string name="share_as_image_watermark">Kunhavigita per Astro</string>
 <string name="quick_action_request_deletion_gallery_title">Forigi el Galerio</string>
 <string name="quick_action_request_deletion_gallery_alert_body_v2">Forigi tiun ĉi amaskomunikilaĵon el via Galerio.</string>
 <string name="quick_action_mute_thread">Silentigi fadenon</string>
@@ -702,7 +702,7 @@
 <string name="workout_minutes">Minutoj</string>
 <string name="workout_seconds">Sekundoj</string>
 <string name="workout_suggestion_connect_title">Kunhavigi viajn ekzercadojn</string>
-<string name="workout_suggestion_connect_message">Lasu Amethyst legi finitajn ekzercadojn el Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) kaj sugesti afiŝon.</string>
+<string name="workout_suggestion_connect_message">Lasu Astro legi finitajn ekzercadojn el Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) kaj sugesti afiŝon.</string>
 <string name="workout_suggestion_connect_button">Konekti</string>
 <string name="workout_suggestion_distance_km">%1$s km</string>
 <string name="workout_from_health_connect">El Health Connect</string>
@@ -939,7 +939,7 @@
 <string name="nest_create_schedule_toggle">Plani por poste</string>
 <string name="nest_create_when">Elekti komenchoraron</string>
 <string name="nests_servers_title">Nestaj serviloj</string>
-<string name="nests_servers_explainer">Elektu kiujn MoQ-gastigajn servilojn Amethyst publikigas viajn nestojn al. La unua ero estas uzata defaŭlte kiam vi komencas novan spacon.</string>
+<string name="nests_servers_explainer">Elektu kiujn MoQ-gastigajn servilojn Astro publikigas viajn nestojn al. La unua ero estas uzata defaŭlte kiam vi komencas novan spacon.</string>
 <string name="nests_servers_my_section">Viaj serviloj</string>
 <string name="nests_servers_my_explainer">Konservita kiel kind-10112 anstataŭebla evento por ke aliaj klientoj povu legi vian preferon.</string>
 <string name="nests_servers_add_relay_field">Relay (WebTransport) URL</string>
@@ -949,7 +949,7 @@
 <string name="nests_servers_auth_label">Aŭtentikigo</string>
 <string name="nests_servers_recommended_section">Rekomenditaj serviloj</string>
 <string name="nests_servers_recommended_explainer">Enkonstruitaj sugestoj kiujn vi povas aldoni al via listo per unu tuŝeto.</string>
-<string name="nests_servers_use_defaults">Uzi Amethyst-defaŭltojn</string>
+<string name="nests_servers_use_defaults">Uzi Astro-defaŭltojn</string>
 <string name="nests_servers_add_recommended">Aldoni servilon</string>
 <string name="nests_servers_remove">Forigi servilon</string>
 <string name="nests_servers_empty">Ankoraŭ neniuj nestaj serviloj. Aldonu unu sube aŭ elektu rekomenditatan servilon.</string>
@@ -1098,9 +1098,9 @@
 <string name="local_blossom_cache_not_detected">Loka kaŝmemoro ne detektita sur pordo 24242.</string>
 <string name="local_blossom_cache_profile_pics_only">Nur kaŝmemori profilbildojn</string>
 <string name="local_blossom_cache_profile_pics_only_caption">Limigu la lokan kaŝmemoron al profilbildoj. Feedaj bildoj kaj videoj estos prenitaj rekte de la originalaj serviloj.</string>
-<string name="no_blossom_server_message">Vi havas neniujn Blossom-servilojn agorditajn. Vi povas uzi la liston de Amethyst, aŭ aldoni unu sube ↓</string>
+<string name="no_blossom_server_message">Vi havas neniujn Blossom-servilojn agorditajn. Vi povas uzi la liston de Astro, aŭ aldoni unu sube ↓</string>
 <string name="recommended_media_servers">Rekomenditaj Amaskomunikilaj Serviloj</string>
-<string name="built_in_servers_description">La defaŭlta listo de Amethyst. Vi povas aldoni ilin individue aŭ aldoni la liston.</string>
+<string name="built_in_servers_description">La defaŭlta listo de Astro. Vi povas aldoni ilin individue aŭ aldoni la liston.</string>
 <string name="use_default_servers">Uzi Defaŭltan Liston</string>
 <string name="add_media_server">Aldoni amaskomunikilajan servilon</string>
 <string name="delete_media_server">Forigi amaskomunikilajan servilon</string>
@@ -1253,8 +1253,8 @@
 <string name="call_add_participant">Aldoni partoprenanton</string>
 <string name="call_search_users">Serĉi uzantojn…</string>
 <string name="call_permission_denied_title">Permeso bezonata</string>
-<string name="call_permission_denied_voice">Amethyst bezonas aliron al mikrofono por komenci voĉan alvokon. Bonvolu ebligi ĝin en la aplikaĵagordoj.</string>
-<string name="call_permission_denied_video">Amethyst bezonas aliron al fotilo kaj mikrofono por komenci vidan alvokon. Bonvolu ebligi ilin en la aplikaĵagordoj.</string>
+<string name="call_permission_denied_voice">Astro bezonas aliron al mikrofono por komenci voĉan alvokon. Bonvolu ebligi ĝin en la aplikaĵagordoj.</string>
+<string name="call_permission_denied_video">Astro bezonas aliron al fotilo kaj mikrofono por komenci vidan alvokon. Bonvolu ebligi ilin en la aplikaĵagordoj.</string>
 <string name="call_permission_denied_open_settings">Malfermi agordojn</string>
 <string name="call_permission_denied_cancel">Nuligi</string>
 <string name="call_settings">Alvokoagordoj</string>
@@ -1273,7 +1273,7 @@
 <string name="call_settings_turn_username">Uzantnomo</string>
 <string name="call_settings_turn_credential">Akreditaĵo</string>
 <string name="always_on_notif_channel_description">Konservas konektojn al viaj enirkestaj relay-oj aktivaj por realtempaj sciigoj</string>
-<string name="always_on_notif_title">Amethyst-Sciigoj Aktivaj</string>
+<string name="always_on_notif_title">Astro-Sciigoj Aktivaj</string>
 <string name="always_on_notif_connecting">Konektante al enirkestaj relay-oj…</string>
 <string name="always_on_notif_setting_title">Ĉiam-aktiva sciigservico</string>
 <string name="always_on_notif_setting_description">Konservas daŭrantan konekton al viaj enirkestaj relay-oj por tuja sciiglivero. Montras daŭrantan sciigon. Uzas pli da baterio sed certigas ke vi neniam maltrafas mesaĝon.</string>
@@ -1284,7 +1284,7 @@
 <string name="notification_tab_following">Sekvataj</string>
 <string name="notification_tab_everyone">Ĉiuj</string>
 <string name="battery_optimization_title">Bateriooptimumigo aktiva</string>
-<string name="battery_optimization_description">Android povas limigi relay-konektojn en la fono. Malŝaltu bateriooptimumigon por Amethyst por certigi fidindajn sciigojn.</string>
+<string name="battery_optimization_description">Android povas limigi relay-konektojn en la fono. Malŝaltu bateriooptimumigon por Astro por certigi fidindajn sciigojn.</string>
 <string name="battery_optimization_fix_now">Ripari nun</string>
 <string name="content_warning_with_reason">Averto: %1$s</string>
 <string name="content_warning_hide_all_sensitive_content_option">Kaŝi</string>
@@ -1293,7 +1293,7 @@
 <string name="filter_spam_from_strangers_title">Filtri spamon</string>
 <string name="filter_spam_from_strangers_explainer">Kaŝas afiŝojn de fremduloj kiuj estis ekzakte samaj 5 aŭ pli da fojoj</string>
 <string name="add_client_tag_title">Aldoni klientan etikedon al miaj eventoj</string>
-<string name="add_client_tag_explainer">Kiam ŝaltita, Amethyst aldonas NIP-89 klientan etikedon al eventoj kiujn vi publikigas.</string>
+<string name="add_client_tag_explainer">Kiam ŝaltita, Astro aldonas NIP-89 klientan etikedon al eventoj kiujn vi publikigas.</string>
 <string name="warn_when_posts_have_reports_from_your_follows_title">Averti pri raportoj</string>
 <string name="warn_when_posts_have_reports_from_your_follows_explainer">Montras avermesaĝon kiam afiŝoj aŭ profiloj havas raportojn de viaj sekvatoj</string>
 <string name="report_warning_threshold_title">Raportavertosojlo</string>
@@ -1514,7 +1514,7 @@
 <string name="error_unable_to_fetch_invoice">Ne eblas preni fakturon de la ricevanto\'s serviloj</string>
 <string name="wallet_connect_pay_invoice_error_error">Via Wallet Connect-provizanto resendis la sekvan eraron: %1$s</string>
 <string name="tor_connection_failed_title">Tor ne konektas</string>
-<string name="tor_connection_failed_body">Amethyst ne povis fini eklanĉi Tor. Uzi regulan (ne-Tor) konekton por ke la fluo povu ŝargi? Ni memoros ĉi tiun elekton por la sekva horo kaj reprovi Tor post tio.</string>
+<string name="tor_connection_failed_body">Astro ne povis fini eklanĉi Tor. Uzi regulan (ne-Tor) konekton por ke la fluo povu ŝargi? Ni memoros ĉi tiun elekton por la sekva horo kaj reprovi Tor post tio.</string>
 <string name="tor_continue_without_for_session">Uzi regulan konekton</string>
 <string name="tor_keep_waiting">Daŭre atendi</string>
 <string name="could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup">Ne eblis kunmeti LNUrl el Lightning-Adreso \"%1$s\". Kontrolu la agordon de la uzanto</string>
@@ -1535,7 +1535,7 @@
 <string name="notification_channel_status_off">Malŝaltita</string>
 <string name="select_push_server">Elekti UnifiedPush-Aplikaĵon</string>
 <string name="push_server_title">Puŝa provizanto</string>
-<string name="push_server_explainer">Elektu UnifiedPush-aplikaĵon por liveri sciigojn kiam Amethyst estas fermita.</string>
+<string name="push_server_explainer">Elektu UnifiedPush-aplikaĵon por liveri sciigojn kiam Astro estas fermita.</string>
 <string name="push_server_none">Neniu</string>
 <string name="push_server_none_explainer">Malaktivigi Puŝajn Sciigojn</string>
 <string name="push_server_uses_app_explainer">Uzas aplikaĵon %1$s</string>
@@ -2026,7 +2026,7 @@
 <string name="show_npub_as_a_qr_code">Montri npub kiel QR-kodon</string>
 <string name="show_nprofile_as_a_qr_code">Montri nprofile kiel QR-kodon</string>
 <string name="invalid_nip19_uri">Nevalida adreso</string>
-<string name="invalid_nip19_uri_description">Amethyst ricevis URI por malfermi, sed tiu uri estis nevalida: %1$s</string>
+<string name="invalid_nip19_uri_description">Astro ricevis URI por malfermi, sed tiu uri estis nevalida: %1$s</string>
 <string name="dm_relays_title">DM Enskatolaj Relay-oj</string>
 <string name="dm_relays_not_found">Agordu viajn Privatajn Enskatolajn relay-ojn</string>
 <string name="dm_relays_not_found_description">Ĉi tiu agordo sciigas ĉiujn kiujn relay-ojn uzi kiam sendante mesaĝojn al vi. Sen ili vi eble perdos kelkajn mesaĝojn.</string>
@@ -2053,7 +2053,7 @@
 <string name="relay_reorder">Reordigi relay</string>
 <string name="public_home_section">Publikaj Eligaj/Hejmaj Relay-oj</string>
 <string name="public_home_section_explainer_profile">Uzanto afiŝas sian enhavon al ĉi tiuj relay-oj</string>
-<string name="public_home_section_explainer">Ĉi tiu relay-tipo konservas ĉian vian enhavon. Amethyst sendos viajn afiŝojn ĉi tien kaj aliaj uzos ĉi tiujn relay-ojn por trovi vian enhavon. Enigu inter 1–3 relay-ojn. Ili povas esti personaj relay-oj, pagendaj relay-oj aŭ publikaj relay-oj.</string>
+<string name="public_home_section_explainer">Ĉi tiu relay-tipo konservas ĉian vian enhavon. Astro sendos viajn afiŝojn ĉi tien kaj aliaj uzos ĉi tiujn relay-ojn por trovi vian enhavon. Enigu inter 1–3 relay-ojn. Ili povas esti personaj relay-oj, pagendaj relay-oj aŭ publikaj relay-oj.</string>
 <string name="public_notif_section">Publikaj Enskatolaj Relay-oj</string>
 <string name="public_notif_section_explainer_profile">Uzanto ricevas sciigojn sur ĉi tiuj relay-oj</string>
 <string name="public_notif_section_explainer">Ĉi tiu relay-tipo ricevas ĉiujn respondojn, komentojn, ŝatojn kaj zap-ojn al viaj afiŝoj. Ili povas esti pagendaj aŭ senpagaj relay-oj. Limigoj fiksitaj de la relay-operatoro povas limigi la sciigojn, kiujn vi ricevas, kaj por bone kaj por malbone. Ekzemple, se vi estas atakata de komentspamo, pagendaj relay-oj povas filtri la spamon. Enigu inter 1–3 relay-ojn.</string>
@@ -2084,13 +2084,13 @@
 <string name="proxy_section_explainer">Agregataj relay-oj, kiujn la aplikaĵo devas uzi por elŝuti viajn fluojn, ekzemple filter.nostr.wine. Ĉi tio anstataŭas la sendkesta modelon kaj igos la aplikaĵon konektiĝi nur al la relay-oj en viaj listoj.</string>
 <string name="broadcast_relays_title">Elsendaj Relay-oj</string>
 <string name="broadcast_section">Elsendaj Relay-oj</string>
-<string name="broadcast_section_explainer">Relay-oj, kiuj specialiĝas pri elsendo de viaj notoj al ĉiuj aliaj relay-oj, ekzemple sendit.nosflare.com. Amethyst aldonos ĉi tiun relay-on al ĉiuj novaj eventoj faritaj de vi</string>
+<string name="broadcast_section_explainer">Relay-oj, kiuj specialiĝas pri elsendo de viaj notoj al ĉiuj aliaj relay-oj, ekzemple sendit.nosflare.com. Astro aldonos ĉi tiun relay-on al ĉiuj novaj eventoj faritaj de vi</string>
 <string name="indexer_relays_title">Indeksaj Relay-oj</string>
 <string name="indexer_section">Indeksaj Relay-oj</string>
-<string name="indexer_section_explainer">Relay-oj, kiuj specialiĝas pri gastigo de la metadatenoj kaj relay-listoj de ĉiuj, ekzemple purplepag.es. Amethyst uzos ĉi tiujn relay-ojn por trovi uzantojn, kiuj ne estas en viaj listoj.</string>
+<string name="indexer_section_explainer">Relay-oj, kiuj specialiĝas pri gastigo de la metadatenoj kaj relay-listoj de ĉiuj, ekzemple purplepag.es. Astro uzos ĉi tiujn relay-ojn por trovi uzantojn, kiuj ne estas en viaj listoj.</string>
 <string name="blocked_relays_title">Blokitaj Relay-oj</string>
 <string name="blocked_section">Blokitaj Relay-oj</string>
-<string name="blocked_section_explainer">Amethyst neniam konektiĝos al ĉi tiuj relay-oj</string>
+<string name="blocked_section_explainer">Astro neniam konektiĝos al ĉi tiuj relay-oj</string>
 <string name="export_relay_settings">Eksporti relay-agordojn</string>
 <string name="export_as_text">Eksporti kiel tekston</string>
 <string name="export_as_zip">Eksporti kiel ZIP (JSON)</string>
@@ -2263,7 +2263,7 @@
 <string name="feed_filter_selected">Flua filtro, %1$s elektita</string>
 <string name="feed_filter_select_an_option">Flua filtro, %1$s</string>
 <string name="crashreport_found">Krahraportoj Trovita</string>
-<string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Ĉu vi volas sendi la lastan krahraporton al Amethyst per DM? Neniaj personaj informoj estos dividitaj</string>
+<string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Ĉu vi volas sendi la lastan krahraporton al Astro per DM? Neniaj personaj informoj estos dividitaj</string>
 <string name="crashreport_found_send">Sendi ĝin</string>
 <string name="this_message_will_disappear_in">Ĉi tiu mesaĝo malaperos post %1$s</string>
 <string name="select_signer">Elekti Subskribanton</string>
@@ -3082,19 +3082,19 @@
         ## Konsiletoj pri Ŝlosila Sekurkopiao kaj Sekureco
         \n\nVia konto estas sekurigita per sekreta ŝlosilo. La ŝlosilo estas longa sinsekvo de signoj komencanta per **nsec1**. Ĉiu kiu havas aliron al ĉi tiu sekreta ŝlosilo povas afiŝi kaj ŝanĝi vian identecon.
         \n\n- **Ne** metu vian sekretan ŝlosilon en ajnan retejon aŭ programaron, kiun vi ne fidas.
-        \n- Amethyst-programistoj **neniam** petos vian sekretan ŝlosilon.
+        \n- Astro-programistoj **neniam** petos vian sekretan ŝlosilon.
         \n- **Faru** sekuran sekurkopion de via sekreta ŝlosilo por reakiro de konto. Ni rekomendas uzi pasvortan administrilon.
     </string>
 <string name="account_backup_tips3_md" tools:ignore="Typos">
         Por plia sekureco, vi povas ĉifri vian ŝlosilon per pasvorto. Ĉi tiu ŝlosilo komenciĝas per **ncryptsec1** kaj ne povas esti uzata sen via pasvorto.
         \n\nSe vi perdas vian pasvorton, vi ne povos reakiri vian ŝlosilon.
     </string>
-<string name="couldnt_find_nwc_wallets_description">Amethyst ne povis trovi ajnajn monujo-aplikojn, kiuj subtenas Nostr Wallet Connect (NWC).
+<string name="couldnt_find_nwc_wallets_description">Astro ne povis trovi ajnajn monujo-aplikojn, kiuj subtenas Nostr Wallet Connect (NWC).
 \n\nKion vi povas fari:
 \n\t1. Kontrolu NWC-subtenon: Duoble kontrolu, ĉu via preferata monujo-aplikaĵo estas kongrua kun Nostr Wallet Connect.
 \n\t2. Krei Konekton: Iru al via monujo-aplikaĵo kaj kreu novan NWC-konekton.
-\n\t3. Ligi al Amethyst: Via monujo kutime donos al vi tri opciojn:
-\n\t\t3.1 Aŭtomata Ligo: Butono por aŭtomate malfermi kaj konekti al Amethyst. Se jes, alklaku tiun butonon, malfermu Amethyst kaj alklaku konservi sur la nova ekrano.
+\n\t3. Ligi al Astro: Via monujo kutime donos al vi tri opciojn:
+\n\t\t3.1 Aŭtomata Ligo: Butono por aŭtomate malfermi kaj konekti al Astro. Se jes, alklaku tiun butonon, malfermu Astro kaj alklaku konservi sur la nova ekrano.
 \n\t\t3.2 Mana Ligo: Konekta URI, kiun vi povas kopii kaj alklaki la algluu-ikonon sur ĉi tiu ekrano por rekte enigi ĝin.
 \n\t\t3.3 QR-Kodo: La monujo kreas QR-kodon, kiun vi povas legi per la QR-koda butono sur ĉi tiu ekrano.
     </string>

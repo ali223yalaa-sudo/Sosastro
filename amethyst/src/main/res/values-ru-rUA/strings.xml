@@ -77,7 +77,7 @@
     <string name="unauthorized_exception_description">Подписчик не авторизовал расшифровку, необходимую для выполнения этой операции. Активируйте расшифровку NIP-44 в вашем приложении-подписчике и повторите попытку</string>
     <string name="signer_not_found_exception">Подписчик не найден</string>
     <string name="signer_not_found_exception_description">Приложение подписи удалено? Убедитесь, что оно установлено и содержит этот аккаунт. Выйдите и войдите снова, если приложение подписи изменилось.</string>
-    <string name="signer_illegal_state_exception_description">Внешний подписант вернул неожиданный ответ на запрос. Возможно, ошибка в Amethyst или в приложении подписи.</string>
+    <string name="signer_illegal_state_exception_description">Внешний подписант вернул неожиданный ответ на запрос. Возможно, ошибка в Astro или в приложении подписи.</string>
     <string name="boost">Репост</string>
     <string name="boosted">репост</string>
     <string name="edited">изменено</string>
@@ -150,7 +150,7 @@
     <string name="send_payment_done">Готово</string>
     <string name="send_payment_pay_button">Оплатить %1$s sats</string>
     <string name="send_payment_pay_button_empty">Оплатить</string>
-    <string name="send_payment_no_methods">У этого профиля нет способов оплаты, которые Amethyst может использовать напрямую.</string>
+    <string name="send_payment_no_methods">У этого профиля нет способов оплаты, которые Astro может использовать напрямую.</string>
     <string name="send_payment_min_onchain">On-chain zap требует не менее %1$s sats</string>
     <string name="send_payment_cashu_insufficient">Недостаточный баланс в mint, принимаемом получателем. Сначала пополните Cashu-кошелёк.</string>
     <string name="send_payment_cashu_balance">Доступно для этого получателя: %1$s sats</string>
@@ -207,7 +207,7 @@
     <string name="failed_to_save_the_image">Не удалось сохранить изображение</string>
     <string name="video_saved_to_the_gallery">Видео сохранено в галерею телефона</string>
     <string name="failed_to_save_the_video">Не удалось сохранить видео</string>
-    <string name="pdf_saved_to_the_gallery">PDF сохранён в Downloads/Amethyst</string>
+    <string name="pdf_saved_to_the_gallery">PDF сохранён в Downloads/Astro</string>
     <string name="failed_to_save_the_pdf">Не удалось сохранить PDF</string>
     <string name="upload_image">Загрузить изображение</string>
     <string name="upload_file">Загрузить файл</string>
@@ -343,7 +343,7 @@
     <string name="account_backup_tips2_md" tools:ignore="Typos">        ## Советы по резервному копированию и безопасности ключей
         \n\nВаш аккаунт защищён секретным ключом. Ключ — это длинная последовательность символов, начинающаяся с **nsec1**. Любой, кто получит доступ к этому секретному ключу, сможет публиковать записи и менять вашу личность.
         \n\n- **Не** вводите свой секретный ключ на сайтах или в приложениях, которым не доверяете.
-        \n- Разработчики Amethyst **никогда** не будут запрашивать ваш секретный ключ.
+        \n- Разработчики Astro **никогда** не будут запрашивать ваш секретный ключ.
         \n- **Обязательно** сохраните надёжную резервную копию секретного ключа для восстановления аккаунта. Рекомендуем использовать менеджер паролей.
     </string>
     <string name="account_backup_tips3_md" tools:ignore="Typos">        Для дополнительной безопасности вы можете зашифровать ваш ключ паролем. Этот ключ начинается с **ncryptsec1** и не может быть использован без вашего пароля.
@@ -381,7 +381,7 @@
     <string name="share_as_image">Поделиться как изображение</string>
     <string name="share_as_image_url">Поделиться URL изображения</string>
     <string name="share_as_image_generating">Создание предпросмотра…</string>
-    <string name="share_as_image_watermark">Отправлено через Amethyst</string>
+    <string name="share_as_image_watermark">Отправлено через Astro</string>
     <string name="quick_action_copy_user_id">ID автора</string>
     <string name="quick_action_copy_note_id">ID заметки</string>
     <string name="quick_action_copy_text">Копировать текст</string>
@@ -391,7 +391,7 @@
     <string name="quick_action_request_deletion_gallery_title">Удалить из галереи</string>
     <string name="quick_action_request_deletion_gallery_alert_body_v2">Удалить этот медиафайл из вашей галереи.</string>
     <string name="quick_action_request_deletion_alert_title">Запросить удаление</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst отправит запрос на удаление вашей заметки с relay, к которым вы подключены в данный момент. Нет гарантии, что заметка будет окончательно удалена с этих relay или с других relay, где она может храниться.</string>
+    <string name="quick_action_request_deletion_alert_body">Astro отправит запрос на удаление вашей заметки с relay, к которым вы подключены в данный момент. Нет гарантии, что заметка будет окончательно удалена с этих relay или с других relay, где она может храниться.</string>
     <string name="quick_action_block_dialog_btn">Заблокировать</string>
     <string name="quick_action_delete_dialog_btn">Удалить</string>
     <string name="quick_action_block">Заблокировать</string>
@@ -606,7 +606,7 @@
     <string name="workout_minutes">Минуты</string>
     <string name="workout_seconds">Секунды</string>
     <string name="workout_suggestion_connect_title">Поделитесь своими тренировками</string>
-    <string name="workout_suggestion_connect_message">Позвольте Amethyst читать завершённые тренировки из Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) и предлагать публикацию.</string>
+    <string name="workout_suggestion_connect_message">Позвольте Astro читать завершённые тренировки из Health Connect (Samsung Health, Google Fit, Fitbit, Garmin…) и предлагать публикацию.</string>
     <string name="workout_suggestion_connect_button">Подключить</string>
     <string name="workout_suggestion_distance_km">%1$s км</string>
     <string name="workout_from_health_connect">Из Health Connect</string>
@@ -712,7 +712,7 @@
     <!-- Signer trust levels -->
     <!-- Signer per-op consent dialog -->
     <!-- Signer op labels -->
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <!-- Permissions management screen -->
     <!-- Relay Authentication (NIP-42) settings -->
     <!-- Action-aware titles: %1$s is the person (or "Alice and others"). -->
@@ -857,7 +857,7 @@
     <string name="nest_create_schedule_toggle">Запланировать на потом</string>
     <string name="nest_create_when">Выберите время начала</string>
     <string name="nests_servers_title">Nest-серверы</string>
-    <string name="nests_servers_explainer">Выберите MoQ-серверы, на которые Amethyst публикует ваши nest. Первая запись используется по умолчанию при создании нового пространства.</string>
+    <string name="nests_servers_explainer">Выберите MoQ-серверы, на которые Astro публикует ваши nest. Первая запись используется по умолчанию при создании нового пространства.</string>
     <string name="nests_servers_my_section">Ваши серверы</string>
     <string name="nests_servers_my_explainer">Сохраняется как заменяемое событие kind:10112, чтобы другие клиенты могли прочитать ваши настройки.</string>
     <string name="nests_servers_add_relay_field">URL relay (WebTransport)</string>
@@ -865,7 +865,7 @@
     <string name="nests_servers_add_pair_button">Добавить</string>
     <string name="nests_servers_recommended_section">Рекомендуемые серверы</string>
     <string name="nests_servers_recommended_explainer">Встроенные предложения, которые можно добавить в список одним касанием.</string>
-    <string name="nests_servers_use_defaults">Использовать настройки Amethyst по умолчанию</string>
+    <string name="nests_servers_use_defaults">Использовать настройки Astro по умолчанию</string>
     <string name="nests_servers_add_recommended">Добавить сервер</string>
     <string name="nests_servers_remove">Удалить сервер</string>
     <string name="nests_servers_empty">Nest-серверов пока нет. Добавьте один ниже или выберите рекомендуемый сервер.</string>
@@ -1063,9 +1063,9 @@
     <string name="local_blossom_cache_not_detected">Локальный кэш не обнаружен на порту 24242.</string>
     <string name="local_blossom_cache_profile_pics_only">Кэшировать только фото профилей</string>
     <string name="local_blossom_cache_profile_pics_only_caption">Ограничить локальный кэш только фотографиями профилей. Изображения и видео из ленты будут загружаться напрямую с исходных серверов.</string>
-    <string name="no_blossom_server_message">У вас нет серверов Blossom. Вы можете использовать список Amethyst или добавить сервер ниже ↓</string>
+    <string name="no_blossom_server_message">У вас нет серверов Blossom. Вы можете использовать список Astro или добавить сервер ниже ↓</string>
     <string name="recommended_media_servers">Рекомендуемые медиасерверы</string>
-    <string name="built_in_servers_description">Список по умолчанию от Amethyst. Вы можете добавить их по отдельности или весь список.</string>
+    <string name="built_in_servers_description">Список по умолчанию от Astro. Вы можете добавить их по отдельности или весь список.</string>
     <string name="use_default_servers">Использовать список по умолчанию</string>
     <string name="add_media_server">Добавить медиасервер</string>
     <string name="delete_media_server">Удалить медиасервер</string>
@@ -1230,8 +1230,8 @@
     <string name="call_add_participant">Добавить участника</string>
     <string name="call_search_users">Поиск пользователей…</string>
     <string name="call_permission_denied_title">Требуется разрешение</string>
-    <string name="call_permission_denied_voice">Amethyst требует доступ к микрофону для совершения голосового звонка. Пожалуйста, включите его в настройках приложения.</string>
-    <string name="call_permission_denied_video">Amethyst требует доступ к камере и микрофону для совершения видеозвонка. Пожалуйста, включите их в настройках приложения.</string>
+    <string name="call_permission_denied_voice">Astro требует доступ к микрофону для совершения голосового звонка. Пожалуйста, включите его в настройках приложения.</string>
+    <string name="call_permission_denied_video">Astro требует доступ к камере и микрофону для совершения видеозвонка. Пожалуйста, включите их в настройках приложения.</string>
     <string name="call_permission_denied_open_settings">Открыть настройки</string>
     <string name="call_permission_denied_cancel">Отмена</string>
     <string name="call_settings">Настройки звонков</string>
@@ -1250,7 +1250,7 @@
     <string name="call_settings_turn_username">Имя пользователя</string>
     <string name="call_settings_turn_credential">Учётные данные</string>
     <string name="always_on_notif_channel_description">Поддерживает активные подключения к входящим relay для уведомлений в реальном времени</string>
-    <string name="always_on_notif_title">Уведомления Amethyst активны</string>
+    <string name="always_on_notif_title">Уведомления Astro активны</string>
     <plurals name="always_on_notif_connected">
         <item quantity="one">Подключено к %1$d входящему relay</item>
         <item quantity="few">Подключено к %1$d входящим relay</item>
@@ -1273,7 +1273,7 @@
     <string name="notification_tab_following">Подписки</string>
     <string name="notification_tab_everyone">Все</string>
     <string name="battery_optimization_title">Оптимизация батареи активна</string>
-    <string name="battery_optimization_description">Android может ограничивать соединения с relay в фоновом режиме. Отключите оптимизацию батареи для Amethyst, чтобы обеспечить надёжную доставку уведомлений.</string>
+    <string name="battery_optimization_description">Android может ограничивать соединения с relay в фоновом режиме. Отключите оптимизацию батареи для Astro, чтобы обеспечить надёжную доставку уведомлений.</string>
     <string name="battery_optimization_fix_now">Исправить сейчас</string>
     <string name="reply_notify">Уведомить: </string>
     <string name="today">Сегодня</string>
@@ -1286,7 +1286,7 @@
     <string name="filter_spam_from_strangers_title">Фильтр спама</string>
     <string name="filter_spam_from_strangers_explainer">Скрывает публикации от незнакомцев, которые встречались 5 или более раз с одинаковым содержимым</string>
     <string name="add_client_tag_title">Добавлять клиентский тег к моим событиям</string>
-    <string name="add_client_tag_explainer">При включении Amethyst добавляет NIP-89 клиентский тег к публикуемым вами событиям.</string>
+    <string name="add_client_tag_explainer">При включении Astro добавляет NIP-89 клиентский тег к публикуемым вами событиям.</string>
     <string name="warn_when_posts_have_reports_from_your_follows_title">Предупреждать о жалобах</string>
     <string name="warn_when_posts_have_reports_from_your_follows_explainer">Показывает предупреждение, если на публикацию или профиль пожаловались люди из ваших подписок</string>
     <string name="report_warning_threshold_title">Порог предупреждения о жалобах</string>
@@ -1534,12 +1534,12 @@
     <string name="messages_new_subject_message_placeholder">Меняю название для новых целей.</string>
     <string name="paste_from_clipboard">Вставить из буфера обмена</string>
     <string name="couldnt_find_nwc_wallets">Кошелёк не найден</string>
-    <string name="couldnt_find_nwc_wallets_description">Amethyst не нашёл ни одного приложения кошелька с поддержкой Nostr Wallet Connect (NWC).
+    <string name="couldnt_find_nwc_wallets_description">Astro не нашёл ни одного приложения кошелька с поддержкой Nostr Wallet Connect (NWC).
 \n\nЧто можно сделать:
 \n\t1. Проверьте поддержку NWC: убедитесь, что ваш кошелёк совместим с Nostr Wallet Connect.
 \n\t2. Создайте подключение: откройте приложение кошелька и создайте новое NWC-подключение.
-\n\t3. Привяжите к Amethyst: обычно кошелёк предлагает три варианта:
-\n\t\t3.1 Автоматическая привязка: кнопка для автоматического открытия и подключения к Amethyst. Нажмите её, откройте Amethyst и сохраните новый экран.
+\n\t3. Привяжите к Astro: обычно кошелёк предлагает три варианта:
+\n\t\t3.1 Автоматическая привязка: кнопка для автоматического открытия и подключения к Astro. Нажмите её, откройте Astro и сохраните новый экран.
 \n\t\t3.2 Ручная привязка: URI подключения, который можно скопировать и вставить с помощью значка вставки на этом экране.
 \n\t\t3.3 QR-код: кошелёк создаёт QR-код, который можно считать кнопкой QR-кода на этом экране.
     </string>
@@ -1610,7 +1610,7 @@
     <string name="error_unable_to_fetch_invoice">Не удалось получить счёт с серверов получателя</string>
     <string name="wallet_connect_pay_invoice_error_error">Ваш провайдер wallet connect вернул следующую ошибку: %1$s</string>
     <string name="tor_connection_failed_title">Tor не подключается</string>
-    <string name="tor_connection_failed_body">Amethyst не смог завершить начальную загрузку Tor. Использовать обычное (без Tor) подключение, чтобы лента загрузилась? Мы запомним этот выбор на следующий час и после этого повторно попробуем Tor.</string>
+    <string name="tor_connection_failed_body">Astro не смог завершить начальную загрузку Tor. Использовать обычное (без Tor) подключение, чтобы лента загрузилась? Мы запомним этот выбор на следующий час и после этого повторно попробуем Tor.</string>
     <string name="tor_continue_without_for_session">Использовать обычное подключение</string>
     <string name="tor_keep_waiting">Продолжить ожидание</string>
     <string name="could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup">Не удалось собрать LNUrl из Lightning Address «%1$s». Проверьте настройки пользователя</string>
@@ -1631,7 +1631,7 @@
     <string name="notification_channel_status_off">Выключено</string>
     <string name="select_push_server">Выберите приложение UnifiedPush</string>
     <string name="push_server_title">Push-провайдер</string>
-    <string name="push_server_explainer">Выберите приложение UnifiedPush для доставки уведомлений, когда Amethyst закрыт.</string>
+    <string name="push_server_explainer">Выберите приложение UnifiedPush для доставки уведомлений, когда Astro закрыт.</string>
     <string name="push_server_none">Нет</string>
     <string name="push_server_none_explainer">Отключает push-уведомления</string>
     <string name="push_server_uses_app_explainer">Использует приложение %1$s</string>
@@ -2175,7 +2175,7 @@
     <string name="show_npub_as_a_qr_code">Показать npub как QR-код</string>
     <string name="show_nprofile_as_a_qr_code">Показать nprofile как QR-код</string>
     <string name="invalid_nip19_uri">Неверный адрес</string>
-    <string name="invalid_nip19_uri_description">Amethyst получил URI для открытия, но этот URI недействителен: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro получил URI для открытия, но этот URI недействителен: %1$s</string>
     <string name="dm_relays_not_found">Настройте свои личные входящие relay</string>
     <string name="dm_relays_not_found_description">Этот параметр сообщает всем, какие relay использовать при отправке вам сообщений. Без них вы можете пропустить некоторые сообщения.</string>
     <string name="dm_relays_not_found_examples2">Хорошие варианты:\n - auth.nostr1.com (бесплатно)\n - inbox.nostr.wine (платно)\n - relay.0xchat.com (бесплатно)</string>
@@ -2199,7 +2199,7 @@
     <string name="relay_reorder">Изменить порядок relay</string>
     <string name="public_home_section">Публичные Outbox/Home Relays</string>
     <string name="public_home_section_explainer_profile">Пользователь публикует контент на этих relay</string>
-    <string name="public_home_section_explainer">Этот тип relay хранит весь ваш контент. Amethyst будет отправлять ваши публикации сюда, а другие будут использовать эти relay для поиска вашего контента. Укажите от 1 до 3 relay. Это могут быть личные, платные или публичные relay.</string>
+    <string name="public_home_section_explainer">Этот тип relay хранит весь ваш контент. Astro будет отправлять ваши публикации сюда, а другие будут использовать эти relay для поиска вашего контента. Укажите от 1 до 3 relay. Это могут быть личные, платные или публичные relay.</string>
     <string name="public_notif_section">Публичные Inbox Relays</string>
     <string name="public_notif_section_explainer_profile">Пользователь получает уведомления на этих relay</string>
     <string name="public_notif_section_explainer">Этот тип relay получает все ответы, комментарии, лайки и zap к вашим публикациям. Они могут быть платными или бесплатными. Ограничения, установленные оператором relay, могут влиять на получаемые уведомления как положительно, так и отрицательно. Например, если вас атакуют спам-комментариями, платные relay могут отфильтровать спам. Укажите от 1 до 3 relay.</string>
@@ -2225,13 +2225,13 @@
     <string name="proxy_section_explainer">Агрегирующие relay-серверы, которые приложение использует для загрузки ваших лент, например filter.nostr.wine. Это заменяет модель outbox и позволит приложению подключаться только к relay-серверам из ваших списков.</string>
     <string name="broadcast_relays_title">Relay-серверы для трансляции</string>
     <string name="broadcast_section">Relay-серверы для трансляции</string>
-    <string name="broadcast_section_explainer">Relay-серверы, специализирующиеся на рассылке ваших заметок на все остальные relay-серверы, например sendit.nosflare.com. Amethyst будет добавлять этот relay ко всем новым событиям, созданным вами.</string>
+    <string name="broadcast_section_explainer">Relay-серверы, специализирующиеся на рассылке ваших заметок на все остальные relay-серверы, например sendit.nosflare.com. Astro будет добавлять этот relay ко всем новым событиям, созданным вами.</string>
     <string name="indexer_relays_title">Relay-серверы-индексаторы</string>
     <string name="indexer_section">Relay-серверы-индексаторы</string>
-    <string name="indexer_section_explainer">Relay-серверы, специализирующиеся на хранении метаданных и списков relay-серверов всех пользователей, например purplepag.es. Amethyst будет использовать эти relay для поиска пользователей, которых нет в ваших списках.</string>
+    <string name="indexer_section_explainer">Relay-серверы, специализирующиеся на хранении метаданных и списков relay-серверов всех пользователей, например purplepag.es. Astro будет использовать эти relay для поиска пользователей, которых нет в ваших списках.</string>
     <string name="blocked_relays_title">Заблокированные relay-серверы</string>
     <string name="blocked_section">Заблокированные relay-серверы</string>
-    <string name="blocked_section_explainer">Amethyst никогда не будет подключаться к этим relay-серверам.</string>
+    <string name="blocked_section_explainer">Astro никогда не будет подключаться к этим relay-серверам.</string>
     <string name="export_relay_settings">Экспортировать настройки relay</string>
     <string name="export_as_text">Экспортировать как текст</string>
     <string name="export_as_zip">Экспортировать как ZIP (JSON)</string>
@@ -2401,7 +2401,7 @@
     <string name="feed_filter_selected">Фильтр ленты, выбрано: %1$s</string>
     <string name="feed_filter_select_an_option">Фильтр ленты, %1$s</string>
     <string name="crashreport_found">Найден отчёт об ошибке</string>
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Хотите отправить последний отчёт об ошибке в Amethyst через личное сообщение? Личные данные не будут переданы.</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">Хотите отправить последний отчёт об ошибке в Astro через личное сообщение? Личные данные не будут переданы.</string>
     <string name="crashreport_found_send">Отправить</string>
     <string name="this_message_will_disappear_in">Это сообщение исчезнет через %1$s</string>
     <string name="select_signer">Выбрать подписчика</string>

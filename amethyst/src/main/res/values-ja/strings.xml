@@ -170,7 +170,7 @@
     <string name="quick_action_unfollow">フォロー解除</string>
     <string name="quick_action_follow">フォロー</string>
     <string name="quick_action_request_deletion_alert_title">削除をリクエスト</string>
-    <string name="quick_action_request_deletion_alert_body">Amethystは、現在接続しているリレーから投稿を削除するようリクエストします。これらのリレーや、投稿が保存されている可能性のある他のリレーから、あなたの投稿が永久に削除される保証はありません。</string>
+    <string name="quick_action_request_deletion_alert_body">Astroは、現在接続しているリレーから投稿を削除するようリクエストします。これらのリレーや、投稿が保存されている可能性のある他のリレーから、あなたの投稿が永久に削除される保証はありません。</string>
     <string name="quick_action_block_dialog_btn">ブロック</string>
     <string name="quick_action_delete_dialog_btn">削除</string>
     <string name="quick_action_block">ブロック</string>
@@ -305,7 +305,7 @@
     
     <string name="nests_servers_recommended_explainer">ワンタップでリストに追加できる組み込みの候補です。</string>
     
-    <string name="nests_servers_use_defaults">Amethystのデフォルトを使用</string>
+    <string name="nests_servers_use_defaults">Astroのデフォルトを使用</string>
     
     <string name="nests_servers_add_recommended">サーバーを追加</string>
     
@@ -613,11 +613,11 @@
     
     <string name="local_blossom_cache_profile_pics_only_caption">ローカルキャッシュをプロフィール画像のみに制限します。フィードの画像・動画は元のサーバーから直接取得されます。</string>
     
-    <string name="no_blossom_server_message">Blossomサーバーが設定されていません。Amethystのリストを使用するか、下に追加してください ↓</string>
+    <string name="no_blossom_server_message">Blossomサーバーが設定されていません。Astroのリストを使用するか、下に追加してください ↓</string>
     
     <string name="recommended_media_servers">おすすめのメディアサーバー</string>
     
-    <string name="built_in_servers_description">Amethystのデフォルトリストです。個別に追加するかリスト全体を追加できます。</string>
+    <string name="built_in_servers_description">Astroのデフォルトリストです。個別に追加するかリスト全体を追加できます。</string>
     
     <string name="use_default_servers">デフォルトリストを使用</string>
     
@@ -925,9 +925,9 @@
     
     <string name="call_permission_denied_title">権限が必要です</string>
     
-    <string name="call_permission_denied_voice">Amethyst が音声通話を開始するにはマイクのアクセス権が必要です。アプリの設定で有効にしてください。</string>
+    <string name="call_permission_denied_voice">Astro が音声通話を開始するにはマイクのアクセス権が必要です。アプリの設定で有効にしてください。</string>
     
-    <string name="call_permission_denied_video">Amethyst がビデオ通話を開始するにはカメラとマイクのアクセス権が必要です。アプリの設定で有効にしてください。</string>
+    <string name="call_permission_denied_video">Astro がビデオ通話を開始するにはカメラとマイクのアクセス権が必要です。アプリの設定で有効にしてください。</string>
     
     <string name="call_permission_denied_open_settings">設定を開く</string>
     
@@ -965,7 +965,7 @@
     
     <string name="always_on_notif_channel_description">リアルタイム通知のためにインボックス relay への接続を維持します</string>
     
-    <string name="always_on_notif_title">Amethyst 通知有効中</string>
+    <string name="always_on_notif_title">Astro 通知有効中</string>
     
     <plurals name="always_on_notif_connected">
     <item quantity="other">%1$d 件のインボックス relay に接続中</item>
@@ -995,7 +995,7 @@
     
     <string name="battery_optimization_title">バッテリー最適化が有効です</string>
     
-    <string name="battery_optimization_description">Android はバックグラウンドでの relay 接続を制限する場合があります。確実に通知を受け取るには、Amethyst のバッテリー最適化を無効にしてください。</string>
+    <string name="battery_optimization_description">Android はバックグラウンドでの relay 接続を制限する場合があります。確実に通知を受け取るには、Astro のバッテリー最適化を無効にしてください。</string>
     
     <string name="battery_optimization_fix_now">今すぐ修正</string>
     
@@ -1013,7 +1013,7 @@
     
     <string name="add_client_tag_title">イベントにクライアントタグを追加</string>
     
-    <string name="add_client_tag_explainer">有効にすると、Amethyst は公開するイベントに NIP-89 クライアントタグを付加します。</string>
+    <string name="add_client_tag_explainer">有効にすると、Astro は公開するイベントに NIP-89 クライアントタグを付加します。</string>
     
     <string name="warn_when_posts_have_reports_from_your_follows_title">報告時に警告</string>
     
@@ -1403,12 +1403,12 @@
     
     <string name="couldnt_find_nwc_wallets">ウォレットが見つかりません</string>
     
-    <string name="couldnt_find_nwc_wallets_description">Amethyst は Nostr Wallet Connect（NWC）に対応したウォレットアプリを見つけられませんでした。
+    <string name="couldnt_find_nwc_wallets_description">Astro は Nostr Wallet Connect（NWC）に対応したウォレットアプリを見つけられませんでした。
 \n\n対処方法:
 \n\t1. NWC サポートを確認: お使いのウォレットアプリが Nostr Wallet Connect に対応しているか再確認してください。
 \n\t2. 接続を作成: ウォレットアプリで新しい NWC 接続を作成してください。
-\n\t3. Amethyst にリンク: ウォレットは通常、以下の3つの方法を提供します:
-\n\t\t3.1 自動リンク: 自動的に Amethyst を開いて接続するボタン。その場合、ボタンをクリックして Amethyst を開き、新しい画面で保存を押してください。
+\n\t3. Astro にリンク: ウォレットは通常、以下の3つの方法を提供します:
+\n\t\t3.1 自動リンク: 自動的に Astro を開いて接続するボタン。その場合、ボタンをクリックして Astro を開き、新しい画面で保存を押してください。
 \n\t\t3.2 手動リンク: この画面の貼り付けアイコンをクリックして直接入力できる接続 URI。
 \n\t\t3.3 QR コード: ウォレットが作成する QR コード。この画面の QR コードボタンから読み取れます。
     </string>
@@ -1547,7 +1547,7 @@
     
     <string name="tor_connection_failed_title">Tor が接続できません</string>
     
-    <string name="tor_connection_failed_body">Amethyst は Tor のブートストラップを完了できませんでした。フィードを読み込むために通常の（Tor を使わない）接続を使用しますか？この選択は1時間記憶され、その後 Tor を再試行します。</string>
+    <string name="tor_connection_failed_body">Astro は Tor のブートストラップを完了できませんでした。フィードを読み込むために通常の（Tor を使わない）接続を使用しますか？この選択は1時間記憶され、その後 Tor を再試行します。</string>
     
     <string name="tor_continue_without_for_session">通常の接続を使用</string>
     
@@ -1589,7 +1589,7 @@
     
     <string name="push_server_title">プッシュプロバイダー</string>
     
-    <string name="push_server_explainer">Amethystが閉じているときに通知を届けるUnifiedPushアプリを選択してください。</string>
+    <string name="push_server_explainer">Astroが閉じているときに通知を届けるUnifiedPushアプリを選択してください。</string>
     
     <string name="push_server_none">なし</string>
     
@@ -2620,7 +2620,7 @@
     
     <string name="invalid_nip19_uri">無効なアドレス</string>
     
-    <string name="invalid_nip19_uri_description">Amethyst が開くための URI を受信しましたが、その URI は無効でした: %1$s</string>
+    <string name="invalid_nip19_uri_description">Astro が開くための URI を受信しましたが、その URI は無効でした: %1$s</string>
     
     <string name="dm_relays_title">DM 受信 Relay</string>
     
@@ -2674,7 +2674,7 @@
     
     <string name="public_home_section_explainer_profile">ユーザーはこれらの relay にコンテンツを投稿しています</string>
     
-    <string name="public_home_section_explainer">この relay タイプはすべてのコンテンツを保存します。Amethyst はここに投稿を送信し、他のユーザーはこれらの relay を使ってあなたのコンテンツを見つけます。1〜3 つの relay を入力してください。個人用 relay、有料 relay、またはパブリック relay が利用できます。</string>
+    <string name="public_home_section_explainer">この relay タイプはすべてのコンテンツを保存します。Astro はここに投稿を送信し、他のユーザーはこれらの relay を使ってあなたのコンテンツを見つけます。1〜3 つの relay を入力してください。個人用 relay、有料 relay、またはパブリック relay が利用できます。</string>
     
     <string name="public_notif_section">パブリック Inbox Relay</string>
     
@@ -2736,19 +2736,19 @@
     
     <string name="broadcast_section">Broadcast Relay</string>
     
-    <string name="broadcast_section_explainer">sendit.nosflare.com のように、あなたのノートを他のすべての relay にプッシュすることに特化した relay です。Amethyst はあなたが作成するすべての新しいイベントにこの relay を追加します。</string>
+    <string name="broadcast_section_explainer">sendit.nosflare.com のように、あなたのノートを他のすべての relay にプッシュすることに特化した relay です。Astro はあなたが作成するすべての新しいイベントにこの relay を追加します。</string>
     
     <string name="indexer_relays_title">インデクサー Relay</string>
     
     <string name="indexer_section">インデクサー Relay</string>
     
-    <string name="indexer_section_explainer">purplepag.es のように、全ユーザーのメタデータと relay リストのホスティングに特化した relay です。Amethyst はこれらの relay を使用して、あなたのリストにないユーザーを検索します。</string>
+    <string name="indexer_section_explainer">purplepag.es のように、全ユーザーのメタデータと relay リストのホスティングに特化した relay です。Astro はこれらの relay を使用して、あなたのリストにないユーザーを検索します。</string>
     
     <string name="blocked_relays_title">ブロック済み Relay</string>
     
     <string name="blocked_section">ブロック済み Relay</string>
     
-    <string name="blocked_section_explainer">Amethyst はこれらの relay に接続しません</string>
+    <string name="blocked_section_explainer">Astro はこれらの relay に接続しません</string>
     
     <string name="export_relay_settings">Relay 設定をエクスポート</string>
     
@@ -3094,7 +3094,7 @@
     
     <string name="crashreport_found">クラッシュレポートが見つかりました</string>
     
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">最近のクラッシュレポートを DM で Amethyst に送信しますか？個人情報は共有されません</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">最近のクラッシュレポートを DM で Astro に送信しますか？個人情報は共有されません</string>
     
     <string name="crashreport_found_send">送信する</string>
     
@@ -4505,7 +4505,7 @@
     
     <string name="signer_not_found_exception_description">署名アプリはアンインストールされましたか？署名アプリがインストールされており、このアカウントが登録されているか確認してください。署名アプリが変更された場合は、一度ログアウトしてからログインし直してください。</string>
     
-    <string name="signer_illegal_state_exception_description">外部署名アプリがリクエストに対して予期しないペイロードを返しました。Amethyst または署名アプリにバグがある可能性があります。</string>
+    <string name="signer_illegal_state_exception_description">外部署名アプリがリクエストに対して予期しないペイロードを返しました。Astro または署名アプリにバグがある可能性があります。</string>
     
     <string name="edited">編集済み</string>
     
@@ -4635,7 +4635,7 @@
     
     <string name="send_payment_pay_button_empty">支払う</string>
     
-    <string name="send_payment_no_methods">このプロフィールには Amethyst が直接支払える支払い方法がありません。</string>
+    <string name="send_payment_no_methods">このプロフィールには Astro が直接支払える支払い方法がありません。</string>
     
     <string name="send_payment_min_onchain">オンチェーン zap には最低 %1$s sats が必要です</string>
     
@@ -4707,7 +4707,7 @@
     
     <string name="failed_to_save_the_video">動画の保存に失敗しました</string>
     
-    <string name="pdf_saved_to_the_gallery">PDF を Downloads/Amethyst に保存しました</string>
+    <string name="pdf_saved_to_the_gallery">PDF を Downloads/Astro に保存しました</string>
     
     <string name="failed_to_save_the_pdf">PDF の保存に失敗しました</string>
     
@@ -4843,7 +4843,7 @@
         ## 鍵のバックアップとセキュリティのヒント
         \n\nアカウントは秘密鍵によって保護されています。この鍵は **nsec1** で始まる長い文字列です。この秘密鍵にアクセスできる人は誰でも、あなたの名前でポストしたり、プロフィールを変更したりできます。
         \n\n- 信頼していないウェブサイトやアプリに秘密鍵を **入力しないでください**。
-        \n- Amethyst の開発者が秘密鍵を **求めることは絶対にありません**。
+        \n- Astro の開発者が秘密鍵を **求めることは絶対にありません**。
         \n- アカウントの復元のために、秘密鍵の安全なバックアップを **必ず** 保管してください。パスワードマネージャーの使用をお勧めします。
     </string>
     
@@ -4878,7 +4878,7 @@
     
     <string name="share_as_image_generating">プレビューを生成中…</string>
     
-    <string name="share_as_image_watermark">Amethyst で共有</string>
+    <string name="share_as_image_watermark">Astro で共有</string>
 
     <string name="quick_action_request_deletion_gallery_title">ギャラリーから削除</string>
     
@@ -5232,7 +5232,7 @@
     
     <string name="workout_suggestion_connect_title">ワークアウトを共有しよう</string>
     
-    <string name="workout_suggestion_connect_message">AmethystがHealth Connect（Samsung Health、Google Fit、Fitbit、Garmin…）から完了したワークアウトを読み取り、投稿を提案できるようにしましょう。</string>
+    <string name="workout_suggestion_connect_message">AstroがHealth Connect（Samsung Health、Google Fit、Fitbit、Garmin…）から完了したワークアウトを読み取り、投稿を提案できるようにしましょう。</string>
     
     <string name="workout_suggestion_connect_button">接続する</string>
     
@@ -5719,7 +5719,7 @@
     
     <string name="nests_servers_title">Nest サーバー</string>
     
-    <string name="nests_servers_explainer">Amethyst が Nest を公開する MoQ ホストサーバーを選択してください。新しいスペースを開始するときはリストの最初のエントリがデフォルトで使用されます。</string>
+    <string name="nests_servers_explainer">Astro が Nest を公開する MoQ ホストサーバーを選択してください。新しいスペースを開始するときはリストの最初のエントリがデフォルトで使用されます。</string>
     
     <string name="nests_servers_my_section">あなたのサーバー</string>
     

@@ -69,7 +69,7 @@
     <string name="unauthorized_exception_description">簽署器未授權執行此操作所需的解密。請在您的簽署器應用程式中啟用 NIP-44 解密後再試一次</string>
     <string name="signer_not_found_exception">找不到簽署器</string>
     <string name="signer_not_found_exception_description">簽署器應用程式是否已被解除安裝？請確認簽署器已安裝且包含此帳號。若簽署器應用程式已更換，請先登出再重新登入。</string>
-    <string name="signer_illegal_state_exception_description">外部簽署器回傳了與請求不符的酬載。Amethyst 或簽署器可能存在錯誤。</string>
+    <string name="signer_illegal_state_exception_description">外部簽署器回傳了與請求不符的酬載。Astro 或簽署器可能存在錯誤。</string>
     <string name="zaps">打閃</string>
     <string name="boost">提升</string>
     <string name="boosted">已提升</string>
@@ -146,7 +146,7 @@
     <string name="send_payment_done">完成</string>
     <string name="send_payment_pay_button">支付 %1$s sats</string>
     <string name="send_payment_pay_button_empty">付款</string>
-    <string name="send_payment_no_methods">此使用者沒有 Amethyst 可直接付款的付款方式。</string>
+    <string name="send_payment_no_methods">此使用者沒有 Astro 可直接付款的付款方式。</string>
     <string name="send_payment_min_onchain">鏈上 zap 至少需要 %1$s sats</string>
     <string name="send_payment_cashu_insufficient">在此收款方接受的鑄幣廠中餘額不足。請先為您的 Cashu 錢包儲值。</string>
     <string name="send_payment_cashu_balance">可支付給此收款方：%1$s sats</string>
@@ -206,7 +206,7 @@
     <string name="failed_to_save_the_image">保存圖片失敗</string>
     <string name="video_saved_to_the_gallery">影片已儲存至手機的影片相簿</string>
     <string name="failed_to_save_the_video">儲存影片失敗</string>
-    <string name="pdf_saved_to_the_gallery">PDF 已儲存至 Downloads/Amethyst</string>
+    <string name="pdf_saved_to_the_gallery">PDF 已儲存至 Downloads/Astro</string>
     <string name="failed_to_save_the_pdf">儲存 PDF 失敗</string>
     <string name="upload_image">上傳圖片</string>
     <string name="upload_file">上傳檔案</string>
@@ -348,7 +348,7 @@
     <string name="account_backup_tips2_md" tools:ignore="Typos">## 備份與安全提示
         \n\n你的帳戶由一個私鑰保護。私鑰是以 **nsec1** 開頭的隨機字符串。任何擁有你的私鑰的人都可以使用你的身份發佈內容。
         \n\n- **不要**將你的私鑰添加到任何你不信任的網站或軟件，亦不要在網上公開。
-        \n- Amethyst 開發人員**永遠不會**要求你提供私鑰。
+        \n- Astro 開發人員**永遠不會**要求你提供私鑰。
         \n- **請**保留你的私鑰的安全備份，以備帳戶恢復。我們建議使用密碼管理器。
     </string>
     <string name="account_backup_tips3_md" tools:ignore="Typos">        爲了額外的安全性，你可以用密碼加密你的密鑰。此密鑰以 **ncryptsec1** 開頭，沒有密碼就不能使用。
@@ -386,7 +386,7 @@
     <string name="share_as_image">以圖片分享</string>
     <string name="share_as_image_url">以圖片網址分享</string>
     <string name="share_as_image_generating">正在產生預覽…</string>
-    <string name="share_as_image_watermark">透過 Amethyst 分享</string>
+    <string name="share_as_image_watermark">透過 Astro 分享</string>
     <string name="quick_action_copy_user_id">作者 ID</string>
     <string name="quick_action_copy_note_id">貼文 ID</string>
     <string name="quick_action_copy_text">複製</string>
@@ -396,7 +396,7 @@
     <string name="quick_action_request_deletion_gallery_title">從相冊中刪除</string>
     <string name="quick_action_request_deletion_gallery_alert_body_v2">從您的相簿中移除此媒體。</string>
     <string name="quick_action_request_deletion_alert_title">請求刪貼</string>
-    <string name="quick_action_request_deletion_alert_body">Amethyst 將請求您的記錄從當前連接的中繼器中刪除。不能保證您發佈的筆記將被永久從那些中繼器或其他存儲筆記的中繼器中刪除。</string>
+    <string name="quick_action_request_deletion_alert_body">Astro 將請求您的記錄從當前連接的中繼器中刪除。不能保證您發佈的筆記將被永久從那些中繼器或其他存儲筆記的中繼器中刪除。</string>
     <string name="quick_action_block_dialog_btn">屏蔽</string>
     <string name="quick_action_delete_dialog_btn">刪除</string>
     <string name="quick_action_block">屏蔽</string>
@@ -596,7 +596,7 @@
     <string name="workout_minutes">分鐘</string>
     <string name="workout_seconds">秒</string>
     <string name="workout_suggestion_connect_title">分享您的運動記錄</string>
-    <string name="workout_suggestion_connect_message">讓 Amethyst 從 Health Connect（Samsung Health、Google Fit、Fitbit、Garmin…）讀取已完成的運動記錄並建議一則貼文。</string>
+    <string name="workout_suggestion_connect_message">讓 Astro 從 Health Connect（Samsung Health、Google Fit、Fitbit、Garmin…）讀取已完成的運動記錄並建議一則貼文。</string>
     <string name="workout_suggestion_connect_button">連接</string>
     <string name="workout_suggestion_distance_km">%1$s 公里</string>
     <string name="workout_from_health_connect">來自 Health Connect</string>
@@ -698,7 +698,7 @@
     <!-- Signer trust levels -->
     <!-- Signer per-op consent dialog -->
     <!-- Signer op labels -->
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <!-- Permissions management screen -->
     <!-- Relay Authentication (NIP-42) settings -->
     <!-- Action-aware titles: %1$s is the person (or "Alice and others"). -->
@@ -841,7 +841,7 @@
     <string name="nest_create_schedule_toggle">排程稍後</string>
     <string name="nest_create_when">選擇開始時間</string>
     <string name="nests_servers_title">Nest 伺服器</string>
-    <string name="nests_servers_explainer">選擇 Amethyst 發布您的 nest 所使用的 MoQ 主機伺服器。預設情況下，開始新空間時會使用第一個項目。</string>
+    <string name="nests_servers_explainer">選擇 Astro 發布您的 nest 所使用的 MoQ 主機伺服器。預設情況下，開始新空間時會使用第一個項目。</string>
     <string name="nests_servers_my_section">您的伺服器</string>
     <string name="nests_servers_my_explainer">儲存為 kind:10112 可替換事件，讓其他客戶端可以讀取您的偏好設定。</string>
     <string name="nests_servers_add_relay_field">Relay（WebTransport）URL</string>
@@ -850,7 +850,7 @@
     <string name="nests_servers_auth_label">驗證</string>
     <string name="nests_servers_recommended_section">推薦伺服器</string>
     <string name="nests_servers_recommended_explainer">內建建議，只需點擊一下即可新增至您的列表。</string>
-    <string name="nests_servers_use_defaults">使用 Amethyst 預設值</string>
+    <string name="nests_servers_use_defaults">使用 Astro 預設值</string>
     <string name="nests_servers_add_recommended">新增伺服器</string>
     <string name="nests_servers_remove">移除伺服器</string>
     <string name="nests_servers_empty">尚無 nest 伺服器。在下方新增一個或選擇推薦伺服器。</string>
@@ -1044,9 +1044,9 @@
     <string name="local_blossom_cache_not_detected">未在連接埠 24242 偵測到本地快取。</string>
     <string name="local_blossom_cache_profile_pics_only">僅快取個人資料圖片</string>
     <string name="local_blossom_cache_profile_pics_only_caption">將本地快取限制為個人資料圖片。動態中的圖片和影片將直接從原始伺服器取得。</string>
-    <string name="no_blossom_server_message">您尚未設定任何 Blossom 伺服器。您可以使用 Amethyst 的清單，或在下方 ↓ 新增一個。</string>
+    <string name="no_blossom_server_message">您尚未設定任何 Blossom 伺服器。您可以使用 Astro 的清單，或在下方 ↓ 新增一個。</string>
     <string name="recommended_media_servers">推薦媒體伺服器</string>
-    <string name="built_in_servers_description">Amethyst 的默認列表。可單獨添加或添加整個列表。</string>
+    <string name="built_in_servers_description">Astro 的默認列表。可單獨添加或添加整個列表。</string>
     <string name="use_default_servers">使用默認列表</string>
     <string name="add_media_server">添加媒體服務器</string>
     <string name="delete_media_server">刪除媒體服務器</string>
@@ -1212,8 +1212,8 @@
     <string name="call_add_participant">新增參與者</string>
     <string name="call_search_users">搜尋使用者…</string>
     <string name="call_permission_denied_title">需要權限</string>
-    <string name="call_permission_denied_voice">Amethyst 需要麥克風存取權限才能發起語音通話。請在應用程式設定中啟用。</string>
-    <string name="call_permission_denied_video">Amethyst 需要攝影機及麥克風存取權限才能發起視訊通話。請在應用程式設定中啟用。</string>
+    <string name="call_permission_denied_voice">Astro 需要麥克風存取權限才能發起語音通話。請在應用程式設定中啟用。</string>
+    <string name="call_permission_denied_video">Astro 需要攝影機及麥克風存取權限才能發起視訊通話。請在應用程式設定中啟用。</string>
     <string name="call_permission_denied_open_settings">開啟設定</string>
     <string name="call_permission_denied_cancel">取消</string>
     <string name="call_settings">通話設定</string>
@@ -1232,7 +1232,7 @@
     <string name="call_settings_turn_username">使用者名稱</string>
     <string name="call_settings_turn_credential">憑證</string>
     <string name="always_on_notif_channel_description">保持與收件匣 relay 的連線，以接收即時通知</string>
-    <string name="always_on_notif_title">Amethyst 通知已啟用</string>
+    <string name="always_on_notif_title">Astro 通知已啟用</string>
     <plurals name="always_on_notif_connected">
         <item quantity="other">已連接至 %1$d 個收件匣 relay</item>
     </plurals>
@@ -1249,7 +1249,7 @@
     <string name="notification_tab_following">追蹤中</string>
     <string name="notification_tab_everyone">所有人</string>
     <string name="battery_optimization_title">電池最佳化已啟用</string>
-    <string name="battery_optimization_description">Android 可能會限制背景 relay 連線。請停用 Amethyst 的電池最佳化，以確保通知能可靠送達。</string>
+    <string name="battery_optimization_description">Android 可能會限制背景 relay 連線。請停用 Astro 的電池最佳化，以確保通知能可靠送達。</string>
     <string name="battery_optimization_fix_now">立即修正</string>
     <string name="reply_notify">通知： </string>
     <string name="today">今天</string>
@@ -1262,7 +1262,7 @@
     <string name="filter_spam_from_strangers_title">過濾垃圾訊息</string>
     <string name="filter_spam_from_strangers_explainer">隱藏陌生人發送的相同內容達 5 次或以上的貼文</string>
     <string name="add_client_tag_title">在我的事件中新增客戶端標籤</string>
-    <string name="add_client_tag_explainer">啟用後，Amethyst 會在您發布的事件中附加 NIP-89 客戶端標籤。</string>
+    <string name="add_client_tag_explainer">啟用後，Astro 會在您發布的事件中附加 NIP-89 客戶端標籤。</string>
     <string name="warn_when_posts_have_reports_from_your_follows_title">舉報警告</string>
     <string name="warn_when_posts_have_reports_from_your_follows_explainer">當貼文或個人資料遭您的追蹤對象舉報時顯示警告訊息</string>
     <string name="report_warning_threshold_title">舉報警告閾值</string>
@@ -1507,7 +1507,7 @@
     <string name="messages_new_subject_message_placeholder">為新目標更改名稱。</string>
     <string name="paste_from_clipboard">粘貼自剪貼板</string>
     <string name="couldnt_find_nwc_wallets">找不到錢包</string>
-    <string name="couldnt_find_nwc_wallets_description">Amethyst 找不到任何支援 Nostr Wallet Connect (NWC) 的錢包應用程式。\n\n您可以這樣做：\n\t1. 確認 NWC 支援：請再次確認您偏好的錢包應用程式是否與 Nostr Wallet Connect 相容。\n\t2. 建立連線：前往您的錢包應用程式並建立新的 NWC 連線。\n\t3. 連結至 Amethyst：您的錢包通常會提供三種選項：\n\t\t3.1 自動連結：點擊按鈕自動開啟並連接到 Amethyst。若有此選項，請點擊該按鈕，開啟 Amethyst 並在新畫面上點擊儲存。\n\t\t3.2 手動連結：複製連線 URI，然後點擊此畫面上的貼上圖示直接輸入。\n\t\t3.3 QR 碼：錢包會產生 QR 碼，您可透過此畫面上的 QR 碼按鈕掃描。\n    </string>
+    <string name="couldnt_find_nwc_wallets_description">Astro 找不到任何支援 Nostr Wallet Connect (NWC) 的錢包應用程式。\n\n您可以這樣做：\n\t1. 確認 NWC 支援：請再次確認您偏好的錢包應用程式是否與 Nostr Wallet Connect 相容。\n\t2. 建立連線：前往您的錢包應用程式並建立新的 NWC 連線。\n\t3. 連結至 Astro：您的錢包通常會提供三種選項：\n\t\t3.1 自動連結：點擊按鈕自動開啟並連接到 Astro。若有此選項，請點擊該按鈕，開啟 Astro 並在新畫面上點擊儲存。\n\t\t3.2 手動連結：複製連線 URI，然後點擊此畫面上的貼上圖示直接輸入。\n\t\t3.3 QR 碼：錢包會產生 QR 碼，您可透過此畫面上的 QR 碼按鈕掃描。\n    </string>
     <string name="language_description">用於應用程式界面</string>
     <string name="theme_description">暗色、亮色或系統主題</string>
     <string name="automatically_load_images_gifs_description">自動加載圖像和 GIF</string>
@@ -1575,7 +1575,7 @@
     <string name="error_unable_to_fetch_invoice">無法從接收方的伺服器獲取發票</string>
     <string name="wallet_connect_pay_invoice_error_error">你的錢包連接提供者返回了以下錯誤：%1$s</string>
     <string name="tor_connection_failed_title">Tor 無法連線</string>
-    <string name="tor_connection_failed_body">Amethyst 無法完成 Tor 的啟動程序。要使用一般（非 Tor）連線以載入動態嗎？我們將在接下來一小時內記住此選擇，之後會重新嘗試 Tor。</string>
+    <string name="tor_connection_failed_body">Astro 無法完成 Tor 的啟動程序。要使用一般（非 Tor）連線以載入動態嗎？我們將在接下來一小時內記住此選擇，之後會重新嘗試 Tor。</string>
     <string name="tor_continue_without_for_session">使用一般連線</string>
     <string name="tor_keep_waiting">繼續等待</string>
     <string name="could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup">無法從閃電地址集合 LNURL “%1$s”。請檢查用戶設置</string>
@@ -2111,7 +2111,7 @@
     <string name="show_npub_as_a_qr_code">將 npub 顯示爲二維碼</string>
     <string name="show_nprofile_as_a_qr_code">以 QR 碼顯示 nprofile</string>
     <string name="invalid_nip19_uri">地址無效</string>
-    <string name="invalid_nip19_uri_description">Amethyst 收到了要打開的 URI，但該 URI 無效：%1$s</string>
+    <string name="invalid_nip19_uri_description">Astro 收到了要打開的 URI，但該 URI 無效：%1$s</string>
     <string name="dm_relays_title">私信收件匣中繼</string>
     <string name="dm_relays_not_found">設定你的私人收件匣中繼</string>
     <string name="dm_relays_not_found_description">此設定讓大家知道向你發送訊息時要使用哪些中繼。如果沒有它們，你可能會錯過一些訊息。</string>
@@ -2138,7 +2138,7 @@
     <string name="relay_reorder">重新排序 relay</string>
     <string name="public_home_section">公開主頁中繼</string>
     <string name="public_home_section_explainer_profile">使用者正在將其內容發佈至這些 relay</string>
-    <string name="public_home_section_explainer">這種中繼將保存所有你的內容。Amethyst 會將你的帖子發送到此處，而他人則將使用這些中繼查找你的內容。輸入 1–3 個中繼。它們可以是個人中繼、付費中繼或公開中繼。</string>
+    <string name="public_home_section_explainer">這種中繼將保存所有你的內容。Astro 會將你的帖子發送到此處，而他人則將使用這些中繼查找你的內容。輸入 1–3 個中繼。它們可以是個人中繼、付費中繼或公開中繼。</string>
     <string name="public_notif_section">公開收件匣中繼</string>
     <string name="public_notif_section_explainer_profile">使用者正在這些 relay 上接收通知</string>
     <string name="public_notif_section_explainer">這種中繼接收所有對你的帖子的回覆、評論、點贊和打閃。輸入 1–3 個中繼並確認它們接收來自任何人的事件。</string>
@@ -2168,13 +2168,13 @@
     <string name="proxy_section_explainer">應用程式必須用來下載您的動態的聚合器 relay，例如 filter.nostr.wine。這將取代發件匣模式，使應用程式僅連線至您清單中的 relay。</string>
     <string name="broadcast_relays_title">廣播 Relay</string>
     <string name="broadcast_section">廣播 Relay</string>
-    <string name="broadcast_section_explainer">專門將您的貼文推送至所有其他 relay 的 relay，例如 sendit.nosflare.com。Amethyst 會將此 relay 加入您發出的所有新事件中。</string>
+    <string name="broadcast_section_explainer">專門將您的貼文推送至所有其他 relay 的 relay，例如 sendit.nosflare.com。Astro 會將此 relay 加入您發出的所有新事件中。</string>
     <string name="indexer_relays_title">索引 Relay</string>
     <string name="indexer_section">索引 Relay</string>
-    <string name="indexer_section_explainer">專門儲存所有人的元數據和 relay 清單的 relay，例如 purplepag.es。Amethyst 將使用這些 relay 尋找不在您清單中的用戶。</string>
+    <string name="indexer_section_explainer">專門儲存所有人的元數據和 relay 清單的 relay，例如 purplepag.es。Astro 將使用這些 relay 尋找不在您清單中的用戶。</string>
     <string name="blocked_relays_title">封鎖的 Relay</string>
     <string name="blocked_section">封鎖的 Relay</string>
-    <string name="blocked_section_explainer">Amethyst 永遠不會連線至這些 relay</string>
+    <string name="blocked_section_explainer">Astro 永遠不會連線至這些 relay</string>
     <string name="export_relay_settings">匯出 relay 設定</string>
     <string name="export_as_text">匯出為文字</string>
     <string name="export_as_zip">匯出為 ZIP（JSON）</string>
@@ -2346,7 +2346,7 @@
     <string name="feed_filter_selected">動態篩選條件，已選取 %1$s</string>
     <string name="feed_filter_select_an_option">動態篩選條件，%1$s</string>
     <string name="crashreport_found">發現當機報告</string>
-    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">您是否要透過私訊將最近的當機報告傳送給 Amethyst？不會分享任何個人資訊</string>
+    <string name="would_you_like_to_send_the_recent_crash_report_to_amethyst_in_a_dm_no_personal_information_will_be_shared">您是否要透過私訊將最近的當機報告傳送給 Astro？不會分享任何個人資訊</string>
     <string name="crashreport_found_send">傳送</string>
     <string name="this_message_will_disappear_in">此訊息將在 %1$s 後消失</string>
     <string name="select_signer">選擇簽署工具</string>

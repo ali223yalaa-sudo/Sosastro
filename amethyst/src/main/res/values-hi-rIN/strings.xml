@@ -762,7 +762,7 @@
     <string name="napplet_op_sign_kind">प्रकार %1$d घटना हस्ताक्षरण</string>
     <string name="napplet_op_sign_kind_named">%1$s के लिए हस्ताक्षरण (प्रकार : %2$d)</string>
     <string name="napplet_op_encrypt">सन्देश रहस्यीकरण</string>
-    <!-- Decrypt: the message is already decrypted by Amethyst; the permission is to expose it to the app -->
+    <!-- Decrypt: the message is already decrypted by Astro; the permission is to expose it to the app -->
     <string name="napplet_op_decrypt">आपके निजी सन्देशों का पठन</string>
     <!-- Permissions management screen -->
     <string name="napplet_permissions_title">संयोजित क्रमक</string>

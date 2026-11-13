@@ -56,6 +56,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -68,8 +69,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vitorpamplona.amethyst.Amethyst
 import com.vitorpamplona.amethyst.R
-import com.vitorpamplona.amethyst.commons.hashtags.Amethyst
-import com.vitorpamplona.amethyst.commons.hashtags.CustomHashTagIcons
 import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
 import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
 import com.vitorpamplona.amethyst.ui.screen.AccountSessionManager
@@ -136,7 +135,7 @@ fun LoginPage(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Image(
-            imageVector = CustomHashTagIcons.Amethyst,
+            painter = painterResource(R.drawable.ic_astro_logo),
             contentDescription = stringRes(R.string.app_logo),
             modifier = Modifier.size(150.dp),
             contentScale = ContentScale.Inside,
