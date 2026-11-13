@@ -910,8 +910,22 @@ class AppModules(
             sessionManager.accountContent.collectLatest { state ->
                 if (state is AccountState.LoggedIn) {
                     alwaysOnNotificationServiceManager.watchAccount(state.account)
+                    // Publish the app-scoped account to the call bridge at
+                    // process start — before (and independent of) any Activity
+                    // or ViewModel — so an incoming call can ring, be answered,
+                    // and be rendered headlessly (cold start, swiped from
+                    // Recents, screen off).
+                    com.vitorpamplona.amethyst.service.call.CallSessionBridge
+                        .setAccount(state.account)
+                    // Ring + raise the call foreground service when no call UI
+                    // is mounted (app closed / backgrounded). The UI takes over
+                    // once CallActivity is on screen.
+                    com.vitorpamplona.amethyst.service.call.HeadlessCallCoordinator
+                        .watch(appContext, state.account.callManager)
                 } else {
                     alwaysOnNotificationServiceManager.stop()
+                    com.vitorpamplona.amethyst.service.call.CallSessionBridge
+                        .clear()
                 }
             }
         }

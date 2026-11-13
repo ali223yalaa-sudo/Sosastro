@@ -193,8 +193,12 @@ class PeerSessionManager(
             return AnswerRouteAction.IGNORED_WRONG_STATE
         }
 
-        entry.session.setRemoteDescription(SdpType.ANSWER, sdpAnswer)
-        flushPendingIceCandidates(peerPubKey)
+        // Install the answer, then flush ICE only once libwebrtc has actually
+        // applied it. addIceCandidate before the remote answer is in place is
+        // rejected natively and would strand the connection at "connecting".
+        entry.session.setRemoteDescription(SdpType.ANSWER, sdpAnswer) {
+            flushPendingIceCandidates(peerPubKey)
+        }
         return AnswerRouteAction.APPLIED
     }
 

@@ -346,6 +346,36 @@ class PeerSessionManagerTest {
         assertEquals(1, fake.addedCandidates.size, "Buffered candidates should be flushed after answer")
     }
 
+    /**
+     * Regression: libwebrtc applies setRemoteDescription asynchronously, so
+     * addIceCandidate must not run until the completion callback fires.
+     * Flushing eagerly (the old behaviour) silently dropped every buffered
+     * candidate and stranded both peers at "connecting".
+     */
+    @Test
+    fun routeAnswerDefersIceFlushUntilRemoteDescriptionApplied() {
+        val manager = PeerSessionManager(localPubKey = alice)
+        val fake = FakePeerSession(signalingState = SignalingState.HAVE_LOCAL_OFFER, autoCompleteSetRemote = false)
+        manager.registerSession(bob, fake)
+        manager.routeIceCandidate(bob, makeCandidate("pre-answer-c"))
+
+        manager.routeAnswer(bob, "answer-sdp")
+
+        assertEquals(
+            0,
+            fake.addedCandidates.size,
+            "Candidates must NOT be added before the remote description is applied",
+        )
+
+        fake.completePendingSetRemote()
+
+        assertEquals(
+            1,
+            fake.addedCandidates.size,
+            "Buffered candidates should be flushed once the remote description is applied",
+        )
+    }
+
     // ========================================================================
     // Session Lifecycle
     // ========================================================================

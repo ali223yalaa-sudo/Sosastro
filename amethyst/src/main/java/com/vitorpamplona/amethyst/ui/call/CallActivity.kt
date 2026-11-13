@@ -105,12 +105,22 @@ class CallActivity : AppCompatActivity() {
         }
 
         val callManager = CallSessionBridge.callManager
-        val accountViewModel = CallSessionBridge.accountViewModel
+        // The account is app-scoped and survives Activity teardown; the
+        // ViewModel may be gone when we're launched headlessly from the
+        // incoming-call notification (cold start / swiped from Recents), so
+        // fall back to a lazily built one.
+        val accountViewModel = CallSessionBridge.resolveViewModel()
 
         if (callManager == null || accountViewModel == null) {
             finish()
             return
         }
+
+        // Tell the headless fallback (HeadlessCallCoordinator) to stand down:
+        // this Activity's CallSession now owns ringing + the call foreground
+        // service. Without this the two would ring simultaneously, because a
+        // cold-started call has a null Activity-scoped accountViewModel.
+        CallSessionBridge.setCallUiMounted(true)
 
         // Create the Activity-owned call session.
         val callSession =
@@ -229,6 +239,12 @@ class CallActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         unregisterPipReceiver()
+
+        // Let the headless fallback take over again (e.g. the call is still
+        // ringing and the user backed out, or the Activity is being recreated
+        // for a config change). Cleared before the teardown below so a fresh
+        // CallActivity can re-assert it.
+        CallSessionBridge.setCallUiMounted(false)
 
         // Release all WebRTC/audio/notification resources. close() is
         // synchronous and runs before super.onDestroy() cancels

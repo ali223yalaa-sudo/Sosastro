@@ -45,7 +45,6 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -69,10 +68,7 @@ class AccountCacheState(
     fun removeAccount(pubkey: HexKey) {
         accounts.update { existingAccounts ->
             val oldValue = existingAccounts[pubkey]
-            oldValue?.scope?.cancel()
-            // Unregisters the tracker's persistent listener from the shared
-            // client; without this every removed account leaks a listener.
-            oldValue?.chatDeliveryTracker?.destroy()
+            oldValue?.release()
             existingAccounts.minus(pubkey)
         }
     }
@@ -108,8 +104,7 @@ class AccountCacheState(
                 existingAccounts
             } else {
                 toRemove.values.forEach {
-                    it.scope.cancel()
-                    it.chatDeliveryTracker.destroy()
+                    it.release()
                 }
                 existingAccounts.minus(toRemove.keys)
             }
@@ -263,8 +258,7 @@ class AccountCacheState(
     fun clear() {
         accounts.update { existingAccounts ->
             existingAccounts.forEach {
-                it.value.scope.cancel()
-                it.value.chatDeliveryTracker.destroy()
+                it.value.release()
             }
             emptyMap()
         }

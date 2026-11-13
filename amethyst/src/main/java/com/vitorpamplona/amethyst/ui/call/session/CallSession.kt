@@ -336,12 +336,16 @@ class CallSession(
 
             val adapter = WebRtcPeerSessionAdapter(webRtcSession)
             peerSessionMgr.registerSession(callerPubKey, adapter)
-            adapter.setRemoteDescription(SdpType.OFFER, sdpOffer)
-            peerSessionMgr.flushPendingIceCandidates(callerPubKey)
-
-            webRtcSession.createAnswer { sdp ->
-                scope.launch {
-                    callManager.acceptCall(sdp.description)
+            // createAnswer is only legal after the remote offer is installed,
+            // so both it and the ICE flush run from the setRemoteDescription
+            // completion callback. Doing them eagerly raced libwebrtc and left
+            // the call stuck at "connecting".
+            adapter.setRemoteDescription(SdpType.OFFER, sdpOffer) {
+                peerSessionMgr.flushPendingIceCandidates(callerPubKey)
+                webRtcSession.createAnswer { sdp ->
+                    scope.launch {
+                        callManager.acceptCall(sdp.description)
+                    }
                 }
             }
         }
@@ -457,10 +461,11 @@ class CallSession(
                 }
             val adapter = WebRtcPeerSessionAdapter(webRtcSession)
             peerSessionMgr.registerSession(peerPubKey, adapter)
-            adapter.setRemoteDescription(SdpType.OFFER, sdpOffer)
-            peerSessionMgr.flushPendingIceCandidates(peerPubKey)
-            webRtcSession.createAnswer { sdp ->
-                scope.launch { callManager.publishAnswerToPeer(peerPubKey, sdp.description) }
+            adapter.setRemoteDescription(SdpType.OFFER, sdpOffer) {
+                peerSessionMgr.flushPendingIceCandidates(peerPubKey)
+                webRtcSession.createAnswer { sdp ->
+                    scope.launch { callManager.publishAnswerToPeer(peerPubKey, sdp.description) }
+                }
             }
         }
     }
@@ -482,9 +487,12 @@ class CallSession(
         peerPubKey: HexKey,
         sdpOffer: String,
     ) {
-        session.setRemoteDescription(SdpType.OFFER, sdpOffer)
-        session.createAnswer { sdpAnswer ->
-            scope.launch { callManager.sendRenegotiationAnswer(sdpAnswer, peerPubKey) }
+        // Answer only after the remote renegotiation offer is applied; the
+        // answer is invalid otherwise.
+        session.setRemoteDescription(SdpType.OFFER, sdpOffer) {
+            session.createAnswer { sdpAnswer ->
+                scope.launch { callManager.sendRenegotiationAnswer(sdpAnswer, peerPubKey) }
+            }
         }
     }
 

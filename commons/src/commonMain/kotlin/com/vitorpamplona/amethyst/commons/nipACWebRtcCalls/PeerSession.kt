@@ -55,9 +55,16 @@ enum class SdpType {
 interface PeerSession {
     fun getSignalingState(): SignalingState?
 
+    /**
+     * Installs the remote SDP. [onSet] MUST be invoked only once the
+     * description has actually been applied — libwebrtc applies it
+     * asynchronously, and [createAnswer]/[addIceCandidate] are illegal
+     * before that point.
+     */
     fun setRemoteDescription(
         type: SdpType,
         sdp: String,
+        onSet: () -> Unit = {},
     )
 
     fun addIceCandidate(candidate: IceCandidateData)

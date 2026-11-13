@@ -50,13 +50,14 @@ class WebRtcPeerSessionAdapter(
     override fun setRemoteDescription(
         type: SdpType,
         sdp: String,
+        onSet: () -> Unit,
     ) {
         val sdType =
             when (type) {
                 SdpType.OFFER -> SessionDescription.Type.OFFER
                 SdpType.ANSWER -> SessionDescription.Type.ANSWER
             }
-        webRtcSession.setRemoteDescription(SessionDescription(sdType, sdp))
+        webRtcSession.setRemoteDescription(SessionDescription(sdType, sdp), onSet)
     }
 
     override fun addIceCandidate(candidate: IceCandidateData) {

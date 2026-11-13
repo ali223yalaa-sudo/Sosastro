@@ -48,6 +48,7 @@ import com.vitorpamplona.amethyst.commons.model.nip56Reports.ReportAction
 import com.vitorpamplona.amethyst.commons.model.nip72Communities.CommunityListDecryptionCache
 import com.vitorpamplona.amethyst.commons.model.nip85TrustedAssertions.TrustProviderListDecryptionCache
 import com.vitorpamplona.amethyst.commons.model.privateChats.ChatControlMessage
+import com.vitorpamplona.amethyst.commons.nipACWebRtcCalls.CallManager
 import com.vitorpamplona.amethyst.commons.onchain.OnchainZapSendError
 import com.vitorpamplona.amethyst.commons.onchain.OnchainZapSendResult
 import com.vitorpamplona.amethyst.commons.onchain.OnchainZapSendStage
@@ -312,6 +313,7 @@ import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -548,9 +550,42 @@ class Account(
 
     val newNotesPreProcessor = EventProcessor(this, cache)
 
+    /**
+     * App-scoped call state machine. It is intentionally owned by the Account
+     * (not by an Activity-scoped ViewModel) so that an incoming call still
+     * rings, and can be answered, while no UI is mounted — cold start, app
+     * swiped from Recents, or screen off with only the always-on service
+     * alive. It is released when the account itself is removed
+     * ([AccountCacheState.removeAccount] cancels [scope]).
+     */
+    val callManager: CallManager =
+        CallManager(
+            signer = signer,
+            scope = scope,
+            isFollowing = { isFollowing(it) },
+            publishEvent = { wrap -> scope.launch { publishCallSignaling(wrap) } },
+            isKnownCaller = { isKnownCaller(it) },
+            allowKnownCallers = { true },
+            isCallsEnabled = { settings.callsEnabled.value },
+        ).also { manager -> newNotesPreProcessor.callManager = manager }
+
     // Per-message publish acceptance (relay OKs), feeding the delivery ticks on
     // own chat bubbles.
     val chatDeliveryTracker = ChatDeliveryTracker(client)
+
+    /**
+     * Releases every process-lifetime resource this account owns. Called only
+     * when the account is permanently removed from the cache (logout, account
+     * switch, app termination) — never on mere Activity teardown, which is
+     * exactly why the call manager lives here rather than in a ViewModel.
+     */
+    fun release() {
+        callManager.dispose()
+        // Unregisters the tracker's persistent listener from the shared
+        // client; without this every removed account leaks a listener.
+        chatDeliveryTracker.destroy()
+        scope.cancel()
+    }
 
     val otsState = OtsState(signer, cache, otsResolverBuilder, scope, settings)
 

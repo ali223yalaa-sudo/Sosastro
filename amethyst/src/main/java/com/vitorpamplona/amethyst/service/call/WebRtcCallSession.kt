@@ -203,10 +203,16 @@ class WebRtcCallSession(
         peerConnection?.createOffer(
             object : SdpObserver {
                 override fun onCreateSuccess(sdp: SessionDescription?) {
-                    sdp?.let {
-                        Log.d(TAG) { "Offer created, sdpLength=${it.description.length}, setting local description" }
-                        peerConnection?.setLocalDescription(loggingSdpObserver("setLocalDescription(OFFER)"), it)
-                        onSdpCreated(it)
+                    sdp?.let { offer ->
+                        Log.d(TAG) { "Offer created, sdpLength=${offer.description.length}, setting local description" }
+                        // Publish only after the local offer is installed. The
+                        // incoming answer is gated on our signaling state being
+                        // HAVE_LOCAL_OFFER, so signalling it earlier would get
+                        // the answer rejected as wrong-state and hang the call.
+                        peerConnection?.setLocalDescription(
+                            localDescriptionObserver("setLocalDescription(OFFER)") { onSdpCreated(offer) },
+                            offer,
+                        )
                     }
                 }
 
@@ -216,11 +222,11 @@ class WebRtcCallSession(
                 }
 
                 override fun onSetSuccess() {
-                    // no-op: createOffer fires only onCreate*; setLocalDescription uses loggingSdpObserver.
+                    // no-op: createOffer fires only onCreate*; setLocalDescription uses localDescriptionObserver.
                 }
 
                 override fun onSetFailure(error: String?) {
-                    // no-op: createOffer fires only onCreate*; setLocalDescription uses loggingSdpObserver.
+                    // no-op: createOffer fires only onCreate*; setLocalDescription uses localDescriptionObserver.
                 }
             },
             constraints,
@@ -237,10 +243,15 @@ class WebRtcCallSession(
         peerConnection?.createAnswer(
             object : SdpObserver {
                 override fun onCreateSuccess(sdp: SessionDescription?) {
-                    sdp?.let {
-                        Log.d(TAG) { "Answer created, sdpLength=${it.description.length}, setting local description" }
-                        peerConnection?.setLocalDescription(loggingSdpObserver("setLocalDescription(ANSWER)"), it)
-                        onSdpCreated(it)
+                    sdp?.let { answer ->
+                        Log.d(TAG) { "Answer created, sdpLength=${answer.description.length}, setting local description" }
+                        // Send the answer only after it is installed locally;
+                        // otherwise the caller may receive it before our
+                        // signaling state settles and reject it as wrong-state.
+                        peerConnection?.setLocalDescription(
+                            localDescriptionObserver("setLocalDescription(ANSWER)") { onSdpCreated(answer) },
+                            answer,
+                        )
                     }
                 }
 
@@ -250,18 +261,31 @@ class WebRtcCallSession(
                 }
 
                 override fun onSetSuccess() {
-                    // no-op: createAnswer fires only onCreate*; setLocalDescription uses loggingSdpObserver.
+                    // no-op: createAnswer fires only onCreate*; setLocalDescription uses localDescriptionObserver.
                 }
 
                 override fun onSetFailure(error: String?) {
-                    // no-op: createAnswer fires only onCreate*; setLocalDescription uses loggingSdpObserver.
+                    // no-op: createAnswer fires only onCreate*; setLocalDescription uses localDescriptionObserver.
                 }
             },
             constraints,
         )
     }
 
-    fun setRemoteDescription(sdp: SessionDescription) {
+    /**
+     * Applies the remote SDP. [onSet] fires only after libwebrtc has actually
+     * accepted the description (inside `onSetSuccess`).
+     *
+     * Sequencing matters: `createAnswer()` and `addIceCandidate()` are both
+     * illegal until the remote offer/answer is installed. Calling them right
+     * after this method returns races the native `setRemoteDescription` and
+     * silently fails — which is exactly what leaves both peers stuck at
+     * "connecting" forever. Callers MUST do their follow-up work in [onSet].
+     */
+    fun setRemoteDescription(
+        sdp: SessionDescription,
+        onSet: () -> Unit = {},
+    ) {
         Log.d(TAG) { "setRemoteDescription type=${sdp.type} sdpLength=${sdp.description.length}" }
         peerConnection?.setRemoteDescription(
             object : SdpObserver {
@@ -275,6 +299,7 @@ class WebRtcCallSession(
 
                 override fun onSetSuccess() {
                     Log.d(TAG) { "setRemoteDescription SUCCESS (type=${sdp.type})" }
+                    onSet()
                 }
 
                 override fun onSetFailure(error: String?) {
@@ -306,10 +331,12 @@ class WebRtcCallSession(
         peerConnection?.createOffer(
             object : SdpObserver {
                 override fun onCreateSuccess(sdp: SessionDescription?) {
-                    sdp?.let {
+                    sdp?.let { offer ->
                         Log.d(TAG) { "ICE restart offer created, setting local description and sending to peer" }
-                        peerConnection?.setLocalDescription(loggingSdpObserver("setLocalDescription(ICE_RESTART)"), it)
-                        onIceRestartOffer(it)
+                        peerConnection?.setLocalDescription(
+                            localDescriptionObserver("setLocalDescription(ICE_RESTART)") { onIceRestartOffer(offer) },
+                            offer,
+                        )
                     }
                 }
 
@@ -399,4 +426,33 @@ class WebRtcCallSession(
                 error?.let { onError("SDP error: $it") }
             }
         }
+
+    /**
+     * setLocalDescription observer that runs [onSet] only once libwebrtc has
+     * actually installed the description. The outgoing offer/answer must not
+     * be signalled before this point or the peer's state machine rejects the
+     * reply and the call never leaves "connecting".
+     */
+    private fun localDescriptionObserver(
+        label: String,
+        onSet: () -> Unit,
+    ) = object : SdpObserver {
+        override fun onCreateSuccess(sdp: SessionDescription?) {
+            // no-op: setLocalDescription fires only onSet*.
+        }
+
+        override fun onCreateFailure(error: String?) {
+            // no-op: setLocalDescription fires only onSet*.
+        }
+
+        override fun onSetSuccess() {
+            Log.d(TAG) { "$label onSetSuccess" }
+            onSet()
+        }
+
+        override fun onSetFailure(error: String?) {
+            Log.e(TAG) { "$label onSetFailure: $error" }
+            error?.let { onError("SDP error: $it") }
+        }
+    }
 }

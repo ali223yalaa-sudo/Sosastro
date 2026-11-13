@@ -27,6 +27,10 @@ package com.vitorpamplona.amethyst.commons.nipACWebRtcCalls
  */
 class FakePeerSession(
     private var signalingState: SignalingState = SignalingState.STABLE,
+    /** When false, [setRemoteDescription] does not invoke its completion
+     *  callback until [completePendingSetRemote] is called — models
+     *  libwebrtc's asynchronous application of the description. */
+    private val autoCompleteSetRemote: Boolean = true,
 ) : PeerSession {
     val addedCandidates = mutableListOf<IceCandidateData>()
     var lastRemoteDescription: Pair<SdpType, String>? = null
@@ -35,11 +39,21 @@ class FakePeerSession(
     var lastCreatedOffer: String? = null
     var lastCreatedAnswer: String? = null
 
+    private var pendingSetRemoteCompletion: (() -> Unit)? = null
+
+    /** Applies a deferred [setRemoteDescription] completion (see constructor). */
+    fun completePendingSetRemote() {
+        val completion = pendingSetRemoteCompletion ?: return
+        pendingSetRemoteCompletion = null
+        completion()
+    }
+
     override fun getSignalingState(): SignalingState = signalingState
 
     override fun setRemoteDescription(
         type: SdpType,
         sdp: String,
+        onSet: () -> Unit,
     ) {
         lastRemoteDescription = type to sdp
         signalingState =
@@ -47,6 +61,11 @@ class FakePeerSession(
                 SdpType.ANSWER -> SignalingState.STABLE
                 SdpType.OFFER -> SignalingState.HAVE_REMOTE_OFFER
             }
+        if (autoCompleteSetRemote) {
+            onSet()
+        } else {
+            pendingSetRemoteCompletion = onSet
+        }
     }
 
     override fun addIceCandidate(candidate: IceCandidateData) {
