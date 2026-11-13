@@ -52,12 +52,209 @@ data class RoomGiftSku(
      * Bundled SVGA animation asset (path under `assets/`), or `null`
      * for a gift that only has an emoji treatment. When present the
      * overlay plays the SVGA full-screen instead of the emoji rise.
-     * Assets are imported verbatim from Tencent's open-source
-     * TUILiveKit gift pack (MIT); see `assets/gifts/`.
+     * Assets are imported verbatim from Tencent's MIT-licensed
+     * TUILiveKit gift pack and from the Apache-2.0
+     * `svga/SVGAPlayer-Android` sample assets; see `assets/gifts/`.
      */
     val svga: String? = null,
 ) {
     fun label(arabic: Boolean): String = if (arabic) labelAr else labelEn
+}
+
+/**
+ * Particle motif drawn behind a gift's emblem when the gift has no
+ * bundled SVGA clip. Each gift resolves to exactly one motif (via
+ * [RoomGiftSku.theme]), so two different gifts never share the same
+ * backdrop — the old fixed "rays + confetti" layer made every gift
+ * look identical, which is precisely what it should not do.
+ */
+enum class GiftMotif {
+    Petals,
+    Sparks,
+    Stars,
+    Confetti,
+    Bubbles,
+    Rings,
+    Shockwave,
+    Hearts,
+    Feathers,
+    Fireworks,
+    Snow,
+    Leaves,
+}
+
+/**
+ * Per-gift visual identity: the accent pair drives the backdrop tint,
+ * rays and emblem chrome, [motif] selects the particle layer, and
+ * [variant] shifts the particle count/spread so two gifts that share a
+ * motif still differ. Deriving it from the SKU (rather than hard-coding
+ * one look for the whole catalog) is what gives each gift its own
+ * treatment.
+ */
+@Immutable
+data class RoomGiftTheme(
+    val accent: Long,
+    val accentDeep: Long,
+    val motif: GiftMotif,
+    /** Signed ray spin over the burst; sign flips per gift for variety. */
+    val rayRotation: Float,
+    /** 0..THEME_VARIANTS-1; scales the particle layer. */
+    val variant: Int,
+    /**
+     * Per-gift layout phase. Mixed into every particle seed so two
+     * gifts sharing a motif *and* variant still scatter differently —
+     * colour alone is not a distinct animation.
+     */
+    val seed: Int,
+)
+
+/** Accent/deep pairs, spread across the hue wheel. */
+private val GiftAccents: List<Pair<Long, Long>> =
+    listOf(
+        0xFFFFD54FL to 0xFFFFA726L, // gold
+        0xFFF48FB1L to 0xFFC2185BL, // rose
+        0xFF80DEEAL to 0xFF0097A7L, // cyan
+        0xFFB39DDBL to 0xFF5E35B1L, // violet
+        0xFFFF8A65L to 0xFFD84315L, // coral
+        0xFFA5D6A7L to 0xFF2E7D32L, // jade
+        0xFFEF9A9AL to 0xFFC62828L, // crimson
+        0xFF90CAF9L to 0xFF1565C0L, // azure
+        0xFFFFF176L to 0xFFF9A825L, // lemon
+        0xFFCE93D8L to 0xFF6A1B9AL, // orchid
+        0xFF80CBC4L to 0xFF00695CL, // teal
+        0xFFFFAB91L to 0xFFE64A19L, // peach
+    )
+
+/** Motifs that read as "the right thing" for a given gift id. */
+private val SemanticMotifs: Map<String, GiftMotif> =
+    mapOf(
+        "rose" to GiftMotif.Petals,
+        "bouquet" to GiftMotif.Petals,
+        "heart" to GiftMotif.Hearts,
+        "kiss" to GiftMotif.Hearts,
+        "star" to GiftMotif.Stars,
+        "trophy" to GiftMotif.Stars,
+        "crown" to GiftMotif.Stars,
+        "crownjewel" to GiftMotif.Stars,
+        "crownmega" to GiftMotif.Stars,
+        "unicorn" to GiftMotif.Stars,
+        "gift" to GiftMotif.Confetti,
+        "cake" to GiftMotif.Confetti,
+        "balloon" to GiftMotif.Confetti,
+        "clap" to GiftMotif.Confetti,
+        "beer" to GiftMotif.Bubbles,
+        "coffee" to GiftMotif.Sparks,
+        "perfume" to GiftMotif.Bubbles,
+        "icecream" to GiftMotif.Snow,
+        "christmas" to GiftMotif.Snow,
+        "castle" to GiftMotif.Fireworks,
+        "planet" to GiftMotif.Rings,
+        "galaxy" to GiftMotif.Rings,
+        "galaxyrocket" to GiftMotif.Fireworks,
+        "rocket" to GiftMotif.Sparks,
+        "jet" to GiftMotif.Sparks,
+        "helicopter" to GiftMotif.Feathers,
+        "yacht" to GiftMotif.Bubbles,
+        "dragon" to GiftMotif.Fireworks,
+        "lion" to GiftMotif.Sparks,
+        "cat" to GiftMotif.Hearts,
+        "angel" to GiftMotif.Feathers,
+        "guitar" to GiftMotif.Leaves,
+        "teddy" to GiftMotif.Hearts,
+        "ring" to GiftMotif.Shockwave,
+        "diamond" to GiftMotif.Shockwave,
+        "phone" to GiftMotif.Rings,
+        "car" to GiftMotif.Sparks,
+        "sportscar" to GiftMotif.Sparks,
+        "pin" to GiftMotif.Fireworks,
+    )
+
+private val AllMotifs: List<GiftMotif> = GiftMotif.entries.toList()
+
+/** How many particle-density variants a motif offers. */
+const val THEME_VARIANTS: Int = 3
+
+/** FNV-1a — stable across platforms so a gift always themes identically. */
+private fun stableHash(s: String): Int {
+    var h = 0x811C9DC5L
+    for (c in s) {
+        h = h xor (c.code.toLong() and 0xFF)
+        h = (h * 0x01000193L) and 0xFFFFFFFFL
+    }
+    return (h and 0x7FFFFFFFL).toInt()
+}
+
+/**
+ * Deterministic theme for a sku id. Accent, motif and variant are all
+ * derived from [id] via [stableHash], so the panel and the overlay
+ * agree without shared mutable state, and an unknown/future SKU still
+ * gets a distinct, stable treatment instead of a shared fallback.
+ */
+private fun themeFor(id: String): RoomGiftTheme {
+    val h = stableHash(id)
+    val motif = SemanticMotifs[id] ?: AllMotifs[h % AllMotifs.size]
+    val (accent, deep) = GiftAccents[(h / 7) % GiftAccents.size]
+    return RoomGiftTheme(
+        accent = accent,
+        accentDeep = deep,
+        motif = motif,
+        rayRotation = if (h and 1 == 0) 110f else -110f,
+        variant = (h / 13) % THEME_VARIANTS,
+        seed = h,
+    )
+}
+
+/**
+ * Resolve this gift's [RoomGiftTheme]. Pure and deterministic, so the
+ * panel and the overlay agree on the look.
+ */
+fun RoomGiftSku.theme(): RoomGiftTheme = CatalogThemes[id] ?: themeFor(id)
+
+/**
+ * Theme for a raw sku id, tolerating an unknown/future SKU (the
+ * catalog keeps such gifts so their emoji still renders). Unknown ids
+ * hash into the same accent/motif space as the known catalog, so a
+ * gift from a newer peer still gets a distinct, stable treatment
+ * instead of the old one-size-fits-all backdrop.
+ */
+fun giftThemeFor(skuId: String): RoomGiftTheme = CatalogThemes[skuId] ?: themeFor(skuId)
+
+/**
+ * Themes for the known catalog, assigned so no two gifts share the
+ * same accent *and* motif — the coarse signature a viewer actually
+ * perceives. Each gift first tries the accent its hash suggests; if a
+ * same-motif gift already claimed it, it takes the next free accent.
+ * The catalog's largest motif group is smaller than the accent count,
+ * so a free accent always exists and the guarantee holds. Lazy so the
+ * catalog can be declared below without an initialisation cycle.
+ */
+private val CatalogThemes: Map<String, RoomGiftTheme> by lazy {
+    val usedByMotif = HashMap<GiftMotif, MutableSet<Int>>()
+    val out = LinkedHashMap<String, RoomGiftTheme>(RoomGiftCatalog.all.size)
+    for (sku in RoomGiftCatalog.all) {
+        val h = stableHash(sku.id)
+        val motif = SemanticMotifs[sku.id] ?: AllMotifs[h % AllMotifs.size]
+        val used = usedByMotif.getOrPut(motif) { mutableSetOf() }
+        val preferred = (h / 7) % GiftAccents.size
+        val accentIndex =
+            if (preferred !in used) {
+                preferred
+            } else {
+                (0 until GiftAccents.size).firstOrNull { it !in used } ?: preferred
+            }
+        used.add(accentIndex)
+        val (accent, deep) = GiftAccents[accentIndex]
+        out[sku.id] =
+            RoomGiftTheme(
+                accent = accent,
+                accentDeep = deep,
+                motif = motif,
+                rayRotation = if (h and 1 == 0) 110f else -110f,
+                variant = (h / 13) % THEME_VARIANTS,
+                seed = h,
+            )
+    }
+    out
 }
 
 /**
@@ -66,10 +263,12 @@ data class RoomGiftSku(
  * send path, the panel and the overlay all resolve the same SKU by
  * id, and so a unit test can assert the catalog is well-formed.
  *
- * Tiers drive the playback treatment in the overlay:
+ * Tiers set the *scale* of the treatment, while each gift's
+ * [RoomGiftSku.theme] sets its *identity* (accent colour + particle
+ * motif), so no two gifts in a tier share a look:
  *   * 1 standard — a small rise.
  *   * 2 premium  — a bigger rise with a sparkle ring.
- *   * 3 luxe     — a full-screen cinematic takeover (rays + confetti).
+ *   * 3 luxe     — a full-screen cinematic takeover.
  *   * 4 legendary — a mega takeover (shock rings, screen flash,
  *     giant emblem, sender → receiver marquee).
  */
@@ -77,8 +276,8 @@ object RoomGiftCatalog {
     val all: List<RoomGiftSku> =
         listOf(
             // ── Standard ─────────────────────────────────────────────
-            RoomGiftSku("rose", "🌹", "وردة", "Rose", 1, 1),
-            RoomGiftSku("heart", "❤️", "قلب", "Heart", 1, 1),
+            RoomGiftSku("rose", "🌹", "وردة", "Rose", 1, 1, svga = "gifts/rose.svga"),
+            RoomGiftSku("heart", "❤️", "قلب", "Heart", 1, 1, svga = "gifts/heartbeat.svga"),
             RoomGiftSku("star", "⭐", "نجمة", "Star", 1, 2),
             RoomGiftSku("clap", "👏", "تصفيق", "Applause", 1, 2),
             RoomGiftSku("kiss", "💋", "قبلة", "Kiss", 1, 3),
@@ -88,9 +287,9 @@ object RoomGiftCatalog {
             RoomGiftSku("beer", "🍺", "مشروب", "Cheers", 1, 6),
             RoomGiftSku("balloon", "🎈", "بالون", "Balloon", 1, 8),
             // ── Premium ──────────────────────────────────────────────
-            RoomGiftSku("gift", "🎁", "هدية", "Gift Box", 2, 20),
+            RoomGiftSku("gift", "🎁", "هدية", "Gift Box", 2, 20, svga = "gifts/christmas.svga"),
             RoomGiftSku("perfume", "🧴", "عطر", "Perfume", 2, 30),
-            RoomGiftSku("bouquet", "💐", "باقة ورد", "Bouquet", 2, 40),
+            RoomGiftSku("bouquet", "💐", "باقة ورد", "Bouquet", 2, 40, svga = "gifts/rose_v2.svga"),
             RoomGiftSku("trophy", "🏆", "كأس", "Trophy", 2, 66),
             RoomGiftSku("crown", "👑", "تاج", "Crown", 2, 88),
             RoomGiftSku("guitar", "🎸", "قيثارة", "Guitar", 2, 99),
@@ -108,9 +307,9 @@ object RoomGiftCatalog {
             RoomGiftSku("angel", "👼", "ملاك", "Angel", 3, 3333, svga = "gifts/angel.svga"),
             RoomGiftSku("pin", "📍", "دبوس", "Pin", 3, 777, svga = "gifts/pin_jump.svga"),
             // Emoji-only luxe gifts still get the cinematic backdrop.
-            RoomGiftSku("rocket", "🚀", "صاروخ", "Rocket", 3, 520),
+            RoomGiftSku("rocket", "🚀", "صاروخ", "Rocket", 3, 520, svga = "gifts/rocket.svga"),
             RoomGiftSku("crownjewel", "👑", "تاج المرصع", "Jewelled Crown", 3, 888),
-            RoomGiftSku("castle", "🏰", "قلعة", "Castle", 3, 999),
+            RoomGiftSku("castle", "🏰", "قلعة", "Castle", 3, 999, svga = "gifts/castle.svga"),
             RoomGiftSku("helicopter", "🚁", "هليكوبتر", "Helicopter", 3, 3000),
             RoomGiftSku("yacht", "🛥️", "يخت", "Yacht", 3, 5200),
             // ── Legendary (mega takeover) ────────────────────────────

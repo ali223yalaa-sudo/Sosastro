@@ -167,4 +167,64 @@ class RoomGiftsStateTest {
         assertEquals("Rose", rose.label(arabic = false))
         assertEquals("وردة", rose.label(arabic = true))
     }
+
+    @Test
+    fun everyGiftHasADistinctTheme() {
+        // The whole point of the theme layer: no two gifts share a look.
+        // Signature = accent + motif + spin + variant + layout seed.
+        val signatures =
+            RoomGiftCatalog.all.map { sku ->
+                val t = sku.theme()
+                "${t.accent}/${t.motif}/${t.rayRotation}/${t.variant}/${t.seed}"
+            }
+        assertEquals(
+            RoomGiftCatalog.all.size,
+            signatures.toSet().size,
+            "each gift must resolve to a unique theme signature",
+        )
+    }
+
+    @Test
+    fun noTwoGiftsShareAccentAndMotif() {
+        // The coarse signature a viewer actually perceives — two gifts
+        // with the same accent *and* motif would read as identical.
+        val coarse = RoomGiftCatalog.all.map { "${it.theme().accent}/${it.theme().motif}" }
+        assertEquals(
+            RoomGiftCatalog.all.size,
+            coarse.toSet().size,
+            "two gifts must not share both accent and motif",
+        )
+    }
+
+    @Test
+    fun themeIsStableAcrossCalls() {
+        val a = RoomGiftCatalog.byId("dragon")!!.theme()
+        val b = RoomGiftCatalog.byId("dragon")!!.theme()
+        assertEquals(a, b)
+    }
+
+    @Test
+    fun semanticGiftsGetMatchingMotifs() {
+        assertEquals(GiftMotif.Petals, RoomGiftCatalog.byId("rose")!!.theme().motif)
+        assertEquals(GiftMotif.Hearts, RoomGiftCatalog.byId("heart")!!.theme().motif)
+        assertEquals(GiftMotif.Stars, RoomGiftCatalog.byId("star")!!.theme().motif)
+        assertEquals(GiftMotif.Snow, RoomGiftCatalog.byId("icecream")!!.theme().motif)
+        assertEquals(GiftMotif.Fireworks, RoomGiftCatalog.byId("castle")!!.theme().motif)
+    }
+
+    @Test
+    fun unknownSkuStillGetsAStableTheme() {
+        // A gift from a newer peer must not fall back to a shared look.
+        val a = giftThemeFor("some-future-sku")
+        val b = giftThemeFor("some-future-sku")
+        assertEquals(a, b)
+        assertTrue(a.variant in 0 until THEME_VARIANTS)
+    }
+
+    @Test
+    fun catalogSvgaAssetsAreUniquePerGift() {
+        val assets = RoomGiftCatalog.all.mapNotNull { it.svga }
+        assertEquals(assets.size, assets.toSet().size, "two gifts must not share one clip")
+        assertTrue(assets.all { it.startsWith("gifts/") && it.endsWith(".svga") })
+    }
 }

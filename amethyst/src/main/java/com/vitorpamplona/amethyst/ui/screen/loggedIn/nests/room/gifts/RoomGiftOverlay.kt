@@ -50,14 +50,18 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vitorpamplona.amethyst.commons.viewmodels.GiftMotif
 import com.vitorpamplona.amethyst.commons.viewmodels.RoomGift
 import com.vitorpamplona.amethyst.commons.viewmodels.RoomGiftCatalog
+import com.vitorpamplona.amethyst.commons.viewmodels.RoomGiftTheme
 import com.vitorpamplona.amethyst.commons.viewmodels.giftBurstMillis
+import com.vitorpamplona.amethyst.commons.viewmodels.giftThemeFor
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -161,6 +165,7 @@ private fun GiftBurst(
     modifier: Modifier = Modifier,
 ) {
     val svgaAsset = RoomGiftCatalog.byId(gift.skuId)?.svga
+    val theme = giftThemeFor(gift.skuId)
     val epic = gift.tier >= 3
     val durationMs = giftBurstMillis(gift.tier).toInt()
 
@@ -181,7 +186,7 @@ private fun GiftBurst(
         contentAlignment = Alignment.Center,
     ) {
         if (epic) {
-            EpicBackdrop(gift = gift, progress = p)
+            EpicBackdrop(gift = gift, theme = theme, progress = p)
         }
         if (svgaAsset != null) {
             // Imported SVGA clip plays full-screen; the emoji emblem is
@@ -196,23 +201,27 @@ private fun GiftBurst(
                     senderName = senderName,
                     receiverName = receiverName,
                     gift = gift,
+                    theme = theme,
                     progress = p,
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp),
                 )
             }
         } else {
-            Emblem(gift = gift, senderName = senderName, receiverName = receiverName, epic = epic, progress = p)
+            Emblem(gift = gift, theme = theme, senderName = senderName, receiverName = receiverName, epic = epic, progress = p)
         }
     }
 }
 
-/** Dark scrim + rotating rays + confetti + (legendary) flash & shock rings. */
+/** Dark scrim + themed rays + the gift's own particle motif + (legendary) flash & shock rings. */
 @Composable
 private fun EpicBackdrop(
     gift: RoomGift,
+    theme: RoomGiftTheme,
     progress: Float,
 ) {
     val legendary = gift.tier >= 4
+    val accent = Color(theme.accent)
+    val accentDeep = Color(theme.accentDeep)
     // Fade the scrim in fast, hold, then fade out over the last 25%.
     val scrimAlpha =
         when {
@@ -234,22 +243,23 @@ private fun EpicBackdrop(
         val cy = size.height / 2f
         val maxR = size.minDimension
 
-        // Scrim.
+        // Scrim, tinted by the gift's own deep accent so the room behind
+        // reads warm/cool/violet depending on what was sent.
         if (scrimAlpha > 0f) {
             drawRect(
                 brush =
                     Brush.radialGradient(
-                        colors = listOf(GiftGoldDeep.copy(alpha = scrimAlpha), Color.Black.copy(alpha = scrimAlpha)),
+                        colors = listOf(accentDeep.copy(alpha = scrimAlpha), Color.Black.copy(alpha = scrimAlpha)),
                         center = Offset(cx, cy),
                         radius = maxR * 0.9f,
                     ),
             )
         }
 
-        // Rotating light rays.
+        // Rotating light rays, spin direction and colour taken from the theme.
         val rayAlpha = (scrimAlpha / 0.72f) * 0.5f
         if (rayAlpha > 0.01f) {
-            val rotation = progress * 90f
+            val rotation = progress * theme.rayRotation
             val rays = 12
             for (i in 0 until rays) {
                 val angle = (i * (360f / rays) + rotation) * (PI.toFloat() / 180f)
@@ -262,7 +272,7 @@ private fun EpicBackdrop(
                         lineTo(cx + r * cos(angle + sweep), cy + r * sin(angle + sweep))
                         close()
                     }
-                drawPath(path = path, color = GiftGold.copy(alpha = rayAlpha * 0.35f))
+                drawPath(path = path, color = accent.copy(alpha = rayAlpha * 0.35f))
             }
         }
 
@@ -272,7 +282,7 @@ private fun EpicBackdrop(
                 val rp = ((progress - i * 0.12f) / 0.5f).coerceIn(0f, 1f)
                 if (rp <= 0f) continue
                 drawCircle(
-                    color = GiftGold.copy(alpha = (1f - rp) * 0.6f),
+                    color = accent.copy(alpha = (1f - rp) * 0.6f),
                     radius = maxR * 0.5f * rp,
                     center = Offset(cx, cy),
                     style = Stroke(width = 3.dp.toPx()),
@@ -280,28 +290,22 @@ private fun EpicBackdrop(
             }
         }
 
-        // Confetti — deterministic layout so it doesn't re-randomise
-        // on every frame.
-        val confettiAlpha = (scrimAlpha / 0.72f) * 0.9f
-        if (confettiAlpha > 0.01f) {
-            val colors = listOf(GiftGold, Color(0xFFFF8A65), Color(0xFF80DEEA), Color(0xFFF48FB1), Color(0xFFB39DDB))
-            val strips = 46
-            for (i in 0 until strips) {
-                val seed = (i * 2654435761L).toInt()
-                val x = ((seed ushr 1) % 1000) / 1000f
-                val delay = ((seed ushr 11) % 400) / 1000f
-                val fall = ((progress - delay) / 0.7f).coerceIn(0f, 1f)
-                if (fall <= 0f) continue
-                val drift = sin(fall * 6f + i) * 0.04f
-                val px = (x + drift) * size.width
-                val py = fall * size.height
-                val h = 14f + ((seed ushr 20) % 12)
-                drawRect(
-                    color = colors[i % colors.size].copy(alpha = confettiAlpha * (1f - fall * 0.4f)),
-                    topLeft = Offset(px, py),
-                    size = Size(6f, h),
-                )
-            }
+        // The gift's own particle motif — this is what makes each gift
+        // look different instead of every gift sharing one confetti layer.
+        val particleAlpha = (scrimAlpha / 0.72f) * 0.9f
+        if (particleAlpha > 0.01f) {
+            drawMotif(
+                motif = theme.motif,
+                variant = theme.variant,
+                seed = theme.seed,
+                progress = progress,
+                alpha = particleAlpha,
+                accent = accent,
+                accentDeep = accentDeep,
+                cx = cx,
+                cy = cy,
+                maxR = maxR,
+            )
         }
 
         // White flash (legendary).
@@ -311,15 +315,394 @@ private fun EpicBackdrop(
     }
 }
 
+/**
+ * Draws the per-gift particle layer. Every branch is driven from the
+ * same [progress] clock and uses a deterministic per-particle seed, so
+ * a burst never re-randomises between frames. [variant] scales the
+ * particle count so two gifts sharing a motif still differ. Kept as
+ * one dispatch so adding a motif is a single `when` branch plus its
+ * enum entry.
+ */
+private fun DrawScope.drawMotif(
+    motif: GiftMotif,
+    variant: Int,
+    seed: Int,
+    progress: Float,
+    alpha: Float,
+    accent: Color,
+    accentDeep: Color,
+    cx: Float,
+    cy: Float,
+    maxR: Float,
+) {
+    when (motif) {
+        GiftMotif.Confetti -> drawConfetti(progress, alpha, accent, accentDeep, variant, seed)
+        GiftMotif.Petals -> drawPetals(progress, alpha, accent, variant, seed)
+        GiftMotif.Sparks -> drawSparks(progress, alpha, accent, cx, cy, maxR, variant, seed)
+        GiftMotif.Stars -> drawStars(progress, alpha, accent, variant, seed)
+        GiftMotif.Bubbles -> drawBubbles(progress, alpha, accent, variant, seed)
+        GiftMotif.Rings -> drawRings(progress, alpha, accent, cx, cy, maxR, variant, seed)
+        GiftMotif.Shockwave -> drawShockwave(progress, alpha, accent, cx, cy, maxR, seed)
+        GiftMotif.Hearts -> drawHearts(progress, alpha, accent, variant, seed)
+        GiftMotif.Feathers -> drawFeathers(progress, alpha, accent, variant, seed)
+        GiftMotif.Fireworks -> drawFireworks(progress, alpha, accent, cx, cy, maxR, variant, seed)
+        GiftMotif.Snow -> drawSnow(progress, alpha, accent, variant, seed)
+        GiftMotif.Leaves -> drawLeaves(progress, alpha, accent, variant, seed)
+    }
+}
+
+/** Particle count for a base count and a theme variant (0..2). */
+private fun density(
+    base: Int,
+    variant: Int,
+): Int = base + variant * (base / 3)
+
+/** Deterministic 0..1 from an index, salt and the gift's layout seed. */
+private fun frac(
+    i: Int,
+    salt: Int,
+    seed: Int,
+): Float {
+    val h = (i + 1) * 2654435761L + salt * 40503L + seed * 2246822519L
+    return (((h ushr 8) and 0xFFFF).toFloat() / 0xFFFF.toFloat())
+}
+
+private fun DrawScope.drawConfetti(
+    progress: Float,
+    alpha: Float,
+    accent: Color,
+    accentDeep: Color,
+    variant: Int,
+    seed: Int,
+) {
+    val colors = listOf(accent, accentDeep, Color(0xFFFF8A65), Color(0xFF80DEEA), Color(0xFFF48FB1))
+    val strips = density(46, variant)
+    for (i in 0 until strips) {
+        val x = frac(i, 1, seed)
+        val delay = frac(i, 2, seed) * 0.4f
+        val fall = ((progress - delay) / 0.7f).coerceIn(0f, 1f)
+        if (fall <= 0f) continue
+        val drift = sin(fall * 6f + i) * 0.04f
+        val h = 14f + frac(i, 3, seed) * 12f
+        drawRect(
+            color = colors[i % colors.size].copy(alpha = alpha * (1f - fall * 0.4f)),
+            topLeft = Offset((x + drift) * size.width, fall * size.height),
+            size = Size(6f, h),
+        )
+    }
+}
+
+/** Flower petals drifting down with a gentle sway. */
+private fun DrawScope.drawPetals(
+    progress: Float,
+    alpha: Float,
+    accent: Color,
+    variant: Int,
+    seed: Int,
+) {
+    for (i in 0 until density(34, variant)) {
+        val x = frac(i, 11, seed)
+        val delay = frac(i, 12, seed) * 0.5f
+        val fall = ((progress - delay) / 0.8f).coerceIn(0f, 1f)
+        if (fall <= 0f) continue
+        val sway = sin(fall * 5f + i * 0.7f) * 0.06f
+        val px = (x + sway) * size.width
+        val py = fall * size.height
+        val r = 7f + frac(i, 13, seed) * 8f
+        drawOval(
+            color = accent.copy(alpha = alpha * (1f - fall * 0.35f)),
+            topLeft = Offset(px, py),
+            size = Size(r * 1.5f, r),
+        )
+    }
+}
+
+/** Sharp sparks shooting outward from the centre, then fading. */
+private fun DrawScope.drawSparks(
+    progress: Float,
+    alpha: Float,
+    accent: Color,
+    cx: Float,
+    cy: Float,
+    maxR: Float,
+    variant: Int,
+    seed: Int,
+) {
+    for (i in 0 until density(60, variant)) {
+        val ang = (frac(i, 21, seed) * 360f) * (PI.toFloat() / 180f)
+        val speed = 0.5f + frac(i, 22, seed) * 0.9f
+        val dist = progress * speed * maxR * 0.75f
+        if (dist <= 0f) continue
+        val fade = (1f - progress).coerceIn(0f, 1f)
+        val len = 6f + frac(i, 23, seed) * 16f
+        drawLine(
+            color = accent.copy(alpha = alpha * fade),
+            start = Offset(cx + cos(ang) * dist, cy + sin(ang) * dist),
+            end = Offset(cx + cos(ang) * (dist + len), cy + sin(ang) * (dist + len)),
+            strokeWidth = 2f,
+        )
+    }
+}
+
+/** Twinkling stars that pop in at staggered times and hold. */
+private fun DrawScope.drawStars(
+    progress: Float,
+    alpha: Float,
+    accent: Color,
+    variant: Int,
+    seed: Int,
+) {
+    for (i in 0 until density(40, variant)) {
+        val x = frac(i, 31, seed)
+        val y = frac(i, 32, seed)
+        val delay = frac(i, 33, seed) * 0.6f
+        val pop = ((progress - delay) / 0.15f).coerceIn(0f, 1f)
+        if (pop <= 0f) continue
+        val twinkle = 0.6f + 0.4f * sin(progress * 12f + i)
+        val r = (3f + frac(i, 34, seed) * 6f) * pop
+        drawCircle(
+            color = accent.copy(alpha = alpha * twinkle),
+            radius = r,
+            center = Offset(x * size.width, y * size.height),
+        )
+    }
+}
+
+/** Soft bubbles rising and fading, like a drink or a spa. */
+private fun DrawScope.drawBubbles(
+    progress: Float,
+    alpha: Float,
+    accent: Color,
+    variant: Int,
+    seed: Int,
+) {
+    for (i in 0 until density(26, variant)) {
+        val x = frac(i, 41, seed)
+        val delay = frac(i, 42, seed) * 0.5f
+        val rise = ((progress - delay) / 0.85f).coerceIn(0f, 1f)
+        if (rise <= 0f) continue
+        val r = 6f + frac(i, 43, seed) * 16f
+        val py = (1f - rise) * size.height
+        drawCircle(
+            color = accent.copy(alpha = alpha * (1f - rise) * 0.7f),
+            radius = r,
+            center = Offset(x * size.width, py),
+            style = Stroke(width = 2f),
+        )
+    }
+}
+
+/** Concentric rings pulsing out from the centre — planets, orbits. */
+private fun DrawScope.drawRings(
+    progress: Float,
+    alpha: Float,
+    accent: Color,
+    cx: Float,
+    cy: Float,
+    maxR: Float,
+    variant: Int,
+    seed: Int,
+) {
+    for (i in 0 until density(5, variant)) {
+        val rp = ((progress - i * 0.09f) / 0.6f).coerceIn(0f, 1f)
+        if (rp <= 0f) continue
+        // Seed jitters each ring's radius so two Rings gifts aren't the
+        // same concentric pattern in a different colour.
+        val jitter = 0.85f + frac(i, 101, seed) * 0.3f
+        drawCircle(
+            color = accent.copy(alpha = alpha * (1f - rp) * 0.7f),
+            radius = maxR * 0.42f * rp * jitter,
+            center = Offset(cx, cy),
+            style = Stroke(width = 2.5f),
+        )
+    }
+}
+
+/** One hard shockwave ring plus a soft echo — rings, diamonds. */
+private fun DrawScope.drawShockwave(
+    progress: Float,
+    alpha: Float,
+    accent: Color,
+    cx: Float,
+    cy: Float,
+    maxR: Float,
+    seed: Int,
+) {
+    val rp = (progress / 0.5f).coerceIn(0f, 1f)
+    if (rp > 0f) {
+        // Seed varies the ring width so two Shockwave gifts (ring vs
+        // diamond) don't render an identical single hoop.
+        val width = 3f + frac(0, 102, seed) * 4f
+        drawCircle(
+            color = accent.copy(alpha = alpha * (1f - rp)),
+            radius = maxR * 0.55f * rp,
+            center = Offset(cx, cy),
+            style = Stroke(width = width),
+        )
+    }
+    val echo = ((progress - 0.18f) / 0.55f).coerceIn(0f, 1f)
+    if (echo > 0f) {
+        drawCircle(
+            color = accent.copy(alpha = alpha * (1f - echo) * 0.5f),
+            radius = maxR * 0.4f * echo,
+            center = Offset(cx, cy),
+            style = Stroke(width = 2f),
+        )
+    }
+}
+
+/** Little hearts floating upward. */
+private fun DrawScope.drawHearts(
+    progress: Float,
+    alpha: Float,
+    accent: Color,
+    variant: Int,
+    seed: Int,
+) {
+    for (i in 0 until density(30, variant)) {
+        val x = frac(i, 51, seed)
+        val delay = frac(i, 52, seed) * 0.5f
+        val rise = ((progress - delay) / 0.85f).coerceIn(0f, 1f)
+        if (rise <= 0f) continue
+        val sway = sin(rise * 4f + i) * 0.05f
+        val s = 8f + frac(i, 53, seed) * 10f
+        val px = (x + sway) * size.width
+        val py = (1f - rise) * size.height
+        // Two lobes + a V = a heart, drawn as paths so no glyph font is needed.
+        val path =
+            Path().apply {
+                moveTo(px, py + s * 0.8f)
+                cubicTo(px - s, py + s * 0.1f, px - s * 0.4f, py - s * 0.6f, px, py - s * 0.1f)
+                cubicTo(px + s * 0.4f, py - s * 0.6f, px + s, py + s * 0.1f, px, py + s * 0.8f)
+                close()
+            }
+        drawPath(path, accent.copy(alpha = alpha * (1f - rise * 0.4f)))
+    }
+}
+
+/** Feathers tumbling down slowly — angels, flight. */
+private fun DrawScope.drawFeathers(
+    progress: Float,
+    alpha: Float,
+    accent: Color,
+    variant: Int,
+    seed: Int,
+) {
+    for (i in 0 until density(20, variant)) {
+        val x = frac(i, 61, seed)
+        val delay = frac(i, 62, seed) * 0.55f
+        val fall = ((progress - delay) / 0.85f).coerceIn(0f, 1f)
+        if (fall <= 0f) continue
+        val sway = sin(fall * 4f + i) * 0.09f
+        val w = 6f + frac(i, 63, seed) * 8f
+        drawOval(
+            color = accent.copy(alpha = alpha * (1f - fall * 0.3f) * 0.85f),
+            topLeft = Offset((x + sway) * size.width, fall * size.height),
+            size = Size(w, w * 2.2f),
+        )
+    }
+}
+
+/** Bursts of radial embers exploding from a few centres. */
+private fun DrawScope.drawFireworks(
+    progress: Float,
+    alpha: Float,
+    accent: Color,
+    cx: Float,
+    cy: Float,
+    maxR: Float,
+    variant: Int,
+    seed: Int,
+) {
+    val bursts = density(4, variant)
+    for (b in 0 until bursts) {
+        val bx = (0.3f + frac(b, 71, seed) * 0.4f) * size.width
+        val by = (0.25f + frac(b, 72, seed) * 0.4f) * size.height
+        val t0 = frac(b, 73, seed) * 0.4f
+        val t = ((progress - t0) / 0.5f).coerceIn(0f, 1f)
+        if (t <= 0f) continue
+        val n = 22
+        for (i in 0 until n) {
+            val ang = (i * (360f / n) + frac(b * 31 + i, 74, seed) * 20f) * (PI.toFloat() / 180f)
+            val d = t * maxR * 0.22f * (0.7f + frac(i, 75, seed) * 0.6f)
+            drawCircle(
+                color = accent.copy(alpha = alpha * (1f - t)),
+                radius = 2.5f,
+                center = Offset(bx + cos(ang) * d, by + sin(ang) * d),
+            )
+        }
+    }
+    // A faint central glow so the bursts read as fireworks, not dots.
+    drawCircle(
+        brush = Brush.radialGradient(listOf(accent.copy(alpha = alpha * 0.35f), Color.Transparent), center = Offset(cx, cy), radius = maxR * 0.5f),
+        radius = maxR * 0.5f,
+        center = Offset(cx, cy),
+    )
+}
+
+/** Fine snow drifting down — winter, ice cream. */
+private fun DrawScope.drawSnow(
+    progress: Float,
+    alpha: Float,
+    accent: Color,
+    variant: Int,
+    seed: Int,
+) {
+    for (i in 0 until density(70, variant)) {
+        val x = frac(i, 81, seed)
+        val delay = frac(i, 82, seed) * 0.4f
+        val fall = ((progress - delay) / 0.9f).coerceIn(0f, 1f)
+        if (fall <= 0f) continue
+        val sway = sin(fall * 6f + i) * 0.03f
+        val r = 1.5f + frac(i, 83, seed) * 3f
+        drawCircle(
+            color = accent.copy(alpha = alpha * (1f - fall * 0.3f) * 0.9f),
+            radius = r,
+            center = Offset((x + sway) * size.width, fall * size.height),
+        )
+    }
+}
+
+/** Green leaves swirling down — nature, music. */
+private fun DrawScope.drawLeaves(
+    progress: Float,
+    alpha: Float,
+    accent: Color,
+    variant: Int,
+    seed: Int,
+) {
+    for (i in 0 until density(24, variant)) {
+        val x = frac(i, 91, seed)
+        val delay = frac(i, 92, seed) * 0.5f
+        val fall = ((progress - delay) / 0.85f).coerceIn(0f, 1f)
+        if (fall <= 0f) continue
+        val spin = fall * 6f + i
+        val sway = sin(spin) * 0.07f
+        val s = 6f + frac(i, 93, seed) * 7f
+        val px = (x + sway) * size.width
+        val py = fall * size.height
+        val path =
+            Path().apply {
+                moveTo(px, py)
+                quadraticTo(px + s * cos(spin), py + s * sin(spin), px + s * 0.6f, py + s * 1.4f)
+                quadraticTo(px - s * 0.2f, py + s * 0.9f, px, py)
+                close()
+            }
+        drawPath(path, accent.copy(alpha = alpha * (1f - fall * 0.3f)))
+    }
+}
+
 /** The floating gift emblem + quantity + names. */
 @Composable
 private fun Emblem(
     gift: RoomGift,
+    theme: RoomGiftTheme,
     senderName: String,
     receiverName: String?,
     epic: Boolean,
     progress: Float,
 ) {
+    val accent = Color(theme.accent)
     // Entrance pop then drift up; fade out over the tail.
     val fade = if (progress < 0.7f) 1f else ((1f - progress) / 0.3f).coerceIn(0f, 1f)
     val pop = (progress / 0.15f).coerceIn(0f, 1f)
@@ -359,7 +742,7 @@ private fun Emblem(
                         modifier =
                             Modifier
                                 .clip(RoundedCornerShape(50))
-                                .background(GiftGold)
+                                .background(accent)
                                 .padding(horizontal = 12.dp, vertical = 4.dp),
                     )
                 }
@@ -370,6 +753,7 @@ private fun Emblem(
                     senderName = senderName,
                     receiverName = receiverName,
                     gift = gift,
+                    theme = theme,
                     progress = progress,
                 )
             }
@@ -383,9 +767,12 @@ private fun GiftMarquee(
     senderName: String,
     receiverName: String?,
     gift: RoomGift,
+    theme: RoomGiftTheme,
     progress: Float,
     modifier: Modifier = Modifier,
 ) {
+    val accent = Color(theme.accent)
+    val accentDeep = Color(theme.accentDeep)
     val fade = if (progress < 0.8f) 1f else ((1f - progress) / 0.2f).coerceIn(0f, 1f)
     val line =
         if (receiverName != null) {
@@ -400,7 +787,7 @@ private fun GiftMarquee(
             modifier
                 .alpha(fade)
                 .clip(RoundedCornerShape(50))
-                .background(GiftGoldDeep.copy(alpha = 0.9f))
+                .background(accentDeep.copy(alpha = 0.9f))
                 .padding(horizontal = 16.dp, vertical = 6.dp),
     ) {
         Text(text = gift.emoji, fontSize = 18.sp)
@@ -419,7 +806,7 @@ private fun GiftMarquee(
                 modifier =
                     Modifier
                         .clip(RoundedCornerShape(50))
-                        .background(GiftGold)
+                        .background(accent)
                         .padding(horizontal = 8.dp, vertical = 2.dp),
             )
         }

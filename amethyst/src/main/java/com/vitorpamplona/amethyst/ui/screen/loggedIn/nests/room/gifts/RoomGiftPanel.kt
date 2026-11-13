@@ -64,6 +64,7 @@ import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
 import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
 import com.vitorpamplona.amethyst.commons.viewmodels.RoomGiftCatalog
 import com.vitorpamplona.amethyst.commons.viewmodels.RoomGiftSku
+import com.vitorpamplona.amethyst.commons.viewmodels.theme
 
 /**
  * Room gift selection panel — the Compose analogue of TUILiveKit's
@@ -205,23 +206,37 @@ private fun GiftCell(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
+    val theme = remember(sku.id) { sku.theme() }
+    val accent = Color(theme.accent)
+    val accentDeep = Color(theme.accentDeep)
     Column(
         modifier =
             Modifier
                 .clip(RoundedCornerShape(14.dp))
-                .background(if (selected) GiftGold.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.05f))
+                .background(if (selected) accent.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.05f))
                 .then(
                     if (selected) {
-                        Modifier.border(1.5.dp, GiftGold, RoundedCornerShape(14.dp))
+                        Modifier.border(1.5.dp, accent, RoundedCornerShape(14.dp))
                     } else {
                         Modifier
                     },
                 ).clickable(onClick = onClick)
-                .padding(vertical = 10.dp),
+                .padding(vertical = 8.dp, horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Text(text = sku.emoji, fontSize = 30.sp)
+        // Emoji sits on a soft accent disc so each gift reads with its
+        // own colour instead of a bare glyph on a flat tile.
+        Box(
+            modifier =
+                Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(Brush.verticalGradient(listOf(accent.copy(alpha = 0.35f), accentDeep.copy(alpha = 0.25f)))),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(text = sku.emoji, fontSize = 24.sp)
+        }
         Text(
             text = sku.label(arabic),
             style = MaterialTheme.typography.labelSmall,
@@ -232,13 +247,13 @@ private fun GiftCell(
             Icon(
                 symbol = MaterialSymbols.Star,
                 contentDescription = null,
-                tint = GiftGold,
+                tint = accent,
                 modifier = Modifier.size(11.dp),
             )
             Text(
                 text = sku.value.toString(),
                 style = MaterialTheme.typography.labelSmall,
-                color = GiftGold,
+                color = accent,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
             )
