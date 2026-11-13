@@ -161,14 +161,16 @@ internal fun NestFullScreen(
 
     // Single back owner for the room. While the composer has focus (the
     // keyboard is up) back dismisses the keyboard and nothing else; once
-    // focus/IME is gone, back runs the caller's minimize-to-PIP (or, when
-    // disconnected, falls through to Activity.finish()). Tracking focus
-    // directly — rather than the IME inset — makes this work on every
-    // Android version, edge-to-edge or not.
+    // focus/IME is gone, back minimizes to PIP only while the session is
+    // actually connected — during a drop it falls through to
+    // Activity.finish() so the user can back out of a reconnecting room.
+    // Tracking focus directly — rather than the IME inset — makes the
+    // keyboard half work on every Android version, edge-to-edge or not.
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
     var composerFocused by remember { mutableStateOf(false) }
-    BackHandler(enabled = composerFocused || canMinimize) {
+    val backMinimizes = canMinimize && ui.connection is com.vitorpamplona.amethyst.commons.viewmodels.ConnectionUiState.Connected
+    BackHandler(enabled = composerFocused || backMinimizes) {
         if (composerFocused) {
             focusManager.clearFocus()
             keyboard?.hide()

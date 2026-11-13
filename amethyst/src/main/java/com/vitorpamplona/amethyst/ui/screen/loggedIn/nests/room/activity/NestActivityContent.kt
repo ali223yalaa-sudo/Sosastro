@@ -365,17 +365,12 @@ private fun NestActivityBody(
         handRaised = handRaised,
     )
 
-    // Back gesture while connected = minimize to PIP rather than tearing
-    // down the audio session. When disconnected (lobby / Connecting /
-    // Failed) or PIP isn't supported, we let back fall through to the
-    // default Activity.finish() so the user can cancel out cleanly.
-    //
-    // The back handling itself now lives in `NestFullScreen` (the single
-    // owner, next to the composer): it dismisses the keyboard first and
-    // only minimizes once the IME/focus is gone. Two enabled handlers —
-    // this one plus the composer's old one — raced and swallowed back
-    // while typing, which was the "can't exit typing mode" report.
-    val canMinimize = isPipSupported && !isInPipMode && ui.connection is ConnectionUiState.Connected
+    // Back handling lives entirely in `NestFullScreen` (the single owner,
+    // next to the composer): it dismisses the keyboard first, then
+    // minimizes to PIP while connected (or lets back finish the Activity
+    // when idle). Two enabled handlers — the old one here plus the
+    // composer's — raced and swallowed back while typing, which was the
+    // "can't exit typing mode" report.
 
     // Loading gate: the room only mounts once the MoQ session has come
     // up at least once. Before that we show the dedicated "loading room"

@@ -505,12 +505,15 @@ TRTC/TUILiveKit's two-component design:
 - Playback overlay — `amethyst/.../nests/room/gifts/RoomGiftOverlay.kt`
   (the `GiftPlayView` analogue). A transparent full-screen layer mounted in
   `NestFullScreen` ABOVE the stage/chat Column and BELOW the sheets/dialogs.
-  It queues bursts one at a time (`GIFT_BURST_MS`) and never intercepts taps.
-  Every gift plays its own full-screen SVGA clip (`SvgaGiftPlayer.kt`) and its
-  own `res/raw` sound (`GiftSounds` in `GiftAssets.kt`, played once per burst).
-  The clip is scaled by the gift's price band: a standard gift is a small
-  rising sticker (~40% of the screen, drifting up with a sender chip), a
-  legendary one a full-screen takeover. `RoomGiftTicker` in the same file draws
+  It queues bursts one at a time and never intercepts taps. Every gift plays
+  its own full-screen SVGA clip (`SvgaGiftPlayer.kt`) and its own `res/raw`
+  sound (`GiftSounds` in `GiftAssets.kt`, played once per burst). The clip
+  fills the screen exactly as authored (the bundled clips are full-frame), so
+  the gift reads as a cinematic takeover rather than a sticker; only the
+  sender (or sender→receiver) line overlays it, and nothing is drawn behind
+  it. A burst is held for `maxOf(giftBurstMillis(tier), MIN_GIFT_HOLD_MS)`
+  (`MIN_GIFT_HOLD_MS = 4.6 s`) so the short 3 s `gen_*` clips do not blink out.
+  `RoomGiftTicker` in the same file draws
   the recent-gifts row; it sits in the room's normal column flow directly below
   the mic seats (NOT pinned to the top as an overlay), so the "who sent what"
   chips never cover the room header.
@@ -524,7 +527,7 @@ reaction; `NestViewModel.onReactionEvent` skips tagged gifts and the kind-7
 collector (`NestRoomEventCollectors.kt`) routes them to
 `NestViewModel.onGiftEvent`. `RoomGiftsAggregator` dedups by event id, groups by
 RECIPIENT pubkey (room-wide gifts under `""`) and evicts on the same 1-s tick as
-reactions/zaps but with the longer `GIFT_WINDOW_SEC` (14 s) so a burst finishes
+reactions/zaps but with the longer `GIFT_WINDOW_SEC` (22 s) so a burst finishes
 playing. Tests: `commons/.../viewmodels/RoomGiftsStateTest.kt` (21 tests).
 
 Gift visual identity: a gift's *look* is not hard-coded in the overlay. Each
@@ -551,39 +554,32 @@ sheet; asserts no two gifts render identically).
 
 ## Nests (voice rooms): back must dismiss the keyboard first
 
-`NestActivityContent.kt` minimizes the room to PIP on back while connected.
-It used a plain `BackHandler(enabled = canMinimize)`, which — because Compose
-runs the most-recently-composed enabled handler — swallowed the back press even
-while the composer's soft keyboard was up. The reported symptom: type in the
-room, press back to hide the keyboard, and the keyboard stays, back does
-nothing, and the user is trapped in the text field (the PIP minimize also races
-the IME close animation and leaves `Modifier.imePadding()` frozen).
+The room minimizes to PIP on back while connected. Two separate enabled
+`BackHandler`s used to own that: one in `NestActivityContent.kt`
+(`KeyboardAwareBackHandler(enabled = canMinimize)`) and one in the composer
+(`NestEditFieldRow.kt`, focus-gated). Compose runs the most-recently-composed
+enabled handler, so the two raced and back could become a no-op while typing —
+the reported symptom: type in the room, press back to hide the keyboard, and
+nothing happens (or the PIP minimize races the IME close animation and leaves
+`Modifier.imePadding()` frozen).
 
-Fix: use `KeyboardAwareBackHandler` (in
-`amethyst/.../ui/navigation/bottombars/KeyboardState.kt`) instead of
-`BackHandler`. It gates on `keyboardAsState()` so while the keyboard is visible
-it does NOT consume back — the system dismisses the IME with its own clean
-animation; the next back (keyboard down) minimizes to PIP as before. This is the
-same handler the DM composer (`PrivateMessageEditFieldRow.kt`) and
-`NewGroupDMScreen.kt` already use.
+Fix: there is now a **single back owner**, a `BackHandler` in
+`NestFullScreen.kt`, gated on `composerFocused || canMinimize`. The composer
+reports its focus up via a new `onFocusChanged` callback (it watches its text
+field's `interactionSource` through `collectIsFocusedAsState`). The handler
+dismisses the keyboard (`focusManager.clearFocus()` + `keyboard.hide()`) and
+consumes the press when the composer is focused; otherwise it runs the caller's
+minimize-to-PIP (or falls through to `Activity.finish()` when idle). Tracking
+focus directly — rather than the IME inset — works on every Android version,
+edge-to-edge or not, so `NestActivity` does not need `enableEdgeToEdge()` for
+this (its `adjustResize` + `Modifier.imePadding()` handle layout).
 
-That alone is not sufficient, because `keyboardAsState()` reads
-`WindowInsets.ime`, and Android only *dispatches* the IME inset to the window in
-an edge-to-edge window. `NestActivity` (unlike `MainActivity` and
-`CallActivity`) does **not** call `enableEdgeToEdge()`, so on Android ≤ 14 the
-inset reads 0 even while the keyboard is up, the gate never opens, and back
-stays swallowed — the composer is still trapped. (Android 15+ forces
-edge-to-edge, which is why it can look device-dependent.)
-
-Second fix: `NestEditFieldRow.kt` now owns a focus-based back handler. It
-watches its text field's `interactionSource` (via `collectIsFocusedAsState`)
-and, while the field is focused, handles back itself — `focusManager.clearFocus()`
-+ `keyboard.hide()` — then lets the press fall through. Focus is independent of
-the IME inset, so this works on every Android version. The channel composer
-`EditFieldRow.kt` already had this (its own `KeyboardAwareBackHandler`), and the
-nest composer previously had *no* back handler of its own — that omission is why
-only the room was affected. Any new full-screen handler in a room must respect
-this ordering, or it will re-trap the composer.
+Do not add a second enabled `BackHandler` to the room: it will race this one and
+re-trap the composer. Tapping empty space also dismisses the keyboard (a
+`pointerInput { detectTapGestures }` on the Scaffold content Box), and the
+`MicSeatsGrid` is kept mounted at all times — it used to be removed while the
+keyboard was up (`if (!imeOpen)`), which churned the column layout and made the
+keyboard flicker.
 
 ## Nests: open-mic guests could not take a seat (host-only ascent)
 
@@ -611,6 +607,20 @@ in an open-mic room (no seat claim) still stays in the audience —
 regression tests `openMicGuestWithStaleParticipantRoleStillAscendsOnSeatClaim`
 and `openMicGuestWithoutSeatClaimStaysInAudience` in
 `commons/.../viewmodels/ParticipantGridTest.kt` lock both directions.
+
+## Nests: ghost members — stale presence replayed from cache
+
+`PresenceCollector` (`NestRoomEventCollectors.kt`) reads kind-10312 presence
+from `LocalCache`, which keeps events from earlier sessions and re-emits the
+whole matching list on every cache mutation. So a peer who was in the room an
+hour ago — and force-closed the app without publishing a `left` — would be
+replayed as "present" the moment you rejoin, showing a ghost member who isn't
+really there. The chat collector already dropped history from before the
+session start; the presence collector now does the same: it ignores any event
+older than `PRESENCE_STALE_THRESHOLD_SEC`. That constant was also tightened
+from 2 min to 60 s (four missed 15-s `PRESENCE_REFRESH_MS` heartbeats), which
+is the same window the `PresenceEvictionTicker` uses to drop a dead peer, so
+presence that is replayed and presence that is evicted can't disagree.
 
 ## Nests: room opens only when ready + gentle reconnect overlay
 
