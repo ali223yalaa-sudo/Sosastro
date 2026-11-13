@@ -423,7 +423,40 @@ Beyond TURN (below), two things made calls flaky:
   missing REQ, wired into `AlwaysOnNotificationServiceManager`; the settings
   default for `alwaysOnNotificationService` is now `true`.
 
-## Calls (NIP-AC WebRTC): TURN is the reliability bottleneck
+## Calls (NIP-AC WebRTC): SDP async races, headless lifecycle, double-ring
+
+Three more call defects, fixed together (commit `fix(calls): resolve stuck-connecting race, headless lifecycle, double-ring`):
+
+- **Stuck at "connecting" (ICE/answer async race).** libwebrtc applies
+  `setRemoteDescription` asynchronously. The old code called `createAnswer()` and
+  `flushPendingIceCandidates()` immediately after `setRemoteDescription(...)`
+  returned, so every buffered ICE candidate was rejected natively and both peers
+  hung at "connecting" with no audio. Fix: `WebRtcCallSession.setRemoteDescription`
+  takes an `onSet` completion callback fired only from the native
+  `onSetSuccess`; `createAnswer` + the ICE flush run from inside it. Symmetrically,
+  an outgoing offer/answer is signalled to the peer only after
+  `setLocalDescription` completes (`localDescriptionObserver`), or the reply is
+  rejected as wrong-state. `PeerSession.setRemoteDescription` gained the same
+  `onSet` parameter. Regression test:
+  `PeerSessionManagerTest.routeAnswerDefersIceFlushUntilRemoteDescriptionApplied`.
+
+- **Headless lifecycle.** `CallManager` used to be owned by the Activity-scoped
+  `AccountViewModel`, so it died with the Activity and an incoming call could not
+  ring/answer once the UI was gone. It is now owned by `Account` (app-scoped,
+  cancelled only via `Account.release()` on account removal), wired into the
+  signaling processor at construction. `AppModules` publishes the account to
+  `CallSessionBridge` at process start and starts `HeadlessCallCoordinator`,
+  which rings and raises `CallForegroundService` when no call UI is mounted.
+
+- **Double-ring.** The headless coordinator was gated on `accountViewModel != null`,
+  but a cold-started `CallActivity` builds its own lazy (headless) ViewModel, so
+  the field stayed null and BOTH the coordinator and `CallSession` rang with
+  separate `CallAudioManager` instances. Fix: `CallSessionBridge.isCallUiMounted`
+  (a process-level `StateFlow`) is set true in `CallActivity.onCreate` and false
+  in `onDestroy`; the coordinator observes it (combined with call state) and stops
+  its fallback ring the moment the UI mounts. Do not re-gate on the ViewModel.
+
+## Calls (NIP-AC WebRTC): TURN
 
 Call signaling lives in `commons/.../nipACWebRtcCalls/CallManager.kt` and is
 already robust: `processedEventIds` dedups by inner event id, terminal events
@@ -431,27 +464,18 @@ already robust: `processedEventIds` dedups by inner event id, terminal events
 `SIGNAL_RETRANSMIT_COUNT` times while the call stays in the matching state
 (receivers dedup, so replays are safe).
 
-The remaining "call sometimes fails to connect" cause is ICE/TURN, not
-signaling:
+ICE/TURN is resolved at call time by `IceServerConfig.buildIceServers()`:
 
-- The built-in `IceServerConfig.defaultTurnServers` point at
-  `turn:openrelay.metered.ca` — the old Metered **free** relay. That host is
-  dead: `openrelay.metered.ca` resolves to `192.0.2.1` (RFC 5737 TEST-NET) and
-  never answers. The same is true for `staticauth.openrelay.metered.ca` and
-  `relay.metered.ca`. `buildIceServers()` logs a warning when it falls back to
-  these.
-- `standard.relay.metered.ca` is reachable but rejects unauthenticated
-  `openrelayproject` allocations (400), so the old shared credentials no longer
-  work. A real TURN account/credential is required.
-- Cloudflare Realtime TURN needs a **TURN Key ID** plus an API token that has
-  the Calls/TURN permission, then credentials are minted via
-  `POST /accounts/{id}/calls/turn_keys` + `.../credentials/generate-ice-servers`.
-  The token in `/workspace/.cf_turn_token` verifies as active but has **no**
-  Calls permission (`/accounts/{id}/calls/turn_keys` → Authentication error), so
-  it cannot be used. Do not try to generate credentials with it.
+1. user-configured TURN servers (Settings → Calls → Custom TURN servers), else
+2. `MeteredTurnProvider.fetch()` — a live `GET` to the Metered credentials
+   endpoint, cached 6h, returning fresh `standard.relay.metered.ca` credentials
+   (UDP + TCP/TLS), else
+3. `IceServerConfig.defaultTurnServers` — static Metered credentials on
+   `standard.relay.metered.ca` (ports 80/443, TCP + TLS) for offline-at-start.
 
-Consequence: without a working TURN, calls connect only when both peers can
-reach each other directly (LAN, or a non-symmetric NAT STUN can traverse) and
-fail across symmetric NATs / restrictive firewalls. Configure a TURN server in
-Settings → Calls → Custom TURN servers to fix this. Verify a TURN server
-actually works with a STUN/TURN allocate probe before trusting it.
+STUN (`stun.l.google.com`, `stun1.l.google.com`, `stun.cloudflare.com`) is
+always prepended. The historical `openrelay.metered.ca` free relay is dead
+(resolves to TEST-NET `192.0.2.1`); do not reintroduce it. The Metered
+credential-scoped API key in `MeteredTurnProvider` is safe to ship (it can only
+mint TURN credentials). If calls still fail across symmetric NATs, verify a TURN
+server with a STUN/TURN allocate probe before trusting it.
