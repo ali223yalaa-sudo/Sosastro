@@ -177,6 +177,7 @@ private fun TierRow(
                 when (tier) {
                     1 -> if (arabic) "عادية" else "Standard"
                     2 -> if (arabic) "مميزة" else "Premium"
+                    3 -> if (arabic) "فخمة" else "Luxe"
                     else -> if (arabic) "أسطورية" else "Legendary"
                 }
             val isSelected = tier == selected
@@ -227,6 +228,21 @@ private fun GiftCell(
             color = Color.White.copy(alpha = 0.85f),
             maxLines = 1,
         )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            Icon(
+                symbol = MaterialSymbols.Star,
+                contentDescription = null,
+                tint = GiftGold,
+                modifier = Modifier.size(11.dp),
+            )
+            Text(
+                text = sku.value.toString(),
+                style = MaterialTheme.typography.labelSmall,
+                color = GiftGold,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+            )
+        }
     }
 }
 

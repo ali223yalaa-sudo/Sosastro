@@ -63,6 +63,7 @@ internal fun NestRoomEventCollectors(
     ChatCollector(viewModel, roomATag)
     ReactionsCollector(viewModel, roomATag)
     ReactionsEvictionTicker(viewModel)
+    GiftsEvictionTicker(viewModel)
     ZapsCollector(viewModel, roomATag)
     ZapsEvictionTicker(viewModel)
     AdminCommandsCollector(viewModel, event, roomATag, localPubkey)
@@ -324,4 +325,6 @@ private const val REACTIONS_TICK_MS = 1_000L
 private const val REACTION_WINDOW_SEC_LOCAL = 10L
 
 // Mirror of [com.vitorpamplona.amethyst.commons.viewmodels.GIFT_WINDOW_SEC].
-private const val GIFT_WINDOW_SEC_LOCAL = 14L
+// Must match the commons value or a gift's entry is dropped before its
+// burst finishes playing (the overlay reads the same list).
+private const val GIFT_WINDOW_SEC_LOCAL = 22L

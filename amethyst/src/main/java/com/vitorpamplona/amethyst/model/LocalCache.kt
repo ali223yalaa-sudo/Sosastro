@@ -1310,7 +1310,24 @@ object LocalCache : ILocalCache, ICacheProvider {
         // Already processed this event.
         if (replaceableNote.event?.id == event.id) return isVerified
 
-        return if (event.createdAt > (replaceableNote.createdAt() ?: 0L) && (isVerified || justVerify(event))) {
+        // A replaceable update normally must be strictly newer. The one
+        // exception is a terminal room-presence leave: kind-10312 is
+        // replaceable with 1-second `created_at` resolution, so a peer who
+        // leaves in the same second as their last heartbeat emits a `left`
+        // event whose `created_at` merely TIES the stored heartbeat. The
+        // strict `>` would drop it, the stored event would stay the live
+        // heartbeat, and the collector would never observe the leave — the
+        // peer's avatar then lingers as a ghost until the 2-minute eviction
+        // fallback. A leave is authoritative for its second, so let it win
+        // the tie.
+        val incomingWins =
+            replaceableUpdateAccepted(
+                incomingCreatedAt = event.createdAt,
+                storedCreatedAt = replaceableNote.createdAt(),
+                incomingIsTerminalRoomLeave = isTerminalRoomLeave(event),
+            )
+
+        return if (incomingWins && (isVerified || justVerify(event))) {
             // clear index from previous tags
             replaceableNote.replyTo?.forEach {
                 it.removeNote(replaceableNote)
@@ -1325,6 +1342,9 @@ object LocalCache : ILocalCache, ICacheProvider {
             false
         }
     }
+
+    /** A kind-10312 presence carrying the terminal `left` tag. */
+    private fun isTerminalRoomLeave(event: Event): Boolean = event is MeetingRoomPresenceEvent && event.left() == true
 
     /**
      * Kind-30312 rooms are addressable to the creator's pubkey. Ownership
@@ -4414,4 +4434,28 @@ class LocalCacheFlow {
             _deletedEventBundles.emit(bundledNewNotes)
         }
     }
+}
+
+/**
+ * Decide whether an incoming replaceable event should overwrite the stored
+ * version. Normally only a strictly newer `created_at` wins.
+ *
+ * The exception is a terminal room-presence leave (kind-10312 with the `left`
+ * tag). Presence is replaceable with 1-second `created_at` resolution, so a
+ * peer who leaves in the same second as their last heartbeat publishes a
+ * `left` event whose timestamp merely TIES the stored heartbeat. The strict
+ * comparison would reject it, the live heartbeat would remain the stored
+ * event, and the presence collector would never see the leave — leaving a
+ * ghost avatar until the 2-minute eviction fallback. A leave is authoritative
+ * for its second, so it is allowed to win the tie.
+ */
+internal fun replaceableUpdateAccepted(
+    incomingCreatedAt: Long,
+    storedCreatedAt: Long?,
+    incomingIsTerminalRoomLeave: Boolean,
+): Boolean {
+    // No stored version yet — nothing to overwrite, accept unconditionally.
+    val stored = storedCreatedAt ?: return true
+    return incomingCreatedAt > stored ||
+        (incomingCreatedAt == stored && incomingIsTerminalRoomLeave)
 }

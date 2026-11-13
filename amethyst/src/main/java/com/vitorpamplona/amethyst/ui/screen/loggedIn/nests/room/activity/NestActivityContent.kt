@@ -69,6 +69,7 @@ import com.vitorpamplona.amethyst.ui.stringRes
 import com.vitorpamplona.nestsclient.NestsRoomConfig
 import com.vitorpamplona.quartz.nip01Core.core.Address
 import com.vitorpamplona.quartz.nip53LiveActivities.meetingSpaces.MeetingSpaceEvent
+import com.vitorpamplona.quartz.nip53LiveActivities.streaming.tags.ROLE
 import kotlinx.coroutines.flow.SharedFlow
 
 /**
@@ -277,14 +278,22 @@ private fun NestActivityBody(
 
     AutoConnectAndTrackSpeakers(viewModel, onStageKeys)
 
-    // Host "remove from mic" tags us PARTICIPANT — drop local seat intent.
+    // Host "remove from mic" tags us PARTICIPANT — drop local seat
+    // intent. Only act on a real demotion: a user who is *already* a
+    // PARTICIPANT (e.g. an audience member who just tapped an empty
+    // seat) must not be evicted the moment they take the seat, since
+    // their tag was never a speaking role to begin with.
+    var lastRole by remember(localPubkey) { mutableStateOf<ROLE?>(null) }
     LaunchedEffect(myTaggedRole, ui.micSeat) {
-        if (ui.micSeat != null && myTaggedRole == com.vitorpamplona.quartz.nip53LiveActivities.streaming.tags.ROLE.PARTICIPANT) {
+        val wasSpeaking = lastRole != null && lastRole != ROLE.PARTICIPANT
+        val nowParticipant = myTaggedRole == ROLE.PARTICIPANT
+        if (ui.micSeat != null && wasSpeaking && nowParticipant) {
             viewModel.leaveMicSeat()
             if (ui.broadcast is BroadcastUiState.Broadcasting || ui.broadcast == BroadcastUiState.Connecting) {
                 viewModel.stopBroadcast()
             }
         }
+        lastRole = myTaggedRole
     }
 
     // Auto-stop broadcast if we are no longer intentionally on a mic.

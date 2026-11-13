@@ -516,6 +516,11 @@ dependencies {
     // Waveform visualizer
     implementation(libs.audiowaveform)
 
+    // SVGA gift animation player (Apache-2.0, official svga/SVGAPlayer-Android).
+    // Imported as-is from JitPack — drives the cinematic full-screen gift
+    // playback in Nest voice rooms.
+    implementation("com.github.yyued:SVGAPlayer-Android:2.6.1")
+
     // Video compression lib
     implementation(libs.abedElazizShe.video.compressor.fork)
     // Image compression lib

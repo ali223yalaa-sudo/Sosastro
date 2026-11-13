@@ -437,6 +437,9 @@ internal fun NestFullScreen(
             // via graphicsLayer) so it never steals taps from the room.
             RoomGiftOverlay(
                 giftsByTarget = giftsByTarget,
+                nameFor = { pk ->
+                    LocalCache.getUserIfExists(pk)?.toBestDisplayName() ?: pk.take(8)
+                },
                 modifier = Modifier.fillMaxSize(),
             )
             RoomGiftTicker(

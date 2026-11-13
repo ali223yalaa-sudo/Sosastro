@@ -39,8 +39,23 @@ data class RoomGiftSku(
     val emoji: String,
     val labelAr: String,
     val labelEn: String,
-    /** 1 = everyday, 2 = premium, 3 = legendary. Drives the panel tab. */
+    /** 1 = everyday, 2 = premium, 3 = luxe, 4 = legendary. Drives the panel tab. */
     val tier: Int,
+    /**
+     * Display value, mirroring the "star price" the imported catalog
+     * shows next to each gift. Presentation only — a room gift is
+     * published as a kind-7 on the user's own relays, so nothing is
+     * debited here.
+     */
+    val value: Int,
+    /**
+     * Bundled SVGA animation asset (path under `assets/`), or `null`
+     * for a gift that only has an emoji treatment. When present the
+     * overlay plays the SVGA full-screen instead of the emoji rise.
+     * Assets are imported verbatim from Tencent's open-source
+     * TUILiveKit gift pack (MIT); see `assets/gifts/`.
+     */
+    val svga: String? = null,
 ) {
     fun label(arabic: Boolean): String = if (arabic) labelAr else labelEn
 }
@@ -50,25 +65,66 @@ data class RoomGiftSku(
  * tier reads first. Kept in `commons` (not the Android UI) so the
  * send path, the panel and the overlay all resolve the same SKU by
  * id, and so a unit test can assert the catalog is well-formed.
+ *
+ * Tiers drive the playback treatment in the overlay:
+ *   * 1 standard — a small rise.
+ *   * 2 premium  — a bigger rise with a sparkle ring.
+ *   * 3 luxe     — a full-screen cinematic takeover (rays + confetti).
+ *   * 4 legendary — a mega takeover (shock rings, screen flash,
+ *     giant emblem, sender → receiver marquee).
  */
 object RoomGiftCatalog {
     val all: List<RoomGiftSku> =
         listOf(
-            RoomGiftSku("rose", "🌹", "وردة", "Rose", 1),
-            RoomGiftSku("heart", "❤️", "قلب", "Heart", 1),
-            RoomGiftSku("star", "⭐", "نجمة", "Star", 1),
-            RoomGiftSku("clap", "👏", "تصفيق", "Applause", 1),
-            RoomGiftSku("cake", "🎂", "كيك", "Cake", 1),
-            RoomGiftSku("coffee", "☕", "قهوة", "Coffee", 1),
-            RoomGiftSku("trophy", "🏆", "كأس", "Trophy", 2),
-            RoomGiftSku("crown", "👑", "تاج", "Crown", 2),
-            RoomGiftSku("ring", "💎", "جوهرة", "Diamond", 2),
-            RoomGiftSku("rocket", "🚀", "صاروخ", "Rocket", 2),
-            RoomGiftSku("castle", "🏰", "قلعة", "Castle", 3),
-            RoomGiftSku("fireworks", "🎆", "ألعاب نارية", "Fireworks", 3),
+            // ── Standard ─────────────────────────────────────────────
+            RoomGiftSku("rose", "🌹", "وردة", "Rose", 1, 1),
+            RoomGiftSku("heart", "❤️", "قلب", "Heart", 1, 1),
+            RoomGiftSku("star", "⭐", "نجمة", "Star", 1, 2),
+            RoomGiftSku("clap", "👏", "تصفيق", "Applause", 1, 2),
+            RoomGiftSku("kiss", "💋", "قبلة", "Kiss", 1, 3),
+            RoomGiftSku("coffee", "☕", "قهوة", "Coffee", 1, 3),
+            RoomGiftSku("cake", "🎂", "كيك", "Birthday Cake", 1, 5),
+            RoomGiftSku("icecream", "🍦", "مثلجات", "Ice Cream", 1, 5),
+            RoomGiftSku("beer", "🍺", "مشروب", "Cheers", 1, 6),
+            RoomGiftSku("balloon", "🎈", "بالون", "Balloon", 1, 8),
+            // ── Premium ──────────────────────────────────────────────
+            RoomGiftSku("gift", "🎁", "هدية", "Gift Box", 2, 20),
+            RoomGiftSku("perfume", "🧴", "عطر", "Perfume", 2, 30),
+            RoomGiftSku("bouquet", "💐", "باقة ورد", "Bouquet", 2, 40),
+            RoomGiftSku("trophy", "🏆", "كأس", "Trophy", 2, 66),
+            RoomGiftSku("crown", "👑", "تاج", "Crown", 2, 88),
+            RoomGiftSku("guitar", "🎸", "قيثارة", "Guitar", 2, 99),
+            RoomGiftSku("diamond", "💎", "جوهرة", "Diamond", 2, 120),
+            RoomGiftSku("teddy", "🧸", "دمية", "Teddy", 2, 150),
+            RoomGiftSku("ring", "💍", "خاتم", "Ring", 2, 199),
+            RoomGiftSku("phone", "📱", "جوال", "Phone", 2, 288),
+            // ── Luxe (full-screen cinematic SVGA takeover) ───────────
+            // These five carry a ready-made high-resolution SVGA clip
+            // imported verbatim from Tencent's MIT-licensed TUILiveKit
+            // gift pack; the clip is named after the gift it depicts.
+            RoomGiftSku("car", "🚗", "سيارة", "Car", 3, 1314, svga = "gifts/car.svga"),
+            RoomGiftSku("sportscar", "🏎️", "سيارة سباق", "Sports Car", 3, 2025, svga = "gifts/sports_car.svga"),
+            RoomGiftSku("cat", "🐱", "قطة", "Cat", 3, 2525, svga = "gifts/cat.svga"),
+            RoomGiftSku("angel", "👼", "ملاك", "Angel", 3, 3333, svga = "gifts/angel.svga"),
+            RoomGiftSku("pin", "📍", "دبوس", "Pin", 3, 777, svga = "gifts/pin_jump.svga"),
+            // Emoji-only luxe gifts still get the cinematic backdrop.
+            RoomGiftSku("rocket", "🚀", "صاروخ", "Rocket", 3, 520),
+            RoomGiftSku("crownjewel", "👑", "تاج المرصع", "Jewelled Crown", 3, 888),
+            RoomGiftSku("castle", "🏰", "قلعة", "Castle", 3, 999),
+            RoomGiftSku("helicopter", "🚁", "هليكوبتر", "Helicopter", 3, 3000),
+            RoomGiftSku("yacht", "🛥️", "يخت", "Yacht", 3, 5200),
+            // ── Legendary (mega takeover) ────────────────────────────
+            RoomGiftSku("jet", "✈️", "طائرة خاصة", "Private Jet", 4, 8888),
+            RoomGiftSku("lion", "🦁", "أسد", "Golden Lion", 4, 9999),
+            RoomGiftSku("planet", "🪐", "كوكب", "Planet", 4, 13140),
+            RoomGiftSku("galaxy", "🌌", "المجرة", "Galaxy", 4, 19999),
+            RoomGiftSku("unicorn", "🦄", "يونيكورن", "Unicorn", 4, 23333),
+            RoomGiftSku("dragon", "🐉", "تنين", "Dragon", 4, 52000),
+            RoomGiftSku("crownmega", "🏆", "التاج الأسطوري", "Legend Crown", 4, 88888),
+            RoomGiftSku("galaxyrocket", "🚀", "صاروخ المجرة", "Galaxy Rocket", 4, 131400),
         )
 
-    val tiers: List<Int> = listOf(1, 2, 3)
+    val tiers: List<Int> = listOf(1, 2, 3, 4)
 
     fun byId(id: String): RoomGiftSku? = all.firstOrNull { it.id == id }
 }
@@ -94,6 +150,8 @@ data class RoomGift(
     val emoji: String,
     val quantity: Int,
     val createdAtSec: Long,
+    /** Catalog tier (1..4), or 0 for an unknown/future SKU. */
+    val tier: Int = 0,
 ) {
     companion object {
         fun from(event: ReactionEvent): RoomGift? {
@@ -106,6 +164,7 @@ data class RoomGift(
                 emoji = event.content,
                 quantity = payload.quantity,
                 createdAtSec = event.createdAt,
+                tier = RoomGiftCatalog.byId(payload.skuId)?.tier ?: 0,
             )
         }
     }
@@ -180,7 +239,20 @@ class RoomGiftsAggregator {
  * [REACTION_WINDOW_SEC] (10 s) so a gift burst plays out fully — the
  * overlay caps its own per-burst animation at [GIFT_BURST_MS].
  */
-const val GIFT_WINDOW_SEC: Long = 14L
+const val GIFT_WINDOW_SEC: Long = 22L
 
-/** Wall-clock duration of one gift burst animation. */
+/** Wall-clock duration of one gift burst animation (standard tier). */
 const val GIFT_BURST_MS: Long = 2_600L
+
+/**
+ * Playback duration for a gift, scaled by tier so a legendary drop
+ * gets a real cinematic beat instead of the standard blink. Mirrors
+ * how TRTC maps a gift's price band to an SVGA clip length.
+ */
+fun giftBurstMillis(tier: Int): Long =
+    when (tier) {
+        4 -> 5_200L
+        3 -> 4_200L
+        2 -> 3_200L
+        else -> GIFT_BURST_MS
+    }
