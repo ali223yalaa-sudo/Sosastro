@@ -61,6 +61,19 @@ afterEvaluate {
 
 android {
     namespace = "com.vitorpamplona.amethyst"
+    // Pin the debug signing config to a keystore committed in-tree. The
+    // default (~/.android/debug.keystore) lives on a tmpfs that is wiped
+    // on container restart, which silently produced unsigned, uninstallable
+    // APKs. This file is the standard AOSP debug key (storepass/keypass
+    // "android"), not a release secret.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = rootProject.file("keystore/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
     compileSdk =
         libs.versions.android.compileSdk
             .get()
