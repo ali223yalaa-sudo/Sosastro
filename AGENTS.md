@@ -148,18 +148,19 @@ region ever appears in the UI.
 
 ## Download server (APK hosting)
 
-`/tmp` is volatile and gets wiped between sessions, which kills any server or files kept
-there. Host the APKs from `/workspace/apk-download` (persistent), served on port 12000:
+`/workspace/apk-download` (persistent) is the single source of truth for hosting.
+Publish the newest build with the helper (it picks the newest fdroid APKs and
+copies them under stable names):
 
 ```bash
-cp amethyst/build/outputs/apk/fdroid/debug/amethyst-fdroid-universal-debug.apk /workspace/apk-download/Astro.apk
-cp amethyst/build/outputs/apk/play/debug/amethyst-play-universal-debug.apk      /workspace/apk-download/Astro-play.apk
-/workspace/apk-download/start.sh          # idempotent restart of the :12000 server
+/workspace/apk-download/publish.sh    # -> astro-dm.apk (universal) + astro-dm-arm64.apk
+/workspace/apk-download/start.sh      # idempotent restart of the :12000/:12001 server
 ```
 
-`/workspace/apk-download/index.html` is a small Arabic download landing page
-(links to both APKs). Public URL: https://work-1-sjgrvfcdashedalw.prod-runtime.all-hands.dev/
-(→ `/Astro.apk`, `/Astro-play.apk`, or `/` for the landing page).
+`/workspace/apk-download/index.html` is the Arabic landing page; its links must
+match what `publish.sh` writes (`astro-dm.apk`, `astro-dm-arm64.apk`). Public URL:
+https://work-1-iswqtkfbvispqkrh.prod-runtime.all-hands.dev/ (port 12000) and
+https://work-2-iswqtkfbvispqkrh.prod-runtime.all-hands.dev/ (port 12001).
 
 ### The download server must survive restarts
 
@@ -196,8 +197,9 @@ setsid nohup /workspace/apk-download/watchdog.sh &   # keeps it alive
 - `server.py` must send `Content-Disposition: attachment` **only for `.apk`**.
   Sending it for `index.html` makes the browser save the page as a file instead
   of rendering it — the link looks broken even though the server answers 200.
-- Files served: `Astro-arm64.apk` (101 MB, recommended), `Astro.apk`
-  (universal, 192 MB), `Astro-play.apk` (238 MB).
+- Files served: `astro-dm-arm64.apk` (arm64, ~157 MB), `astro-dm.apk`
+  (universal, ~210 MB). Older archives (`astro-final-*.apk`, `astro-calls-fixed-*.apk`)
+  stay in the dir but are no longer linked from `index.html`.
 - A durable fallback is the GitHub release `astro-v1.12.6` on the repo, but the
   repo is **private**, so those asset URLs need authentication (HTTP 404 for
   anonymous users). Keep that in mind before sharing release links.
