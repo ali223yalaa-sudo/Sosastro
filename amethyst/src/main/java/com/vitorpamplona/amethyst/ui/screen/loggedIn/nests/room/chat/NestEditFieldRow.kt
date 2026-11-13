@@ -20,6 +20,9 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.chat
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,8 +33,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
@@ -101,6 +109,25 @@ fun NestEditFieldRow(
         }
     }
 
+    // This composer is the terminal focus sink in the room: it never
+    // requests focus on its own, but once the user taps it the keyboard
+    // owns the back gesture. `NestActivityContent` gates its
+    // minimize-to-PIP back on the IME inset, but that inset is only
+    // reported in edge-to-edge windows (`NestActivity` does not call
+    // `enableEdgeToEdge`), so on its own it can leave back unhandled
+    // and strand the keyboard. This handler keys off the text field's
+    // *focus* instead — independent of the inset — so back reliably
+    // dismisses the keyboard (and only the keyboard) before the room's
+    // back-to-PIP handler runs.
+    val focusManager: FocusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    val composerInteraction = remember { MutableInteractionSource() }
+    val isComposerFocused by composerInteraction.collectIsFocusedAsState()
+    BackHandler(enabled = isComposerFocused) {
+        focusManager.clearFocus()
+        keyboard?.hide()
+    }
+
     Column(
         modifier = EditFieldModifier,
     ) {
@@ -132,6 +159,7 @@ fun NestEditFieldRow(
                 ),
             shape = EditFieldBorder,
             modifier = Modifier.fillMaxWidth(),
+            interactionSource = composerInteraction,
             placeholder = {
                 Text(
                     text = stringRes(R.string.nest_say_something),

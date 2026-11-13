@@ -565,5 +565,22 @@ Fix: use `KeyboardAwareBackHandler` (in
 it does NOT consume back — the system dismisses the IME with its own clean
 animation; the next back (keyboard down) minimizes to PIP as before. This is the
 same handler the DM composer (`PrivateMessageEditFieldRow.kt`) and
-`NewGroupDMScreen.kt` already use. Any new full-screen handler in a room must do
-the same, or it will re-trap the composer.
+`NewGroupDMScreen.kt` already use.
+
+That alone is not sufficient, because `keyboardAsState()` reads
+`WindowInsets.ime`, and Android only *dispatches* the IME inset to the window in
+an edge-to-edge window. `NestActivity` (unlike `MainActivity` and
+`CallActivity`) does **not** call `enableEdgeToEdge()`, so on Android ≤ 14 the
+inset reads 0 even while the keyboard is up, the gate never opens, and back
+stays swallowed — the composer is still trapped. (Android 15+ forces
+edge-to-edge, which is why it can look device-dependent.)
+
+Second fix: `NestEditFieldRow.kt` now owns a focus-based back handler. It
+watches its text field's `interactionSource` (via `collectIsFocusedAsState`)
+and, while the field is focused, handles back itself — `focusManager.clearFocus()`
++ `keyboard.hide()` — then lets the press fall through. Focus is independent of
+the IME inset, so this works on every Android version. The channel composer
+`EditFieldRow.kt` already had this (its own `KeyboardAwareBackHandler`), and the
+nest composer previously had *no* back handler of its own — that omission is why
+only the room was affected. Any new full-screen handler in a room must respect
+this ordering, or it will re-trap the composer.
