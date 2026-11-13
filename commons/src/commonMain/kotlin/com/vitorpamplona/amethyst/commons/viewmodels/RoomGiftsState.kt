@@ -63,6 +63,12 @@ data class RoomGiftSku(
      * raw emoji glyph so every gift has a crisp, real icon.
      */
     val icon: String? = null,
+    /**
+     * Bundled sound effect (a `res/raw` name without extension, e.g.
+     * `gift_rose`). Played once when the gift's burst starts. Each gift
+     * has its own clip and no two share one.
+     */
+    val sound: String? = null,
 ) {
     fun label(arabic: Boolean): String = if (arabic) labelAr else labelEn
 }
@@ -282,51 +288,51 @@ object RoomGiftCatalog {
     val all: List<RoomGiftSku> =
         listOf(
             // ── Standard ─────────────────────────────────────────────
-            RoomGiftSku("rose", "🌹", "وردة", "Rose", 1, 1, svga = "gifts/rose.svga", icon = "gifts/icons/rose.png"),
-            RoomGiftSku("heart", "❤️", "قلب", "Heart", 1, 1, svga = "gifts/heartbeat.svga", icon = "gifts/icons/heart.png"),
-            RoomGiftSku("star", "⭐", "نجمة", "Star", 1, 2, svga = "gifts/gen_star.svga", icon = "gifts/icons/star.png"),
-            RoomGiftSku("clap", "👏", "تصفيق", "Applause", 1, 2, svga = "gifts/gen_clap.svga", icon = "gifts/icons/clap.png"),
-            RoomGiftSku("kiss", "💋", "قبلة", "Kiss", 1, 3, svga = "gifts/gen_kiss.svga", icon = "gifts/icons/kiss.png"),
-            RoomGiftSku("coffee", "☕", "قهوة", "Coffee", 1, 3, svga = "gifts/gen_coffee.svga", icon = "gifts/icons/coffee.png"),
-            RoomGiftSku("cake", "🎂", "كيك", "Birthday Cake", 1, 5, svga = "gifts/gen_cake.svga", icon = "gifts/icons/cake.png"),
-            RoomGiftSku("icecream", "🍦", "مثلجات", "Ice Cream", 1, 5, svga = "gifts/gen_icecream.svga", icon = "gifts/icons/icecream.png"),
-            RoomGiftSku("beer", "🍺", "مشروب", "Cheers", 1, 6, svga = "gifts/gen_beer.svga", icon = "gifts/icons/beer.png"),
-            RoomGiftSku("balloon", "🎈", "بالون", "Balloon", 1, 8, svga = "gifts/gen_balloon.svga", icon = "gifts/icons/balloon.png"),
+            RoomGiftSku("rose", "🌹", "وردة", "Rose", 1, 1, svga = "gifts/rose.svga", icon = "gifts/icons/rose.png", sound = "gift_rose"),
+            RoomGiftSku("heart", "❤️", "قلب", "Heart", 1, 1, svga = "gifts/heartbeat.svga", icon = "gifts/icons/heart.png", sound = "gift_heart"),
+            RoomGiftSku("star", "⭐", "نجمة", "Star", 1, 2, svga = "gifts/gen_star.svga", icon = "gifts/icons/star.png", sound = "gift_star"),
+            RoomGiftSku("clap", "👏", "تصفيق", "Applause", 1, 2, svga = "gifts/gen_clap.svga", icon = "gifts/icons/clap.png", sound = "gift_clap"),
+            RoomGiftSku("kiss", "💋", "قبلة", "Kiss", 1, 3, svga = "gifts/gen_kiss.svga", icon = "gifts/icons/kiss.png", sound = "gift_kiss"),
+            RoomGiftSku("coffee", "☕", "قهوة", "Coffee", 1, 3, svga = "gifts/gen_coffee.svga", icon = "gifts/icons/coffee.png", sound = "gift_coffee"),
+            RoomGiftSku("cake", "🎂", "كيك", "Birthday Cake", 1, 5, svga = "gifts/gen_cake.svga", icon = "gifts/icons/cake.png", sound = "gift_cake"),
+            RoomGiftSku("icecream", "🍦", "مثلجات", "Ice Cream", 1, 5, svga = "gifts/gen_icecream.svga", icon = "gifts/icons/icecream.png", sound = "gift_icecream"),
+            RoomGiftSku("beer", "🍺", "مشروب", "Cheers", 1, 6, svga = "gifts/gen_beer.svga", icon = "gifts/icons/beer.png", sound = "gift_beer"),
+            RoomGiftSku("balloon", "🎈", "بالون", "Balloon", 1, 8, svga = "gifts/gen_balloon.svga", icon = "gifts/icons/balloon.png", sound = "gift_balloon"),
             // ── Premium ──────────────────────────────────────────────
-            RoomGiftSku("gift", "🎁", "هدية", "Gift Box", 2, 20, svga = "gifts/christmas.svga", icon = "gifts/icons/gift.png"),
-            RoomGiftSku("perfume", "🧴", "عطر", "Perfume", 2, 30, svga = "gifts/gen_perfume.svga", icon = "gifts/icons/perfume.png"),
-            RoomGiftSku("bouquet", "💐", "باقة ورد", "Bouquet", 2, 40, svga = "gifts/rose_v2.svga", icon = "gifts/icons/bouquet.png"),
-            RoomGiftSku("trophy", "🏆", "كأس", "Trophy", 2, 66, svga = "gifts/gen_trophy.svga", icon = "gifts/icons/trophy.png"),
-            RoomGiftSku("crown", "👑", "تاج", "Crown", 2, 88, svga = "gifts/gen_crown.svga", icon = "gifts/icons/crown.png"),
-            RoomGiftSku("guitar", "🎸", "قيثارة", "Guitar", 2, 99, svga = "gifts/gen_guitar.svga", icon = "gifts/icons/guitar.png"),
-            RoomGiftSku("diamond", "💎", "جوهرة", "Diamond", 2, 120, svga = "gifts/gen_diamond.svga", icon = "gifts/icons/diamond.png"),
-            RoomGiftSku("teddy", "🧸", "دمية", "Teddy", 2, 150, svga = "gifts/gen_teddy.svga", icon = "gifts/icons/teddy.png"),
-            RoomGiftSku("ring", "💍", "خاتم", "Ring", 2, 199, svga = "gifts/gen_ring.svga", icon = "gifts/icons/ring.png"),
-            RoomGiftSku("phone", "📱", "جوال", "Phone", 2, 288, svga = "gifts/gen_phone.svga", icon = "gifts/icons/phone.png"),
+            RoomGiftSku("gift", "🎁", "هدية", "Gift Box", 2, 20, svga = "gifts/christmas.svga", icon = "gifts/icons/gift.png", sound = "gift_gift"),
+            RoomGiftSku("perfume", "🧴", "عطر", "Perfume", 2, 30, svga = "gifts/gen_perfume.svga", icon = "gifts/icons/perfume.png", sound = "gift_perfume"),
+            RoomGiftSku("bouquet", "💐", "باقة ورد", "Bouquet", 2, 40, svga = "gifts/rose_v2.svga", icon = "gifts/icons/bouquet.png", sound = "gift_bouquet"),
+            RoomGiftSku("trophy", "🏆", "كأس", "Trophy", 2, 66, svga = "gifts/gen_trophy.svga", icon = "gifts/icons/trophy.png", sound = "gift_trophy"),
+            RoomGiftSku("crown", "👑", "تاج", "Crown", 2, 88, svga = "gifts/gen_crown.svga", icon = "gifts/icons/crown.png", sound = "gift_crown"),
+            RoomGiftSku("guitar", "🎸", "قيثارة", "Guitar", 2, 99, svga = "gifts/gen_guitar.svga", icon = "gifts/icons/guitar.png", sound = "gift_guitar"),
+            RoomGiftSku("diamond", "💎", "جوهرة", "Diamond", 2, 120, svga = "gifts/gen_diamond.svga", icon = "gifts/icons/diamond.png", sound = "gift_diamond"),
+            RoomGiftSku("teddy", "🧸", "دمية", "Teddy", 2, 150, svga = "gifts/gen_teddy.svga", icon = "gifts/icons/teddy.png", sound = "gift_teddy"),
+            RoomGiftSku("ring", "💍", "خاتم", "Ring", 2, 199, svga = "gifts/gen_ring.svga", icon = "gifts/icons/ring.png", sound = "gift_ring"),
+            RoomGiftSku("phone", "📱", "جوال", "Phone", 2, 288, svga = "gifts/gen_phone.svga", icon = "gifts/icons/phone.png", sound = "gift_phone"),
             // ── Luxe (full-screen cinematic SVGA takeover) ───────────
             // The first five carry a ready-made high-resolution SVGA
             // clip imported verbatim from Tencent's MIT-licensed
             // TUILiveKit gift pack; the clip is named after the gift it
             // depicts.
-            RoomGiftSku("car", "🚗", "سيارة", "Car", 3, 1314, svga = "gifts/car.svga", icon = "gifts/icons/car.png"),
-            RoomGiftSku("sportscar", "🏎️", "سيارة سباق", "Sports Car", 3, 2025, svga = "gifts/sports_car.svga", icon = "gifts/icons/sportscar.png"),
-            RoomGiftSku("cat", "🐱", "قطة", "Cat", 3, 2525, svga = "gifts/cat.svga", icon = "gifts/icons/cat.png"),
-            RoomGiftSku("angel", "👼", "ملاك", "Angel", 3, 3333, svga = "gifts/angel.svga", icon = "gifts/icons/angel.png"),
-            RoomGiftSku("pin", "📍", "دبوس", "Pin", 3, 777, svga = "gifts/pin_jump.svga", icon = "gifts/icons/pin.png"),
-            RoomGiftSku("rocket", "🚀", "صاروخ", "Rocket", 3, 520, svga = "gifts/rocket.svga", icon = "gifts/icons/rocket.png"),
-            RoomGiftSku("crownjewel", "👑", "تاج المرصع", "Jewelled Crown", 3, 888, svga = "gifts/gen_crownjewel.svga", icon = "gifts/icons/crownjewel.png"),
-            RoomGiftSku("castle", "🏰", "قلعة", "Castle", 3, 999, svga = "gifts/castle.svga", icon = "gifts/icons/castle.png"),
-            RoomGiftSku("helicopter", "🚁", "هليكوبتر", "Helicopter", 3, 3000, svga = "gifts/gen_helicopter.svga", icon = "gifts/icons/helicopter.png"),
-            RoomGiftSku("yacht", "🛥️", "يخت", "Yacht", 3, 5200, svga = "gifts/gen_yacht.svga", icon = "gifts/icons/yacht.png"),
+            RoomGiftSku("car", "🚗", "سيارة", "Car", 3, 1314, svga = "gifts/car.svga", icon = "gifts/icons/car.png", sound = "gift_car"),
+            RoomGiftSku("sportscar", "🏎️", "سيارة سباق", "Sports Car", 3, 2025, svga = "gifts/sports_car.svga", icon = "gifts/icons/sportscar.png", sound = "gift_sportscar"),
+            RoomGiftSku("cat", "🐱", "قطة", "Cat", 3, 2525, svga = "gifts/cat.svga", icon = "gifts/icons/cat.png", sound = "gift_cat"),
+            RoomGiftSku("angel", "👼", "ملاك", "Angel", 3, 3333, svga = "gifts/angel.svga", icon = "gifts/icons/angel.png", sound = "gift_angel"),
+            RoomGiftSku("pin", "📍", "دبوس", "Pin", 3, 777, svga = "gifts/pin_jump.svga", icon = "gifts/icons/pin.png", sound = "gift_pin"),
+            RoomGiftSku("rocket", "🚀", "صاروخ", "Rocket", 3, 520, svga = "gifts/rocket.svga", icon = "gifts/icons/rocket.png", sound = "gift_rocket"),
+            RoomGiftSku("crownjewel", "👑", "تاج المرصع", "Jewelled Crown", 3, 888, svga = "gifts/gen_crownjewel.svga", icon = "gifts/icons/crownjewel.png", sound = "gift_crownjewel"),
+            RoomGiftSku("castle", "🏰", "قلعة", "Castle", 3, 999, svga = "gifts/castle.svga", icon = "gifts/icons/castle.png", sound = "gift_castle"),
+            RoomGiftSku("helicopter", "🚁", "هليكوبتر", "Helicopter", 3, 3000, svga = "gifts/gen_helicopter.svga", icon = "gifts/icons/helicopter.png", sound = "gift_helicopter"),
+            RoomGiftSku("yacht", "🛥️", "يخت", "Yacht", 3, 5200, svga = "gifts/gen_yacht.svga", icon = "gifts/icons/yacht.png", sound = "gift_yacht"),
             // ── Legendary (mega takeover) ────────────────────────────
-            RoomGiftSku("jet", "✈️", "طائرة خاصة", "Private Jet", 4, 8888, svga = "gifts/gen_jet.svga", icon = "gifts/icons/jet.png"),
-            RoomGiftSku("lion", "🦁", "أسد", "Golden Lion", 4, 9999, svga = "gifts/gen_lion.svga", icon = "gifts/icons/lion.png"),
-            RoomGiftSku("planet", "🪐", "كوكب", "Planet", 4, 13140, svga = "gifts/gen_planet.svga", icon = "gifts/icons/planet.png"),
-            RoomGiftSku("galaxy", "🌌", "المجرة", "Galaxy", 4, 19999, svga = "gifts/gen_galaxy.svga", icon = "gifts/icons/galaxy.png"),
-            RoomGiftSku("unicorn", "🦄", "يونيكورن", "Unicorn", 4, 23333, svga = "gifts/gen_unicorn.svga", icon = "gifts/icons/unicorn.png"),
-            RoomGiftSku("dragon", "🐉", "تنين", "Dragon", 4, 52000, svga = "gifts/gen_dragon.svga", icon = "gifts/icons/dragon.png"),
-            RoomGiftSku("crownmega", "🏆", "التاج الأسطوري", "Legend Crown", 4, 88888, svga = "gifts/gen_crownmega.svga", icon = "gifts/icons/crownmega.png"),
-            RoomGiftSku("galaxyrocket", "🚀", "صاروخ المجرة", "Galaxy Rocket", 4, 131400, svga = "gifts/gen_galaxyrocket.svga", icon = "gifts/icons/galaxyrocket.png"),
+            RoomGiftSku("jet", "✈️", "طائرة خاصة", "Private Jet", 4, 8888, svga = "gifts/gen_jet.svga", icon = "gifts/icons/jet.png", sound = "gift_jet"),
+            RoomGiftSku("lion", "🦁", "أسد", "Golden Lion", 4, 9999, svga = "gifts/gen_lion.svga", icon = "gifts/icons/lion.png", sound = "gift_lion"),
+            RoomGiftSku("planet", "🪐", "كوكب", "Planet", 4, 13140, svga = "gifts/gen_planet.svga", icon = "gifts/icons/planet.png", sound = "gift_planet"),
+            RoomGiftSku("galaxy", "🌌", "المجرة", "Galaxy", 4, 19999, svga = "gifts/gen_galaxy.svga", icon = "gifts/icons/galaxy.png", sound = "gift_galaxy"),
+            RoomGiftSku("unicorn", "🦄", "يونيكورن", "Unicorn", 4, 23333, svga = "gifts/gen_unicorn.svga", icon = "gifts/icons/unicorn.png", sound = "gift_unicorn"),
+            RoomGiftSku("dragon", "🐉", "تنين", "Dragon", 4, 52000, svga = "gifts/gen_dragon.svga", icon = "gifts/icons/dragon.png", sound = "gift_dragon"),
+            RoomGiftSku("crownmega", "🏆", "التاج الأسطوري", "Legend Crown", 4, 88888, svga = "gifts/gen_crownmega.svga", icon = "gifts/icons/crownmega.png", sound = "gift_crownmega"),
+            RoomGiftSku("galaxyrocket", "🚀", "صاروخ المجرة", "Galaxy Rocket", 4, 131400, svga = "gifts/gen_galaxyrocket.svga", icon = "gifts/icons/galaxyrocket.png", sound = "gift_galaxyrocket"),
         )
 
     val tiers: List<Int> = listOf(1, 2, 3, 4)

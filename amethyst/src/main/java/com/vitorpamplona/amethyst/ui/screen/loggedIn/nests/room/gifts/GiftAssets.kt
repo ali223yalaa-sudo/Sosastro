@@ -20,14 +20,19 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.gifts
 
+import android.content.Context
 import android.graphics.BitmapFactory
+import android.media.AudioAttributes
+import android.media.SoundPool
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -85,4 +90,62 @@ fun GiftIcon(
             Text(text = emoji, fontSize = emojiSize.sp)
         }
     }
+}
+
+/**
+ * Plays each gift's own `res/raw` sound effect once when its burst
+ * starts. Backed by [SoundPool] so clips are decoded once and replayed
+ * with no per-play latency; the pool is released when the overlay
+ * leaves composition. Sonification usage means the system media volume
+ * and mute still apply.
+ */
+class GiftSounds(
+    private val context: Context,
+) {
+    private val pool =
+        SoundPool
+            .Builder()
+            .setMaxStreams(4)
+            .setAudioAttributes(
+                AudioAttributes
+                    .Builder()
+                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build(),
+            ).build()
+    private val loaded = HashMap<String, Int>()
+
+    private fun idFor(name: String): Int {
+        loaded[name]?.let { return it }
+        val res = context.resources.getIdentifier(name, "raw", context.packageName)
+        if (res == 0) return 0
+        val id = pool.load(context, res, 1)
+        loaded[name] = id
+        return id
+    }
+
+    /** Decode a clip ahead of first use so the first gift is not silent. */
+    fun preload(name: String?) {
+        if (name != null) idFor(name)
+    }
+
+    fun play(name: String?) {
+        if (name == null) return
+        val id = idFor(name)
+        if (id != 0) pool.play(id, 1f, 1f, 1, 0, 1f)
+    }
+
+    fun release() {
+        pool.release()
+    }
+}
+
+@Composable
+fun rememberGiftSounds(): GiftSounds {
+    val context = LocalContext.current
+    val sounds = remember { GiftSounds(context) }
+    DisposableEffect(Unit) {
+        onDispose { sounds.release() }
+    }
+    return sounds
 }

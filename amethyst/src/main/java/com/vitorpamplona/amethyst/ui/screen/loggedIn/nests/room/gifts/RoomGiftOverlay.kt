@@ -53,6 +53,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -113,6 +115,11 @@ fun RoomGiftOverlay(
     // without an asset fall back to a timed burst.
     var svgaDone by remember { mutableStateOf<CompletableDeferred<Unit>?>(null) }
 
+    // Per-gift sound effect, decoded once up front so the very first
+    // gift is not silent.
+    val sounds = rememberGiftSounds()
+    LaunchedEffect(Unit) { RoomGiftCatalog.all.forEach { sounds.preload(it.sound) } }
+
     // Single-slot queue fed by a producer that re-scans the (re-emitted)
     // gift list on every change. A Channel is essential here: keying the
     // consumer on the list would cancel and restart the *in-flight*
@@ -130,6 +137,7 @@ fun RoomGiftOverlay(
     LaunchedEffect(Unit) {
         for (gift in pending) {
             current = gift
+            sounds.play(RoomGiftCatalog.byId(gift.skuId)?.sound)
             if (RoomGiftCatalog.byId(gift.skuId)?.svga != null) {
                 val done = CompletableDeferred<Unit>()
                 svgaDone = done
@@ -181,6 +189,37 @@ private fun GiftBurst(
     }
     val p = progress.value
 
+    // Price-band sizing: a standard gift is a small rising sticker, a
+    // legendary one a full-screen takeover — the same band→size mapping
+    // a live-streaming app uses. Small clips drift up (so they read as
+    // a throw from the sender) and fade at the edges; big ones are
+    // centred and steady.
+    val sizeFraction =
+        when (gift.tier) {
+            1 -> 0.40f
+            2 -> 0.58f
+            3 -> 0.85f
+            else -> 1f
+        }
+    val rise =
+        when (gift.tier) {
+            1 -> 1f
+            2 -> 0.7f
+            else -> 0f
+        }
+    val heightPx =
+        with(LocalDensity.current) {
+            LocalConfiguration.current.screenHeightDp.dp
+                .toPx()
+        }
+    val offsetY = (0.30f * rise + (-0.42f * rise) * p) * heightPx
+    val burstAlpha =
+        if (gift.tier >= 3) {
+            1f
+        } else {
+            minOf(1f, p / 0.12f) * minOf(1f, (1f - p) / 0.22f)
+        }
+
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
@@ -189,13 +228,24 @@ private fun GiftBurst(
             EpicBackdrop(gift = gift, theme = theme, progress = p)
         }
         if (svgaAsset != null) {
-            // Imported SVGA clip plays full-screen; the emoji emblem is
-            // suppressed and only the sender→receiver marquee overlays it.
-            SvgaGiftPlayer(
-                assetPath = svgaAsset,
-                onFinished = onSvgaFinished,
-                modifier = Modifier.fillMaxSize(),
-            )
+            // Imported SVGA clip, scaled to the gift's price band. The
+            // emoji emblem is suppressed and only the sender line (or,
+            // for epic gifts, the sender→receiver marquee) overlays it.
+            Box(
+                modifier =
+                    Modifier
+                        .graphicsLayer {
+                            translationY = offsetY
+                            alpha = burstAlpha
+                        }.fillMaxSize(sizeFraction),
+                contentAlignment = Alignment.Center,
+            ) {
+                SvgaGiftPlayer(
+                    assetPath = svgaAsset,
+                    onFinished = onSvgaFinished,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
             if (epic) {
                 GiftMarquee(
                     senderName = senderName,
@@ -205,10 +255,42 @@ private fun GiftBurst(
                     progress = p,
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp),
                 )
+            } else {
+                GiftSenderChip(
+                    senderName = senderName,
+                    gift = gift,
+                    theme = theme,
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 120.dp),
+                )
             }
         } else {
             Emblem(gift = gift, theme = theme, senderName = senderName, receiverName = receiverName, epic = epic, progress = p)
         }
+    }
+}
+
+/** Small "emoji + sender" pill under a standard/premium gift's clip. */
+@Composable
+private fun GiftSenderChip(
+    senderName: String,
+    gift: RoomGift,
+    theme: RoomGiftTheme,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .clip(RoundedCornerShape(50))
+                .background(Color(theme.accentDeep).copy(alpha = 0.72f))
+                .padding(horizontal = 14.dp, vertical = 6.dp),
+    ) {
+        Text(
+            text = "${gift.emoji}  $senderName",
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+        )
     }
 }
 

@@ -24,6 +24,20 @@ imported ones.
 `icons/<gift>.png` are the real per-gift icons the panel draws, one
 per catalog entry, rendered from Twemoji.
 
+## Sounds
+
+Each gift also plays its own sound effect. The clips live in
+`amethyst/src/main/res/raw/gift_<gift>.wav` (mono, 22.05 kHz, 16-bit)
+and are named after the gift, so the catalog's `sound = "gift_<id>"`
+field resolves straight to a `res/raw` id. No two gifts share a clip.
+They are authored by `/workspace/svga_tools/generate_sounds.py`: a
+seeded synth picks a consonant pentatonic pitch cluster plus a
+tier-scaled flourish (blip / sparkle arpeggio / rising sweep / big
+hit) and a motif-specific texture, so a cheap gift reads as a small
+chime and a legendary one as a big multi-layer hit. `GiftSounds`
+(`.../nests/room/gifts/GiftAssets.kt`) plays them through a
+`SoundPool` once per burst.
+
 Both upstream projects ship the corresponding LICENSE files in their
 repositories. The SVGAPlayer-Android runtime used to play these clips
 (`com.github.yyued:SVGAPlayer-Android`) is likewise Apache-2.0.

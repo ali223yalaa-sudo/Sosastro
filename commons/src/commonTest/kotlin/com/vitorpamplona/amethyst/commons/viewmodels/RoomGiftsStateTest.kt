@@ -250,4 +250,16 @@ class RoomGiftsStateTest {
         assertEquals(icons.size, icons.toSet().size, "each gift must have a distinct icon")
         assertTrue(icons.all { it!!.startsWith("gifts/icons/") && it.endsWith(".png") })
     }
+
+    @Test
+    fun everyGiftHasItsOwnSound() {
+        // Each gift plays its own sound effect; no two share one.
+        assertTrue(
+            RoomGiftCatalog.all.all { !it.sound.isNullOrBlank() },
+            "every gift must have its own sound",
+        )
+        val sounds = RoomGiftCatalog.all.map { it.sound }
+        assertEquals(sounds.size, sounds.toSet().size, "each gift must have a distinct sound")
+        assertTrue(sounds.all { it!!.startsWith("gift_") && !it.contains(".") })
+    }
 }

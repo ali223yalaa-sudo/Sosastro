@@ -21,6 +21,8 @@
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.gifts
 
 import android.util.Log
+import android.widget.ImageView
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -31,10 +33,16 @@ import com.opensource.svgaplayer.SVGAParser
 import com.opensource.svgaplayer.SVGAVideoEntity
 
 /**
- * Plays a bundled SVGA gift animation full-screen. Thin Compose
- * bridge over the official [SVGAImageView] (Apache-2.0): decode the
- * asset once, start it, and report completion so the overlay's queue
- * can advance to the next gift.
+ * Plays a bundled SVGA gift animation, sized to the gift's tier. Thin
+ * Compose bridge over the official [SVGAImageView] (Apache-2.0): decode
+ * the asset once, start it, and report completion so the overlay's
+ * queue can advance to the next gift.
+ *
+ * The clip is drawn centred inside a box that is [sizeFraction] of the
+ * overlay, so a cheap gift reads as a small rising sticker while a
+ * legendary one takes the whole screen — the same price-band scaling a
+ * live-streaming app uses. [ImageView.ScaleType.FIT_CENTER] keeps the
+ * clip's aspect ratio, so the box never distorts the art.
  *
  * The player is intentionally isolated to this one composable — the
  * rest of the overlay (queue, marquee, fallback emoji treatment)
@@ -45,17 +53,19 @@ fun SvgaGiftPlayer(
     assetPath: String,
     onFinished: () -> Unit,
     modifier: Modifier = Modifier,
+    sizeFraction: Float = 1f,
 ) {
     // Keep the latest callback without re-creating the view.
     val finished = remember { Ref(onFinished) }
     finished.value = onFinished
 
     AndroidView(
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(sizeFraction),
         factory = { ctx ->
             SVGAImageView(ctx).apply {
                 loops = 1
                 isClickable = false
+                scaleType = ImageView.ScaleType.FIT_CENTER
                 callback =
                     object : SVGACallback {
                         override fun onFinished() {

@@ -506,10 +506,14 @@ TRTC/TUILiveKit's two-component design:
   (the `GiftPlayView` analogue). A transparent full-screen layer mounted in
   `NestFullScreen` ABOVE the stage/chat Column and BELOW the sheets/dialogs.
   It queues bursts one at a time (`GIFT_BURST_MS`) and never intercepts taps.
-  Every gift plays its own full-screen SVGA clip (`SvgaGiftPlayer.kt`).
-  `RoomGiftTicker` in the same file draws the recent-gifts row; it sits in the
-  room's normal column flow directly below the mic seats (NOT pinned to the top
-  as an overlay), so the "who sent what" chips never cover the room header.
+  Every gift plays its own full-screen SVGA clip (`SvgaGiftPlayer.kt`) and its
+  own `res/raw` sound (`GiftSounds` in `GiftAssets.kt`, played once per burst).
+  The clip is scaled by the gift's price band: a standard gift is a small
+  rising sticker (~40% of the screen, drifting up with a sender chip), a
+  legendary one a full-screen takeover. `RoomGiftTicker` in the same file draws
+  the recent-gifts row; it sits in the room's normal column flow directly below
+  the mic seats (NOT pinned to the top as an overlay), so the "who sent what"
+  chips never cover the room header.
 
 Transport: a gift is a normal NIP-25 kind-7 reaction whose `content` is the
 gift emoji and which carries a `["gift", skuId, quantity]` tag. Sending uses
@@ -521,7 +525,7 @@ collector (`NestRoomEventCollectors.kt`) routes them to
 `NestViewModel.onGiftEvent`. `RoomGiftsAggregator` dedups by event id, groups by
 RECIPIENT pubkey (room-wide gifts under `""`) and evicts on the same 1-s tick as
 reactions/zaps but with the longer `GIFT_WINDOW_SEC` (14 s) so a burst finishes
-playing. Tests: `commons/.../viewmodels/RoomGiftsStateTest.kt` (20 tests).
+playing. Tests: `commons/.../viewmodels/RoomGiftsStateTest.kt` (21 tests).
 
 Gift visual identity: a gift's *look* is not hard-coded in the overlay. Each
 SKU resolves a `RoomGiftTheme` (accent + accentDeep, a `GiftMotif` from the
@@ -532,15 +536,18 @@ layout `seed`) via `RoomGiftSku.theme()` / `giftThemeFor(id)` in
 perceives. The overlay tints its scrim/rays/marquee from `theme.accent` and
 dispatches `drawMotif(...)`; every particle function takes `seed` so two gifts
 sharing a motif *and* variant still scatter differently. Every gift also ships
-its own full-screen SVGA clip and its own panel icon, and no two gifts share
-either. When adding a gift: add a clip to `assets/gifts/` and an icon to
-`assets/gifts/icons/` (see the README for licensing), add a `RoomGiftSku` (set
-both `svga` and `icon`), and (optionally) a `SemanticMotifs` entry; the
+its own full-screen SVGA clip, its own panel icon and its own `res/raw` sound,
+and no two gifts share any of them. When adding a gift: add a clip to
+`assets/gifts/`, an icon to `assets/gifts/icons/` and a sound to
+`res/raw/` (see the README for licensing), add a `RoomGiftSku` (set `svga`,
+`icon` and `sound`), and (optionally) a `SemanticMotifs` entry; the
 `everyGiftHasADistinctTheme` + `noTwoGiftsShareAccentAndMotif` +
-`everyGiftHasACinematicClip` + `everyGiftHasARealIcon` tests enforce the rest.
-The per-gift clips are authored by `/workspace/svga_tools/generate.py`; renders
-can be verified headlessly with `/workspace/verify_gifts.py` (mirrors the canvas
-math to a PNG contact sheet; asserts no two gifts render identically).
+`everyGiftHasACinematicClip` + `everyGiftHasARealIcon` +
+`everyGiftHasItsOwnSound` tests enforce the rest. The per-gift clips are
+authored by `/workspace/svga_tools/generate.py` and the sounds by
+`/workspace/svga_tools/generate_sounds.py`; renders can be verified headlessly
+with `/workspace/verify_gifts.py` (mirrors the canvas math to a PNG contact
+sheet; asserts no two gifts render identically).
 
 ## Nests (voice rooms): back must dismiss the keyboard first
 
