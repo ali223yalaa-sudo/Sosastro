@@ -59,7 +59,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
 import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
 import com.vitorpamplona.amethyst.commons.viewmodels.RoomGiftCatalog
@@ -225,8 +224,9 @@ private fun GiftCell(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        // Emoji sits on a soft accent disc so each gift reads with its
-        // own colour instead of a bare glyph on a flat tile.
+        // Real per-gift icon on a soft accent disc so each gift reads
+        // with its own colour and its own artwork instead of a bare
+        // glyph on a flat tile.
         Box(
             modifier =
                 Modifier
@@ -235,7 +235,7 @@ private fun GiftCell(
                     .background(Brush.verticalGradient(listOf(accent.copy(alpha = 0.35f), accentDeep.copy(alpha = 0.25f)))),
             contentAlignment = Alignment.Center,
         ) {
-            Text(text = sku.emoji, fontSize = 24.sp)
+            GiftIcon(iconPath = sku.icon, emoji = sku.emoji, size = 30.dp, emojiSize = 24)
         }
         Text(
             text = sku.label(arabic),

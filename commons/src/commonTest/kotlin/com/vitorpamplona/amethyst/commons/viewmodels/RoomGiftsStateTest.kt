@@ -227,4 +227,27 @@ class RoomGiftsStateTest {
         assertEquals(assets.size, assets.toSet().size, "two gifts must not share one clip")
         assertTrue(assets.all { it.startsWith("gifts/") && it.endsWith(".svga") })
     }
+
+    @Test
+    fun everyGiftHasACinematicClip() {
+        // No gift may fall back to a shared/emoji-only treatment: each
+        // one must carry its own clip, and no clip may repeat.
+        assertTrue(
+            RoomGiftCatalog.all.all { !it.svga.isNullOrBlank() },
+            "every gift must have its own SVGA clip",
+        )
+        val clips = RoomGiftCatalog.all.map { it.svga }
+        assertEquals(clips.size, clips.toSet().size, "each gift must have a distinct clip")
+    }
+
+    @Test
+    fun everyGiftHasARealIcon() {
+        assertTrue(
+            RoomGiftCatalog.all.all { !it.icon.isNullOrBlank() },
+            "every gift must have a real icon asset",
+        )
+        val icons = RoomGiftCatalog.all.map { it.icon }
+        assertEquals(icons.size, icons.toSet().size, "each gift must have a distinct icon")
+        assertTrue(icons.all { it!!.startsWith("gifts/icons/") && it.endsWith(".png") })
+    }
 }

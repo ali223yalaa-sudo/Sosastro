@@ -20,7 +20,6 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.activity
 
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,6 +51,7 @@ import com.vitorpamplona.amethyst.commons.viewmodels.NestViewModel
 import com.vitorpamplona.amethyst.commons.viewmodels.buildParticipantGrid
 import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNoteEvent
 import com.vitorpamplona.amethyst.ui.call.KeepScreenOn
+import com.vitorpamplona.amethyst.ui.navigation.bottombars.KeyboardAwareBackHandler
 import com.vitorpamplona.amethyst.ui.note.LoadAddressableNote
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.datasource.NestRoomFilterAssemblerSubscription
@@ -362,8 +362,15 @@ private fun NestActivityBody(
     // down the audio session. When disconnected (lobby / Connecting /
     // Failed) or PIP isn't supported, we let back fall through to the
     // default Activity.finish() so the user can cancel out cleanly.
+    //
+    // KeyboardAwareBackHandler steps aside while the soft keyboard is
+    // up so back first dismisses the IME (the composer must be
+    // dismissible — a plain BackHandler here swallowed that press and
+    // minimized to PIP, stranding the keyboard on screen and trapping
+    // the user in the composer). Once the IME is down, back minimizes
+    // as before.
     val canMinimize = isPipSupported && !isInPipMode && ui.connection is ConnectionUiState.Connected
-    BackHandler(enabled = canMinimize) { onMinimize() }
+    KeyboardAwareBackHandler(enabled = canMinimize) { onMinimize() }
 
     if (isInPipMode) {
         NestPipScreen(

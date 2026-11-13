@@ -497,14 +497,19 @@ TRTC/TUILiveKit's two-component design:
 
 - Selection panel — `amethyst/.../nests/room/gifts/RoomGiftPanel.kt`
   (the `GiftListView` analogue). A modal bottom sheet with tier tabs, a gift
-  grid, a quantity stepper and a send button. The catalog is the local
+  grid, a quantity stepper and a send button. Each cell draws the gift's real
+  icon (`GiftAssets.kt` → `assets/gifts/icons/<gift>.png`, rendered from
+  Twemoji) with the emoji as the pre-decode fallback. The catalog is the local
   constant `RoomGiftCatalog` in
   `commons/.../viewmodels/RoomGiftsState.kt` — no server, no wallet.
 - Playback overlay — `amethyst/.../nests/room/gifts/RoomGiftOverlay.kt`
   (the `GiftPlayView` analogue). A transparent full-screen layer mounted in
   `NestFullScreen` ABOVE the stage/chat Column and BELOW the sheets/dialogs.
   It queues bursts one at a time (`GIFT_BURST_MS`) and never intercepts taps.
-  `RoomGiftTicker` in the same file draws a small recent-gifts corner row.
+  Every gift plays its own full-screen SVGA clip (`SvgaGiftPlayer.kt`).
+  `RoomGiftTicker` in the same file draws the recent-gifts row; it sits in the
+  room's normal column flow directly below the mic seats (NOT pinned to the top
+  as an overlay), so the "who sent what" chips never cover the room header.
 
 Transport: a gift is a normal NIP-25 kind-7 reaction whose `content` is the
 gift emoji and which carries a `["gift", skuId, quantity]` tag. Sending uses
@@ -516,7 +521,7 @@ collector (`NestRoomEventCollectors.kt`) routes them to
 `NestViewModel.onGiftEvent`. `RoomGiftsAggregator` dedups by event id, groups by
 RECIPIENT pubkey (room-wide gifts under `""`) and evicts on the same 1-s tick as
 reactions/zaps but with the longer `GIFT_WINDOW_SEC` (14 s) so a burst finishes
-playing. Tests: `commons/.../viewmodels/RoomGiftsStateTest.kt` (18 tests).
+playing. Tests: `commons/.../viewmodels/RoomGiftsStateTest.kt` (20 tests).
 
 Gift visual identity: a gift's *look* is not hard-coded in the overlay. Each
 SKU resolves a `RoomGiftTheme` (accent + accentDeep, a `GiftMotif` from the
@@ -526,10 +531,32 @@ layout `seed`) via `RoomGiftSku.theme()` / `giftThemeFor(id)` in
 *greedily* so no two gifts share accent + motif — the coarse signature a viewer
 perceives. The overlay tints its scrim/rays/marquee from `theme.accent` and
 dispatches `drawMotif(...)`; every particle function takes `seed` so two gifts
-sharing a motif *and* variant still scatter differently. When adding a gift:
-add an SVGA to `assets/gifts/` (see its README for licensing), add a
-`RoomGiftSku`, and (optionally) a `SemanticMotifs` entry; the
+sharing a motif *and* variant still scatter differently. Every gift also ships
+its own full-screen SVGA clip and its own panel icon, and no two gifts share
+either. When adding a gift: add a clip to `assets/gifts/` and an icon to
+`assets/gifts/icons/` (see the README for licensing), add a `RoomGiftSku` (set
+both `svga` and `icon`), and (optionally) a `SemanticMotifs` entry; the
 `everyGiftHasADistinctTheme` + `noTwoGiftsShareAccentAndMotif` +
-`catalogSvgaAssetsAreUniquePerGift` tests enforce the rest. Renders can be
-verified headlessly with `/workspace/verify_gifts.py` (mirrors the canvas math
-to a PNG contact sheet; asserts no two gifts render identically).
+`everyGiftHasACinematicClip` + `everyGiftHasARealIcon` tests enforce the rest.
+The per-gift clips are authored by `/workspace/svga_tools/generate.py`; renders
+can be verified headlessly with `/workspace/verify_gifts.py` (mirrors the canvas
+math to a PNG contact sheet; asserts no two gifts render identically).
+
+## Nests (voice rooms): back must dismiss the keyboard first
+
+`NestActivityContent.kt` minimizes the room to PIP on back while connected.
+It used a plain `BackHandler(enabled = canMinimize)`, which — because Compose
+runs the most-recently-composed enabled handler — swallowed the back press even
+while the composer's soft keyboard was up. The reported symptom: type in the
+room, press back to hide the keyboard, and the keyboard stays, back does
+nothing, and the user is trapped in the text field (the PIP minimize also races
+the IME close animation and leaves `Modifier.imePadding()` frozen).
+
+Fix: use `KeyboardAwareBackHandler` (in
+`amethyst/.../ui/navigation/bottombars/KeyboardState.kt`) instead of
+`BackHandler`. It gates on `keyboardAsState()` so while the keyboard is visible
+it does NOT consume back — the system dismisses the IME with its own clean
+animation; the next back (keyboard down) minimizes to PIP as before. This is the
+same handler the DM composer (`PrivateMessageEditFieldRow.kt`) and
+`NewGroupDMScreen.kt` already use. Any new full-screen handler in a room must do
+the same, or it will re-trap the composer.

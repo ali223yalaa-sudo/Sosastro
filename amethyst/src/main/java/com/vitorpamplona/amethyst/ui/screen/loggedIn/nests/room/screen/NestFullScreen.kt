@@ -44,7 +44,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -420,6 +419,18 @@ internal fun NestFullScreen(
                         modifier = Modifier.padding(horizontal = 8.dp),
                     )
                 }
+                // Recent-gift ticker sits directly below the mic seats
+                // (in the normal column flow) rather than pinned to the
+                // top of the screen, so the "who sent what" chips read
+                // as an extension of the stage instead of an overlay
+                // covering the room header.
+                RoomGiftTicker(
+                    giftsByTarget = giftsByTarget,
+                    nameFor = { pk ->
+                        LocalCache.getUserIfExists(pk)?.toBestDisplayName() ?: pk.take(8)
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                )
                 NestChatPanel(
                     event = event,
                     roomNote = roomNote,
@@ -441,16 +452,6 @@ internal fun NestFullScreen(
                     LocalCache.getUserIfExists(pk)?.toBestDisplayName() ?: pk.take(8)
                 },
                 modifier = Modifier.fillMaxSize(),
-            )
-            RoomGiftTicker(
-                giftsByTarget = giftsByTarget,
-                nameFor = { pk ->
-                    LocalCache.getUserIfExists(pk)?.toBestDisplayName() ?: pk.take(8)
-                },
-                modifier =
-                    Modifier
-                        .align(Alignment.TopStart)
-                        .padding(start = 12.dp, top = 72.dp),
             )
         }
     }
