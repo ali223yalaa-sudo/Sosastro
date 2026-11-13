@@ -507,4 +507,20 @@ collector (`NestRoomEventCollectors.kt`) routes them to
 `NestViewModel.onGiftEvent`. `RoomGiftsAggregator` dedups by event id, groups by
 RECIPIENT pubkey (room-wide gifts under `""`) and evicts on the same 1-s tick as
 reactions/zaps but with the longer `GIFT_WINDOW_SEC` (14 s) so a burst finishes
-playing. Tests: `commons/.../viewmodels/RoomGiftsStateTest.kt` (12 tests).
+playing. Tests: `commons/.../viewmodels/RoomGiftsStateTest.kt` (18 tests).
+
+Gift visual identity: a gift's *look* is not hard-coded in the overlay. Each
+SKU resolves a `RoomGiftTheme` (accent + accentDeep, a `GiftMotif` from the
+12-entry enum, a signed `rayRotation`, a density `variant` 0..2, and a per-gift
+layout `seed`) via `RoomGiftSku.theme()` / `giftThemeFor(id)` in
+`RoomGiftsState.kt`. `CatalogThemes` builds the map lazily and assigns accents
+*greedily* so no two gifts share accent + motif — the coarse signature a viewer
+perceives. The overlay tints its scrim/rays/marquee from `theme.accent` and
+dispatches `drawMotif(...)`; every particle function takes `seed` so two gifts
+sharing a motif *and* variant still scatter differently. When adding a gift:
+add an SVGA to `assets/gifts/` (see its README for licensing), add a
+`RoomGiftSku`, and (optionally) a `SemanticMotifs` entry; the
+`everyGiftHasADistinctTheme` + `noTwoGiftsShareAccentAndMotif` +
+`catalogSvgaAssetsAreUniquePerGift` tests enforce the rest. Renders can be
+verified headlessly with `/workspace/verify_gifts.py` (mirrors the canvas math
+to a PNG contact sheet; asserts no two gifts render identically).
