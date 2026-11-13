@@ -25,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.vitorpamplona.amethyst.commons.viewmodels.NestViewModel
+import com.vitorpamplona.amethyst.commons.viewmodels.RoomGift
 import com.vitorpamplona.amethyst.model.LocalCache
 import com.vitorpamplona.quartz.experimental.nests.admin.AdminCommandEvent
 import com.vitorpamplona.quartz.nip01Core.relay.filters.Filter
@@ -152,7 +153,19 @@ private fun ReactionsCollector(
             )
         LocalCache.observeEvents<ReactionEvent>(filter).collect { events ->
             val nowSec = System.currentTimeMillis() / 1000
-            events.forEach { viewModel.onReactionEvent(it, nowSec) }
+            events.forEach { event ->
+                // A gift rides the kind-7 transport with a `gift` tag.
+                // Route it to the gift aggregator; plain reactions go
+                // to the reaction aggregator. [onReactionEvent] also
+                // guards this, but splitting here keeps the two
+                // windows independent (gifts outlive reactions).
+                val gift = RoomGift.from(event)
+                if (gift != null) {
+                    viewModel.onGiftEvent(gift, nowSec)
+                } else {
+                    viewModel.onReactionEvent(event, nowSec)
+                }
+            }
         }
     }
 }
@@ -227,6 +240,25 @@ private fun ReactionsEvictionTicker(viewModel: NestViewModel) {
 }
 
 /**
+ * Age gifts out of [NestViewModel.recentGifts] on the same 1-s tick
+ * as reactions/zaps, using the longer [GIFT_WINDOW_SEC_LOCAL] window
+ * so a burst finishes playing before its entry is dropped. Only ticks
+ * while gifts are present.
+ */
+@Composable
+private fun GiftsEvictionTicker(viewModel: NestViewModel) {
+    val gifts by viewModel.recentGifts.collectAsState()
+    val hasGifts = gifts.values.any { it.isNotEmpty() }
+    LaunchedEffect(viewModel, hasGifts) {
+        if (!hasGifts) return@LaunchedEffect
+        while (isActive) {
+            delay(REACTIONS_TICK_MS)
+            viewModel.evictGifts(System.currentTimeMillis() / 1000 - GIFT_WINDOW_SEC_LOCAL)
+        }
+    }
+}
+
+/**
  * Pump kind-4312 admin commands targeting THIS user. The
  * signer-must-be-host-or-moderator authority check happens
  * here (not in the relay) — only honour kicks where the signer's
@@ -290,3 +322,6 @@ private const val REACTIONS_TICK_MS = 1_000L
 // duplicate constant is cheaper than another import. If these
 // drift, the 1-s tick still self-heals within one window length.
 private const val REACTION_WINDOW_SEC_LOCAL = 10L
+
+// Mirror of [com.vitorpamplona.amethyst.commons.viewmodels.GIFT_WINDOW_SEC].
+private const val GIFT_WINDOW_SEC_LOCAL = 14L

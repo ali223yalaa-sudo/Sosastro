@@ -200,6 +200,19 @@ class NestViewModel(
     val recentZaps: StateFlow<Map<String, List<RoomZap>>> = _recentZaps.asStateFlow()
 
     /**
+     * Recent room gifts for the full-screen gift-play overlay. Same
+     * map shape as [recentZaps] (keyed by recipient pubkey, room-wide
+     * gifts under the empty-string key) but grouped by *recipient* so
+     * the burst plays on the person who received it. Gifts ride the
+     * kind-7 reaction transport with a `gift` tag — see
+     * [RoomGiftsState]. Sliding [GIFT_WINDOW_SEC] window driven by the
+     * platform layer's eviction tick.
+     */
+    private val giftsAgg = RoomGiftsAggregator()
+    private val _recentGifts = MutableStateFlow<Map<String, List<RoomGift>>>(emptyMap())
+    val recentGifts: StateFlow<Map<String, List<RoomGift>>> = _recentGifts.asStateFlow()
+
+    /**
      * moq-lite `catalog.json` payload per speaker pubkey. Populated
      * lazily as the per-speaker subscriptions land — listeners
      * without catalog support (IETF reference path) leave this map
@@ -710,6 +723,10 @@ class NestViewModel(
         windowSec: Long = REACTION_WINDOW_SEC,
     ) {
         if (closed) return
+        // A gift is a kind-7 too, but it must render in the gift
+        // overlay, not as a floating reaction chip. Split them here so
+        // the collectors can stay dumb (they just pump kind-7s).
+        if (event.giftPayload() != null) return
         _recentReactions.value = reactionsAgg.apply(event, nowSec, windowSec)
     }
 
@@ -745,6 +762,31 @@ class NestViewModel(
     fun evictZaps(olderThanSec: Long) {
         if (closed) return
         _recentZaps.value = zapsAgg.evictAndSnapshot(olderThanSec)
+    }
+
+    /**
+     * Apply one room gift to the sliding-window aggregator. Called by
+     * the kind-7 collector for every reaction that carries a `gift`
+     * tag — the reaction aggregator skips those (see [onReactionEvent]).
+     * [nowSec] is passed in so tests can be deterministic.
+     */
+    fun onGiftEvent(
+        gift: RoomGift,
+        nowSec: Long,
+        windowSec: Long = GIFT_WINDOW_SEC,
+    ) {
+        if (closed) return
+        _recentGifts.value = giftsAgg.apply(gift, nowSec, windowSec)
+    }
+
+    /**
+     * Drop gifts older than the staleness threshold. Platform layer
+     * drives this on a 1-s tick, the same cadence as [evictReactions]
+     * and [evictZaps].
+     */
+    fun evictGifts(olderThanSec: Long) {
+        if (closed) return
+        _recentGifts.value = giftsAgg.evictAndSnapshot(olderThanSec)
     }
 
     /**

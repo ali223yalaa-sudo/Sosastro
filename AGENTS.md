@@ -479,3 +479,32 @@ always prepended. The historical `openrelay.metered.ca` free relay is dead
 credential-scoped API key in `MeteredTurnProvider` is safe to ship (it can only
 mint TURN credentials). If calls still fail across symmetric NATs, verify a TURN
 server with a STUN/TURN allocate probe before trusting it.
+
+## Nests (voice rooms): gifting (TRTC-style, no backend)
+
+The room gift system replaces the star-wallet `GiftSupportSheet` flow inside
+voice rooms with a self-contained, backend-free gifting path modelled on
+TRTC/TUILiveKit's two-component design:
+
+- Selection panel — `amethyst/.../nests/room/gifts/RoomGiftPanel.kt`
+  (the `GiftListView` analogue). A modal bottom sheet with tier tabs, a gift
+  grid, a quantity stepper and a send button. The catalog is the local
+  constant `RoomGiftCatalog` in
+  `commons/.../viewmodels/RoomGiftsState.kt` — no server, no wallet.
+- Playback overlay — `amethyst/.../nests/room/gifts/RoomGiftOverlay.kt`
+  (the `GiftPlayView` analogue). A transparent full-screen layer mounted in
+  `NestFullScreen` ABOVE the stage/chat Column and BELOW the sheets/dialogs.
+  It queues bursts one at a time (`GIFT_BURST_MS`) and never intercepts taps.
+  `RoomGiftTicker` in the same file draws a small recent-gifts corner row.
+
+Transport: a gift is a normal NIP-25 kind-7 reaction whose `content` is the
+gift emoji and which carries a `["gift", skuId, quantity]` tag. Sending uses
+`sendRoomGift(...)` (`RoomGiftSender.kt`) → `signAndComputeBroadcast`, so it
+lands in LocalCache and on the user's default relays exactly like a reaction.
+Receive path: `ReactionEvent.giftPayload()` distinguishes a gift from a plain
+reaction; `NestViewModel.onReactionEvent` skips tagged gifts and the kind-7
+collector (`NestRoomEventCollectors.kt`) routes them to
+`NestViewModel.onGiftEvent`. `RoomGiftsAggregator` dedups by event id, groups by
+RECIPIENT pubkey (room-wide gifts under `""`) and evicts on the same 1-s tick as
+reactions/zaps but with the longer `GIFT_WINDOW_SEC` (14 s) so a burst finishes
+playing. Tests: `commons/.../viewmodels/RoomGiftsStateTest.kt` (12 tests).

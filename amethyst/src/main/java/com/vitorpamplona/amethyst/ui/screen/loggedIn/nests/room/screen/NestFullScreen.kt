@@ -20,6 +20,7 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.screen
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -52,6 +54,7 @@ import com.vitorpamplona.amethyst.commons.viewmodels.NestUiState
 import com.vitorpamplona.amethyst.commons.viewmodels.NestViewModel
 import com.vitorpamplona.amethyst.commons.viewmodels.ParticipantGrid
 import com.vitorpamplona.amethyst.commons.viewmodels.resolveMicSeats
+import com.vitorpamplona.amethyst.model.LocalCache
 import com.vitorpamplona.amethyst.ui.navigation.bottombars.KeyboardState
 import com.vitorpamplona.amethyst.ui.navigation.bottombars.keyboardAsState
 import com.vitorpamplona.amethyst.ui.navigation.navs.BouncingIntentNav
@@ -61,6 +64,8 @@ import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.chat.NestEditFie
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.chat.NestNewMessageViewModel
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.edit.EditNestSheet
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.edit.EditNestViewModel
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.gifts.RoomGiftOverlay
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.gifts.RoomGiftTicker
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.participants.ParticipantHostActionsSheet
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.participants.RoomParticipantActions
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.participants.openProfileInMainActivity
@@ -146,6 +151,7 @@ internal fun NestFullScreen(
     val presences by viewModel.presences.collectAsState()
     val reactionsByPubkey by viewModel.recentReactions.collectAsState()
     val zapsByPubkey by viewModel.recentZaps.collectAsState()
+    val giftsByTarget by viewModel.recentGifts.collectAsState()
     val speakerCatalogs by viewModel.speakerCatalogs.collectAsState()
     val audioLevels by viewModel.audioLevels.collectAsState()
 
@@ -299,127 +305,149 @@ internal fun NestFullScreen(
             }
         },
     ) { padding ->
-        Column(
+        Box(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(padding),
         ) {
-            NestRoomHeader(
-                title = event.room().orEmpty(),
-                imageUrl = event.image(),
-                isHost = isHost,
-                openMic = openMic,
-                showHostMenu = showHostMenu,
-                showMinimize = canMinimize,
-                onMinimize = onMinimize,
-                onMenuOpen = { showHostMenu = true },
-                onMenuDismiss = { showHostMenu = false },
-                onShare = {
-                    showHostMenu = false
-                    shareRoomNaddr(topBarContext, event)
-                },
-                onEdit = {
-                    showHostMenu = false
-                    showEditSheet = true
-                },
-                onToggleOpenMic = {
-                    showHostMenu = false
-                    publishRoomTemplate(RoomParticipantActions.setOpenMic(event, !openMic))
-                },
-                onLeave = { leaveRoom() },
-                handRaised = handRaised,
-                showHandRaise = !isOnStageMe && ui.connection is com.vitorpamplona.amethyst.commons.viewmodels.ConnectionUiState.Connected,
-                onToggleHand = { onHandRaisedChange(!handRaised) },
-                onReact = {
-                    showHostMenu = false
-                    wantsToReact = true
-                },
-            )
-            if (summaryExpanded) {
-                RoomSummaryStrip(summary = event.summary())
-            }
-            NestAudiencePreviewRow(
-                presentCount = presentPeople.size,
-                previewMembers = presentPeople,
-                accountViewModel = accountViewModel,
-                onOpenList = { showAudienceSheet = true },
-            )
-            val onTapSelf: (() -> Unit)? =
-                (ui.broadcast as? com.vitorpamplona.amethyst.commons.viewmodels.BroadcastUiState.Broadcasting)?.let { state ->
-                    { viewModel.setMicMuted(!state.isMuted) }
-                }
-            if (!imeOpen) {
-                MicSeatsGrid(
-                    seatOccupants = seatOccupants,
-                    lockedSeats = lockedSeats,
-                    mutedPubkeys = mutedPubkeys,
-                    myPubkey = myPubkey,
-                    openMic = openMic,
-                    canSpeak = canSpeak,
+            Column(
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                NestRoomHeader(
+                    title = event.room().orEmpty(),
+                    imageUrl = event.image(),
                     isHost = isHost,
-                    isHostOrMod = isHostOrMod,
+                    openMic = openMic,
+                    showHostMenu = showHostMenu,
+                    showMinimize = canMinimize,
+                    onMinimize = onMinimize,
+                    onMenuOpen = { showHostMenu = true },
+                    onMenuDismiss = { showHostMenu = false },
+                    onShare = {
+                        showHostMenu = false
+                        shareRoomNaddr(topBarContext, event)
+                    },
+                    onEdit = {
+                        showHostMenu = false
+                        showEditSheet = true
+                    },
+                    onToggleOpenMic = {
+                        showHostMenu = false
+                        publishRoomTemplate(RoomParticipantActions.setOpenMic(event, !openMic))
+                    },
+                    onLeave = { leaveRoom() },
+                    handRaised = handRaised,
+                    showHandRaise = !isOnStageMe && ui.connection is com.vitorpamplona.amethyst.commons.viewmodels.ConnectionUiState.Connected,
+                    onToggleHand = { onHandRaisedChange(!handRaised) },
+                    onReact = {
+                        showHostMenu = false
+                        wantsToReact = true
+                    },
+                )
+                if (summaryExpanded) {
+                    RoomSummaryStrip(summary = event.summary())
+                }
+                NestAudiencePreviewRow(
+                    presentCount = presentPeople.size,
+                    previewMembers = presentPeople,
                     accountViewModel = accountViewModel,
-                    onTakeSeat = { seat, unlockIfLocked ->
-                        if (isHostOrMod) {
-                            RoomParticipantActions
-                                .claimSeat(
-                                    original = event,
-                                    targetPubkey = myPubkey,
-                                    seat = seat,
-                                    requireOpenMic = false,
-                                    isHostOrMod = true,
-                                    unlockIfLocked = unlockIfLocked,
-                                )?.let { publishRoomTemplate(it) }
-                            viewModel.takeMicSeat(seat)
-                        } else if (openMic || canSpeak || seatOccupants.values.any { it == myPubkey }) {
-                            if (seat !in lockedSeats) {
+                    onOpenList = { showAudienceSheet = true },
+                )
+                val onTapSelf: (() -> Unit)? =
+                    (ui.broadcast as? com.vitorpamplona.amethyst.commons.viewmodels.BroadcastUiState.Broadcasting)?.let { state ->
+                        { viewModel.setMicMuted(!state.isMuted) }
+                    }
+                if (!imeOpen) {
+                    MicSeatsGrid(
+                        seatOccupants = seatOccupants,
+                        lockedSeats = lockedSeats,
+                        mutedPubkeys = mutedPubkeys,
+                        myPubkey = myPubkey,
+                        openMic = openMic,
+                        canSpeak = canSpeak,
+                        isHost = isHost,
+                        isHostOrMod = isHostOrMod,
+                        accountViewModel = accountViewModel,
+                        onTakeSeat = { seat, unlockIfLocked ->
+                            if (isHostOrMod) {
+                                RoomParticipantActions
+                                    .claimSeat(
+                                        original = event,
+                                        targetPubkey = myPubkey,
+                                        seat = seat,
+                                        requireOpenMic = false,
+                                        isHostOrMod = true,
+                                        unlockIfLocked = unlockIfLocked,
+                                    )?.let { publishRoomTemplate(it) }
                                 viewModel.takeMicSeat(seat)
+                            } else if (openMic || canSpeak || seatOccupants.values.any { it == myPubkey }) {
+                                if (seat !in lockedSeats) {
+                                    viewModel.takeMicSeat(seat)
+                                }
                             }
-                        }
-                    },
-                    onLeaveSeat = {
-                        if (isHostOrMod) {
-                            RoomParticipantActions.leaveSeat(event, myPubkey)?.let { publishRoomTemplate(it) }
-                        }
-                        viewModel.leaveMicSeat()
-                        if (ui.broadcast is com.vitorpamplona.amethyst.commons.viewmodels.BroadcastUiState.Broadcasting ||
-                            ui.broadcast == com.vitorpamplona.amethyst.commons.viewmodels.BroadcastUiState.Connecting
-                        ) {
-                            viewModel.stopBroadcast()
-                        }
-                    },
-                    onLockSeat = { seat, locked ->
-                        if (isHost) {
-                            RoomParticipantActions.setMicLocked(event, seat, locked)?.let { publishRoomTemplate(it) }
-                        }
-                    },
-                    onRemoveFromMic = { pubkey ->
-                        if (isHost) {
-                            RoomParticipantActions.leaveSeat(event, pubkey)?.let { publishRoomTemplate(it) }
-                        }
-                    },
-                    onViewProfile = { pubkey ->
-                        openProfileInMainActivity(
-                            context = topBarContext,
-                            target = pubkey,
-                            accountViewModel = accountViewModel,
-                            noAppMessage = stringRes(topBarContext, R.string.nest_no_app_to_open_link),
-                        )
-                    },
-                    onTapSelf = onTapSelf,
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                        },
+                        onLeaveSeat = {
+                            if (isHostOrMod) {
+                                RoomParticipantActions.leaveSeat(event, myPubkey)?.let { publishRoomTemplate(it) }
+                            }
+                            viewModel.leaveMicSeat()
+                            if (ui.broadcast is com.vitorpamplona.amethyst.commons.viewmodels.BroadcastUiState.Broadcasting ||
+                                ui.broadcast == com.vitorpamplona.amethyst.commons.viewmodels.BroadcastUiState.Connecting
+                            ) {
+                                viewModel.stopBroadcast()
+                            }
+                        },
+                        onLockSeat = { seat, locked ->
+                            if (isHost) {
+                                RoomParticipantActions.setMicLocked(event, seat, locked)?.let { publishRoomTemplate(it) }
+                            }
+                        },
+                        onRemoveFromMic = { pubkey ->
+                            if (isHost) {
+                                RoomParticipantActions.leaveSeat(event, pubkey)?.let { publishRoomTemplate(it) }
+                            }
+                        },
+                        onViewProfile = { pubkey ->
+                            openProfileInMainActivity(
+                                context = topBarContext,
+                                target = pubkey,
+                                accountViewModel = accountViewModel,
+                                noAppMessage = stringRes(topBarContext, R.string.nest_no_app_to_open_link),
+                            )
+                        },
+                        onTapSelf = onTapSelf,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    )
+                }
+                NestChatPanel(
+                    event = event,
+                    roomNote = roomNote,
+                    viewModel = viewModel,
+                    accountViewModel = accountViewModel,
+                    nestScreenModel = nestChatModel,
+                    includeComposer = false,
+                    compact = true,
+                    modifier = Modifier.weight(1f),
                 )
             }
-            NestChatPanel(
-                event = event,
-                roomNote = roomNote,
-                viewModel = viewModel,
-                accountViewModel = accountViewModel,
-                nestScreenModel = nestChatModel,
-                includeComposer = false,
-                compact = true,
-                modifier = Modifier.weight(1f),
+            // Gift playback overlay — above the stage and chat, below
+            // the sheets/dialogs mounted outside the Scaffold. The
+            // full-screen burst is pointer-transparent (it draws only
+            // via graphicsLayer) so it never steals taps from the room.
+            RoomGiftOverlay(
+                giftsByTarget = giftsByTarget,
+                modifier = Modifier.fillMaxSize(),
+            )
+            RoomGiftTicker(
+                giftsByTarget = giftsByTarget,
+                nameFor = { pk ->
+                    LocalCache.getUserIfExists(pk)?.toBestDisplayName() ?: pk.take(8)
+                },
+                modifier =
+                    Modifier
+                        .align(Alignment.TopStart)
+                        .padding(start = 12.dp, top = 72.dp),
             )
         }
     }

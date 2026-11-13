@@ -70,10 +70,10 @@ import com.vitorpamplona.amethyst.commons.viewmodels.NestUiState
 import com.vitorpamplona.amethyst.commons.viewmodels.NestViewModel
 import com.vitorpamplona.amethyst.model.AddressableNote
 import com.vitorpamplona.amethyst.ui.navigation.navs.INav
-import com.vitorpamplona.amethyst.ui.navigation.routes.Route
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.gifts.RoomGiftPanel
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.gifts.sendRoomGift
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.reactions.RoomReactionPopup
-import com.vitorpamplona.amethyst.ui.screen.loggedIn.stars.GiftSupportSheet
 import com.vitorpamplona.amethyst.ui.stringRes
 
 /**
@@ -299,7 +299,9 @@ private fun EndCluster(
 }
 
 /**
- * Round gift button. Opens the star-gift sheet for the room host.
+ * Round gift button. Opens the room gift panel (the TUILiveKit
+ * `GiftListView` analogue) — no wallet, no server: sending a gift
+ * publishes a kind-7 with a `gift` tag.
  */
 @Composable
 internal fun NestZapButton(
@@ -319,15 +321,18 @@ internal fun NestZapButton(
     }
 
     if (openGifts) {
-        GiftSupportSheet(
-            accountViewModel = accountViewModel,
-            toPubkey = roomNote.author?.pubkeyHex,
-            noteId = roomNote.idHex.takeIf { it.length == 64 },
-            onDismiss = { openGifts = false },
-            onOpenStore = {
-                openGifts = false
-                nav.nav(Route.Wallet)
+        RoomGiftPanel(
+            toLabel = roomNote.author?.toBestDisplayName(),
+            onSend = { sku, quantity ->
+                sendRoomGift(
+                    accountViewModel = accountViewModel,
+                    roomNote = roomNote,
+                    sku = sku,
+                    quantity = quantity,
+                    targetPubkey = roomNote.author?.pubkeyHex,
+                )
             },
+            onDismiss = { openGifts = false },
         )
     }
 }
