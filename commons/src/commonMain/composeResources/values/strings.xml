@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Login & Auth -->
-    <string name="login_title">Welcome to Amethyst</string>
+    <string name="login_title">Welcome to Astro</string>
     <string name="login_subtitle">Sign in to your Nostr account</string>
     <string name="login_subtitle_desktop">A Nostr client for desktop</string>
     <string name="login_card_title">Login with your Nostr key</string>
