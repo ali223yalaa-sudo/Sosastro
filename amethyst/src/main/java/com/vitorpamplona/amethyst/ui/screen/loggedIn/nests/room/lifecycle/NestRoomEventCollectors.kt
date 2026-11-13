@@ -90,9 +90,11 @@ private fun PresenceCollector(
 }
 
 /**
- * Drop peers silent for >6 min (one missed 30-s heartbeat plus a
- * 5-min "still here" tolerance window so a transient relay hiccup
- * doesn't drop everyone). Self-cancels with the composable.
+ * Drop peers silent for >2 min (four missed 30-s heartbeats). This is
+ * only the fallback for a peer whose explicit `left` never arrived
+ * (process killed / network dropped before it could publish one) — a
+ * normal leave is published and honoured instantly. A short window
+ * keeps a dead peer's avatar from lingering for minutes.
  */
 @Composable
 private fun PresenceEvictionTicker(viewModel: NestViewModel) {
@@ -279,8 +281,8 @@ private fun AdminCommandsCollector(
 /** Spec window from EGG-07 #7 — 60-second freshness gate on kind-4312. */
 private const val ADMIN_COMMAND_FRESHNESS_SEC: Long = 60L
 
-private const val PRESENCE_EVICT_INTERVAL_MS = 60_000L
-private const val PRESENCE_STALE_THRESHOLD_SEC = 6L * 60L
+private const val PRESENCE_EVICT_INTERVAL_MS = 15_000L
+private const val PRESENCE_STALE_THRESHOLD_SEC = 2L * 60L
 private const val REACTIONS_TICK_MS = 1_000L
 
 // Mirror of [com.vitorpamplona.amethyst.commons.viewmodels.REACTION_WINDOW_SEC]

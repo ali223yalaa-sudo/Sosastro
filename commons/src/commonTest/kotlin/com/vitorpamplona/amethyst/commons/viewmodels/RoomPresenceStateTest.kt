@@ -126,6 +126,64 @@ class RoomPresenceStateTest {
     }
 
     @Test
+    fun leaveAtSameSecondAsHeartbeatStillRemovesPeer() {
+        // created_at has 1-second resolution, so a leave can share a second
+        // with the peer's last heartbeat. The leave must still win — waiting
+        // for the next heartbeat would strand a ghost avatar on screen.
+        val agg = RoomPresenceAggregator()
+        agg.apply(event(alice, 500L, onstage = true))
+        val snapshot = agg.apply(event(alice, 500L, left = true))
+        assertTrue(snapshot.isEmpty())
+    }
+
+    @Test
+    fun lateHeartbeatDoesNotResurrectDepartedPeer() {
+        // A relay can re-deliver a cached heartbeat *after* the leave. It
+        // must not bring the departed peer back (the ghost-avatar bug).
+        val agg = RoomPresenceAggregator()
+        agg.apply(event(alice, 100L, onstage = true))
+        agg.apply(event(alice, 200L, left = true))
+        // Stale replay of the earlier heartbeat.
+        val snapshot = agg.apply(event(alice, 150L, onstage = true))
+        assertTrue(snapshot.isEmpty())
+        // Even a same-second replay is ignored.
+        val sameSecond = agg.apply(event(alice, 200L, onstage = true))
+        assertTrue(sameSecond.isEmpty())
+    }
+
+    @Test
+    fun strictlyNewerPresenceAfterLeaveIsAGenuineRejoin() {
+        val agg = RoomPresenceAggregator()
+        agg.apply(event(alice, 100L, onstage = true))
+        agg.apply(event(alice, 200L, left = true))
+        val snapshot = agg.apply(event(alice, 300L, onstage = false))
+        assertEquals(setOf(alice), snapshot.keys)
+        assertFalse(snapshot[alice]!!.left)
+    }
+
+    @Test
+    fun outOfOrderOlderLeaveDoesNotUndoNewerRejoin() {
+        val agg = RoomPresenceAggregator()
+        agg.apply(event(alice, 100L, onstage = true))
+        agg.apply(event(alice, 300L, left = true))
+        agg.apply(event(alice, 400L, onstage = false)) // re-join
+        // A delayed leave from the first session must not evict the re-join.
+        val snapshot = agg.apply(event(alice, 200L, left = true))
+        assertEquals(setOf(alice), snapshot.keys)
+    }
+
+    @Test
+    fun evictOlderThanDropsLeftLedgerToo() {
+        val agg = RoomPresenceAggregator()
+        agg.apply(event(alice, 100L, onstage = true))
+        agg.apply(event(alice, 100L, left = true))
+        // Evicting everything older than 400 lets a fresh join land.
+        agg.evictOlderThan(olderThanSec = 400L)
+        val snapshot = agg.apply(event(alice, 150L, onstage = true))
+        assertEquals(setOf(alice), snapshot.keys)
+    }
+
+    @Test
     fun roomPresenceEqualityIsAllFields() {
         // Two snapshots of the same peer at different timestamps are
         // NOT equal — Map<String, RoomPresence>.equals(Map) reaches

@@ -51,10 +51,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.vitorpamplona.amethyst.R
 import com.vitorpamplona.amethyst.commons.viewmodels.NestViewModel
+import com.vitorpamplona.amethyst.commons.viewmodels.RoomNotice
 import com.vitorpamplona.amethyst.model.AddressableNote
+import com.vitorpamplona.amethyst.model.LocalCache
 import com.vitorpamplona.amethyst.model.Note
 import com.vitorpamplona.amethyst.ui.navigation.navs.BouncingIntentNav
 import com.vitorpamplona.amethyst.ui.note.ClickableUserPicture
+import com.vitorpamplona.amethyst.ui.note.UsernameDisplay
 import com.vitorpamplona.amethyst.ui.note.WatchBlockAndReport
 import com.vitorpamplona.amethyst.ui.note.WatchNoteEvent
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
@@ -78,6 +81,7 @@ internal fun ColumnScope.NestChatPanel(
     compact: Boolean = false,
 ) {
     val messages by viewModel.chat.collectAsState()
+    val notices by viewModel.roomNotices.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val nav = remember(context, scope) { BouncingIntentNav(context, scope) }
@@ -125,6 +129,14 @@ internal fun ColumnScope.NestChatPanel(
                     onWantsToEditDraft = ownedModel::editFromDraft,
                 )
             }
+        }
+
+        if (notices.isNotEmpty()) {
+            RoomNoticeTicker(
+                notices = notices,
+                accountViewModel = accountViewModel,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 2.dp),
+            )
         }
 
         if (includeComposer) {
@@ -178,6 +190,69 @@ private fun NestChatMessageList(
                     nav = nav,
                     onWantsToReply = onWantsToReply,
                     onWantsToEditDraft = onWantsToEditDraft,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Compact, non-intrusive ticker of the most recent enter/exit notices.
+ * Renders the last couple of transitions as centered system lines so
+ * every peer sees "X entered" / "X exited" the instant presence flips,
+ * without a separate wire channel or a modal. The full ledger lives in
+ * [NestViewModel.roomNotices]; only the tail is shown to avoid clutter.
+ */
+@Composable
+private fun RoomNoticeTicker(
+    notices: List<RoomNotice>,
+    accountViewModel: AccountViewModel,
+    modifier: Modifier = Modifier,
+) {
+    val recent = remember(notices) { notices.takeLast(2) }
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(1.dp)) {
+        recent.forEach { notice ->
+            val user = remember(notice.pubkey) { LocalCache.getOrCreateUser(notice.pubkey) }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ClickableUserPicture(
+                    baseUser = user,
+                    size = 16.dp,
+                    accountViewModel = accountViewModel,
+                )
+                Spacer(Modifier.padding(horizontal = 3.dp))
+                UsernameDisplay(
+                    baseUser = user,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                    textColor =
+                        if (notice.kind == RoomNotice.Kind.ENTERED) {
+                            Color(0xFF2EE0C5)
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                    accountViewModel = accountViewModel,
+                )
+                Spacer(Modifier.padding(horizontal = 3.dp))
+                Text(
+                    text =
+                        stringRes(
+                            if (notice.kind == RoomNotice.Kind.ENTERED) {
+                                R.string.nest_notice_entered
+                            } else {
+                                R.string.nest_notice_exited
+                            },
+                        ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color =
+                        if (notice.kind == RoomNotice.Kind.ENTERED) {
+                            Color(0xFF2EE0C5)
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                    maxLines = 1,
                 )
             }
         }

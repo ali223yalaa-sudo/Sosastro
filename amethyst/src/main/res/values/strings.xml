@@ -979,6 +979,8 @@
     <string name="nest_tab_hands">Hands</string>
     <string name="nest_audience_empty">No one in the audience yet.</string>
     <string name="nest_chat_empty">No messages yet. Be the first to chat.</string>
+    <string name="nest_notice_entered">entered the room</string>
+    <string name="nest_notice_exited">exited the room</string>
     <string name="nest_reactions_button">React</string>
     <string name="nest_edit_title">Edit room</string>
     <string name="nest_edit_save">Save</string>

@@ -89,6 +89,19 @@ class RoomPresenceAggregator {
     private val byPubkey = mutableMapOf<String, RoomPresence>()
 
     /**
+     * Wall-clock second of the most recent terminal leave per pubkey. A
+     * kind-10312 presence is a *replaceable* event keyed by `(kind,
+     * pubkey)`, and `created_at` has 1-second resolution, so a leave can
+     * share a second with the peer's last heartbeat — or arrive after it
+     * on a different relay. Without this ledger a late heartbeat would
+     * resurrect a peer who already left (the "ghost avatar that never
+     * disappears" bug), and a same-second leave would be swallowed by
+     * the stale-event guard. A leave is authoritative for its second;
+     * only a strictly newer presence (a genuine re-join) clears it.
+     */
+    private val leftAt = mutableMapOf<String, Long>()
+
+    /**
      * Apply one presence event. Returns a fresh snapshot when state
      * actually changed, or `null` when the event was a no-op (older
      * or equal to the cached presence for the same pubkey).
@@ -102,15 +115,33 @@ class RoomPresenceAggregator {
      */
     fun applyOrNull(event: MeetingRoomPresenceEvent): Map<String, RoomPresence>? {
         val incoming = RoomPresence.from(event)
+        val prevLeft = leftAt[incoming.pubkey]
+
+        if (incoming.left) {
+            // Out-of-order older leave must not undo a newer re-join.
+            if (prevLeft != null && incoming.updatedAtSec < prevLeft) return null
+            val current = byPubkey[incoming.pubkey]
+            if (current == null) {
+                leftAt[incoming.pubkey] = maxOf(prevLeft ?: Long.MIN_VALUE, incoming.updatedAtSec)
+                return null
+            }
+            // A leave at the same second as the last heartbeat still wins:
+            // the peer is gone, and waiting for the next heartbeat would
+            // leave their avatar on screen for up to a full eviction window.
+            if (incoming.updatedAtSec < current.updatedAtSec) return null
+            byPubkey.remove(incoming.pubkey)
+            leftAt[incoming.pubkey] = incoming.updatedAtSec
+            return snapshot()
+        }
+
+        // Ignore any presence that predates (or ties) a terminal leave so a
+        // late heartbeat can't resurrect a departed peer.
+        if (prevLeft != null && incoming.updatedAtSec <= prevLeft) return null
         val current = byPubkey[incoming.pubkey]
         if (current != null && current.updatedAtSec >= incoming.updatedAtSec) {
             return null
         }
-        if (incoming.left) {
-            if (current == null) return null
-            byPubkey.remove(incoming.pubkey)
-            return snapshot()
-        }
+        if (prevLeft != null) leftAt.remove(incoming.pubkey)
         byPubkey[incoming.pubkey] = incoming
         return snapshot()
     }
@@ -124,8 +155,10 @@ class RoomPresenceAggregator {
     /**
      * Drop any peer whose last heartbeat is older than [olderThanSec].
      * Returns the post-eviction snapshot. nostrnests heartbeats every
-     * 30 s; pass `now - 6 * 60` to evict a peer that's been silent for
-     * 6 minutes (one missed heartbeat + a 5 min "still here" window).
+     * 30 s; pass `now - 2 * 60` to evict a peer that's been silent for
+     * two minutes (four missed heartbeats) — the fallback for a peer
+     * whose explicit `left` never reached us because its process was
+     * killed before it could publish one.
      */
     fun evictOlderThan(olderThanSec: Long): Map<String, RoomPresence> {
         val it = byPubkey.iterator()
@@ -135,6 +168,7 @@ class RoomPresenceAggregator {
                 it.remove()
             }
         }
+        leftAt.entries.removeAll { it.value < olderThanSec }
         return snapshot()
     }
 
@@ -145,8 +179,10 @@ class RoomPresenceAggregator {
     fun forcePut(presence: RoomPresence) {
         if (presence.left) {
             byPubkey.remove(presence.pubkey)
+            leftAt[presence.pubkey] = presence.updatedAtSec
         } else {
             byPubkey[presence.pubkey] = presence
+            leftAt.remove(presence.pubkey)
         }
     }
 }

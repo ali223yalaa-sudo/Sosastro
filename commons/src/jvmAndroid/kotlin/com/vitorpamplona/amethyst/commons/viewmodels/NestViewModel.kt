@@ -149,6 +149,19 @@ class NestViewModel(
     val presences: StateFlow<Map<String, RoomPresence>> = _presences.asStateFlow()
 
     /**
+     * Rolling ledger of "X entered / X exited" notices for the room.
+     * Derived from occupancy transitions in [presenceAgg] (a pubkey
+     * appearing = entered, a `left` or eviction = exited) rather than a
+     * separate wire channel — presence IS the entry/exit signal, so this
+     * keeps the two in lockstep and needs no extra relay traffic. Bounded
+     * to the most recent [MAX_ROOM_NOTICES] entries; the UI renders them
+     * as inline system lines in the chat panel.
+     */
+    private val _roomNotices = MutableStateFlow<List<RoomNotice>>(emptyList())
+    val roomNotices: StateFlow<List<RoomNotice>> = _roomNotices.asStateFlow()
+    private val knownOccupants = mutableSetOf<String>()
+
+    /**
      * Chat ledger for the live-activities chat panel (#1) — every
      * kind-1311 ([LiveActivitiesChatMessageEvent]) tagged with this
      * room's `a`-pointer, ordered by [DefaultFeedOrder] (descending
@@ -626,7 +639,37 @@ class NestViewModel(
         // changed — saves a snapshot copy + an O(N) map equality check
         // per replay in big rooms (LocalCache.observeEvents re-emits
         // the full list on every cache mutation).
-        presenceAgg.applyOrNull(event)?.let { _presences.value = it }
+        presenceAgg.applyOrNull(event)?.let {
+            _presences.value = it
+            syncRoomNotices(it)
+        }
+    }
+
+    /**
+     * Diff the current occupancy against [knownOccupants] and append an
+     * entered/exited notice for every transition. Called after each
+     * occupancy change (presence apply + eviction tick) so peers see a
+     * join/leave line the instant the underlying presence flips.
+     */
+    private fun syncRoomNotices(occupancy: Map<String, RoomPresence>) {
+        val self = signer.pubKey
+        val now = System.currentTimeMillis() / 1000
+        val current = occupancy.keys
+        val entered = current - knownOccupants
+        val exited = knownOccupants - current
+        if (entered.isEmpty() && exited.isEmpty()) return
+
+        val additions = ArrayList<RoomNotice>(entered.size + exited.size)
+        entered.forEach { pk ->
+            if (pk != self) additions += RoomNotice(pk, RoomNotice.Kind.ENTERED, now)
+        }
+        exited.forEach { pk ->
+            if (pk != self) additions += RoomNotice(pk, RoomNotice.Kind.EXITED, now)
+        }
+        knownOccupants.clear()
+        knownOccupants.addAll(current)
+        if (additions.isEmpty()) return
+        _roomNotices.value = (_roomNotices.value + additions).takeLast(MAX_ROOM_NOTICES)
     }
 
     /**
@@ -637,7 +680,9 @@ class NestViewModel(
      */
     fun evictStalePresences(olderThanSec: Long) {
         if (closed) return
-        _presences.value = presenceAgg.evictOlderThan(olderThanSec)
+        val next = presenceAgg.evictOlderThan(olderThanSec)
+        _presences.value = next
+        syncRoomNotices(next)
     }
 
     /**
@@ -1946,6 +1991,24 @@ data class NestUiState(
     val publishingNow: Boolean
         get() = broadcast is BroadcastUiState.Broadcasting && !broadcast.isMuted
 }
+
+/**
+ * One entry in the room's enter/exit notice ledger ([NestViewModel.roomNotices]).
+ * Rendered as an inline system line in the chat panel so every peer sees
+ * "X entered" / "X exited" the moment the underlying kind-10312 presence
+ * flips. [pubkey] is resolved to a display name by the UI.
+ */
+@Immutable
+data class RoomNotice(
+    val pubkey: String,
+    val kind: Kind,
+    val atSec: Long,
+) {
+    enum class Kind { ENTERED, EXITED }
+}
+
+/** Cap on the rolling enter/exit notice ledger — oldest entries drop first. */
+const val MAX_ROOM_NOTICES: Int = 60
 
 @Immutable
 sealed class BroadcastUiState {

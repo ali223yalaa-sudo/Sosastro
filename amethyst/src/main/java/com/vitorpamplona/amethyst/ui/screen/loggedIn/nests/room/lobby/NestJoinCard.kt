@@ -20,11 +20,14 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.lobby
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -39,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
@@ -137,48 +141,79 @@ private fun NestJoinCardContent(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             if (!image.isNullOrBlank()) {
-                AsyncImage(
-                    model = image,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f),
-                    contentScale = ContentScale.Crop,
-                )
-            }
-
-            Column(modifier = Modifier.padding(12.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
+                    AsyncImage(
+                        model = image,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+                    // Bottom scrim so the overlaid title stays legible on
+                    // bright covers; top scrim carries the status flag.
+                    Box(
+                        modifier =
+                            Modifier
+                                .matchParentSize()
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors =
+                                            listOf(
+                                                Color.Black.copy(alpha = 0.45f),
+                                                Color.Transparent,
+                                                Color.Black.copy(alpha = 0.72f),
+                                            ),
+                                    ),
+                                ),
+                    )
                     roomName?.let {
                         Text(
                             text = it,
                             style = MaterialTheme.typography.titleMedium,
-                            color = textColor,
+                            color = Color.White,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
+                            modifier =
+                                Modifier
+                                    .align(Alignment.BottomStart)
+                                    .padding(12.dp),
                         )
                     }
-                    Spacer(StdHorzSpacer)
-                    when (status) {
-                        StatusTag.STATUS.LIVE -> {
-                            MeetingSpaceOpenFlag()
+                    Box(modifier = Modifier.align(Alignment.TopEnd).padding(10.dp)) {
+                        when (status) {
+                            StatusTag.STATUS.LIVE -> MeetingSpaceOpenFlag()
+                            StatusTag.STATUS.PRIVATE -> MeetingSpacePrivateFlag()
+                            StatusTag.STATUS.ENDED -> MeetingSpaceClosedFlag()
+                            StatusTag.STATUS.PLANNED -> MeetingSpacePlannedFlag(starts)
+                            null -> Unit
                         }
+                    }
+                }
+            }
 
-                        StatusTag.STATUS.PRIVATE -> {
-                            MeetingSpacePrivateFlag()
+            Column(modifier = Modifier.padding(12.dp)) {
+                if (image.isNullOrBlank()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        roomName?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = textColor,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
                         }
-
-                        StatusTag.STATUS.ENDED -> {
-                            MeetingSpaceClosedFlag()
+                        Spacer(StdHorzSpacer)
+                        when (status) {
+                            StatusTag.STATUS.LIVE -> MeetingSpaceOpenFlag()
+                            StatusTag.STATUS.PRIVATE -> MeetingSpacePrivateFlag()
+                            StatusTag.STATUS.ENDED -> MeetingSpaceClosedFlag()
+                            StatusTag.STATUS.PLANNED -> MeetingSpacePlannedFlag(starts)
+                            null -> Unit
                         }
-
-                        StatusTag.STATUS.PLANNED -> {
-                            MeetingSpacePlannedFlag(starts)
-                        }
-
-                        null -> {}
                     }
                 }
 
@@ -260,6 +295,7 @@ private fun NestJoinCardContent(
                     JoinNestButton(
                         event = event,
                         accountViewModel = accountViewModel,
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
@@ -275,6 +311,7 @@ fun JoinNestButton(
     event: MeetingSpaceEvent,
     accountViewModel: AccountViewModel,
     primaryColorOverride: Color? = null,
+    modifier: Modifier = Modifier,
 ) {
     val serviceBase = event.service()
     val endpoint = event.endpoint()
@@ -300,7 +337,11 @@ fun JoinNestButton(
             )
         },
         colors = colors,
+        modifier = modifier.height(44.dp),
     ) {
-        Text(stringRes(R.string.nest_join))
+        Text(
+            text = stringRes(R.string.nest_join),
+            style = MaterialTheme.typography.titleSmall,
+        )
     }
 }

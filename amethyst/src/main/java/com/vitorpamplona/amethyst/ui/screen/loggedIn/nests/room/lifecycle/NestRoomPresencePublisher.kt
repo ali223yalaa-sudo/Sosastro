@@ -111,19 +111,27 @@ internal fun NestPresencePublisher(
 
     DisposableEffect(event.address().toValue()) {
         onDispose {
+            // Publish a terminal "I'm gone" presence on leave. Retransmit a
+            // few times: a single fire-and-forget publish is easily lost to a
+            // relay hiccup or a QUIC teardown racing the Activity finish, and
+            // a lost leave is exactly what leaves a ghost avatar behind.
+            // Receivers dedup by pubkey, so replays are harmless.
             @OptIn(DelicateCoroutinesApi::class)
             GlobalScope.launch(Dispatchers.IO) {
-                runCatching {
-                    publishPresence(
-                        account = account,
-                        event = event,
-                        handRaised = false,
-                        micMuted = null,
-                        publishing = false,
-                        onstage = false,
-                        micSeat = null,
-                        left = true,
-                    )
+                repeat(LEAVE_RETRANSMIT_COUNT) {
+                    runCatching {
+                        publishPresence(
+                            account = account,
+                            event = event,
+                            handRaised = false,
+                            micMuted = null,
+                            publishing = false,
+                            onstage = false,
+                            micSeat = null,
+                            left = true,
+                        )
+                    }
+                    if (it < LEAVE_RETRANSMIT_COUNT - 1) delay(LEAVE_RETRANSMIT_DELAY_MS)
                 }
             }
         }
@@ -155,5 +163,11 @@ private suspend fun publishPresence(
     }
 }
 
-private const val PRESENCE_REFRESH_MS = 30_000L
-private const val PRESENCE_DEBOUNCE_MS = 500L
+private const val PRESENCE_REFRESH_MS = 15_000L
+private const val PRESENCE_DEBOUNCE_MS = 250L
+
+// Terminal leave is retransmitted so a dropped/raced publish can't strand a
+// ghost avatar. Kept small so the leave lands well within the 2-min eviction
+// fallback window even on a flaky link.
+private const val LEAVE_RETRANSMIT_COUNT = 4
+private const val LEAVE_RETRANSMIT_DELAY_MS = 700L

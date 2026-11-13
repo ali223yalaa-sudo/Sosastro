@@ -25,9 +25,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.vitorpamplona.amethyst.R
 import com.vitorpamplona.amethyst.commons.ui.feeds.FeedContentState
 import com.vitorpamplona.amethyst.ui.feeds.RefresheableBox
 import com.vitorpamplona.amethyst.ui.feeds.RenderFeedContentState
@@ -57,7 +53,6 @@ import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.create.findActiveOwne
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.datasource.NestsFilterAssemblerSubscription
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.activity.NestActivity
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.activity.NestBridge
-import com.vitorpamplona.amethyst.ui.stringRes
 import com.vitorpamplona.quartz.nip53LiveActivities.meetingSpaces.MeetingSpaceEvent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -87,7 +82,6 @@ fun NestsScreen(
     val nestsServers by accountViewModel.account.nestsServers.flow
         .collectAsStateWithLifecycle()
     var showCreateSheet by remember { mutableStateOf(false) }
-    var showSetupDialog by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableIntStateOf(1) }
     val context = LocalContext.current
     val myHex = accountViewModel.userProfile().pubkeyHex
@@ -108,7 +102,23 @@ fun NestsScreen(
         if (nestsServers.any { it.relay.startsWith("http") && it.auth.startsWith("http") }) {
             showCreateSheet = true
         } else {
-            showSetupDialog = true
+            // No saved nest server yet. Do NOT interrupt the user with a
+            // "set up a server" prompt — seed the built-in public deployment
+            // (kind-10112) automatically and go straight to the create sheet.
+            // The list stays editable later under Settings → Audio-room servers.
+            accountViewModel.launchSigner {
+                runCatching {
+                    accountViewModel.account.sendNestsServersList(
+                        listOf(
+                            com.vitorpamplona.quartz.nip53LiveActivities.nestsServers.NestsServer(
+                                relay = CreateNestViewModel.DEFAULT_ENDPOINT_URL,
+                                auth = CreateNestViewModel.DEFAULT_SERVICE_URL,
+                            ),
+                        ),
+                    )
+                }
+            }
+            showCreateSheet = true
         }
     }
 
@@ -179,70 +189,12 @@ fun NestsScreen(
         }
     }
 
-    if (showSetupDialog) {
-        SetUpAudioServerDialog(
-            defaultUrl = CreateNestViewModel.DEFAULT_ENDPOINT_URL,
-            onDismiss = { showSetupDialog = false },
-            onConfirm = {
-                showSetupDialog = false
-                accountViewModel.launchSigner {
-                    try {
-                        // Seed the kind-10112 list with the public nostrnests
-                        // (relay, auth) pair. We can't derive the auth host
-                        // from the relay URL reliably for community-run
-                        // deployments, so the dialog hardcodes the public
-                        // pair; users with their own deployment use the
-                        // Settings → Audio-room servers screen instead.
-                        accountViewModel.account.sendNestsServersList(
-                            listOf(
-                                com.vitorpamplona.quartz.nip53LiveActivities.nestsServers
-                                    .NestsServer(
-                                        relay = CreateNestViewModel.DEFAULT_ENDPOINT_URL,
-                                        auth = CreateNestViewModel.DEFAULT_SERVICE_URL,
-                                    ),
-                            ),
-                        )
-                        showCreateSheet = true
-                    } catch (_: Throwable) {
-                        accountViewModel.toastManager.toast(
-                            R.string.nests,
-                            R.string.nest_no_server_save_failed,
-                        )
-                    }
-                }
-            },
-        )
-    }
-
     if (showCreateSheet) {
         CreateNestSheet(
             accountViewModel = accountViewModel,
             onDismiss = { showCreateSheet = false },
         )
     }
-}
-
-@Composable
-private fun SetUpAudioServerDialog(
-    defaultUrl: String,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringRes(R.string.nest_no_server_title)) },
-        text = { Text(stringRes(R.string.nest_no_server_body, defaultUrl)) },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(stringRes(R.string.nest_no_server_use_default))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringRes(R.string.nest_no_server_cancel))
-            }
-        },
-    )
 }
 
 @Composable
