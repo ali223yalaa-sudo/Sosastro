@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.vitorpamplona.amethyst.R
 import com.vitorpamplona.amethyst.ui.actions.MentionPreservingInputTransformation
 import com.vitorpamplona.amethyst.ui.actions.StrippingFailureDialog
@@ -164,9 +165,14 @@ fun NestEditFieldRow(
                 Text(
                     text = stringRes(R.string.nest_say_something),
                     color = MaterialTheme.colorScheme.placeholderText,
+                    fontSize = 16.sp,
                 )
             },
-            textStyle = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
+            textStyle =
+                LocalTextStyle.current.copy(
+                    textDirection = TextDirection.Content,
+                    fontSize = 16.sp,
+                ),
             trailingIcon = {
                 ThinSendButton(
                     isActive =

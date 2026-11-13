@@ -933,6 +933,10 @@
     <string name="nest_minimize_description">تصغير للاستمرار في الاستماع</string>
     <string name="nest_audio_dropped">انقطع الصوت</string>
     <string name="nest_loading_room">جارٍ تحميل الغرفة…</string>
+    <string name="nest_retry">إعادة المحاولة</string>
+    <string name="nest_notice_entered">دخل الغرفة</string>
+    <string name="nest_notice_exited">خرج من الغرفة</string>
+    <string name="nest_join_banner">دخل %1$s الغرفة</string>
     <string name="nest_unjoinable_title">لا يمكن فتح هذه الغرفة</string>
     <string name="nest_unjoinable_body">الغرفة تفتقر إلى خدمة صوتية أو نقطة اتصال. يحتاج المضيف إلى تحديث التفاصيل قبل أن يتمكن المستمعون من الاتصال.</string>
     <string name="nest_unjoinable_back">رجوع</string>

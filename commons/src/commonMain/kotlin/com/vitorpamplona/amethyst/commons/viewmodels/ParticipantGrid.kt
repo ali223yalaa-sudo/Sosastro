@@ -126,11 +126,17 @@ fun buildParticipantGrid(
                 publishing = pres.publishing,
                 absent = false,
             )
+        // A live self-claim (`micSeat != null` + `onstage`) wins over a
+        // stale PARTICIPANT role tag: `leaveSeat` stamps every demoted
+        // peer PARTICIPANT, so without this a guest who once stepped off
+        // a mic could take an open seat and still be held off-stage —
+        // their audio was never subscribed by anyone (host ascends, the
+        // guest "takes" the seat and nobody hears them).
         val openMicOnStage =
             openMic &&
                 presenceIsFresh &&
                 onstageFlag &&
-                role != ROLE.PARTICIPANT
+                (role != ROLE.PARTICIPANT || pres.micSeat != null)
         if ((canSpeak && onstageFlag) || openMicOnStage) onStage += member else audience += member
     }
     return ParticipantGrid(onStage = onStage, audience = audience)

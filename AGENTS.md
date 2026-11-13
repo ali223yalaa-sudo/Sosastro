@@ -584,3 +584,51 @@ the IME inset, so this works on every Android version. The channel composer
 nest composer previously had *no* back handler of its own — that omission is why
 only the room was affected. Any new full-screen handler in a room must respect
 this ordering, or it will re-trap the composer.
+
+## Nests: open-mic guests could not take a seat (host-only ascent)
+
+Symptom: with the room in open-mic mode, the host could grab an empty
+seat instantly but every other user tapped an empty mic and nothing
+happened — nobody subscribed to their audio, so the room looked broken.
+
+Root cause lived in `buildParticipantGrid` (`commons/.../viewmodels/ParticipantGrid.kt`),
+the pure projection that decides who is "on stage". It only promotes a
+peer with `role != PARTICIPANT` when the room is open-mic. But
+`RoomParticipantActions.leaveSeat` stamps *every* demoted peer
+`PARTICIPANT` (and `HostMicSeatAuthority` mirrors that back to the host
+event), so a guest who had ever stepped off a mic carried a stale
+`PARTICIPANT` tag forever. When they later self-claimed an open seat,
+their `micSeat` presence said "on stage" while their role tag said
+"audience" — the role tag won, the guest never entered `participantGrid.onStage`,
+`AutoConnectAndTrackSpeakers` never subscribed to their audio, and the
+seat looked dead. The host was unaffected because the host's role is
+always `HOST`.
+
+Fix: a live self-claim now beats a stale `PARTICIPANT` role. The
+open-mic branch is `(role != ROLE.PARTICIPANT || pres.micSeat != null)`,
+so `micSeat` + `onstage` is enough to ascend. A guest merely *present*
+in an open-mic room (no seat claim) still stays in the audience —
+regression tests `openMicGuestWithStaleParticipantRoleStillAscendsOnSeatClaim`
+and `openMicGuestWithoutSeatClaimStaysInAudience` in
+`commons/.../viewmodels/ParticipantGridTest.kt` lock both directions.
+
+## Nests: room opens only when ready + gentle reconnect overlay
+
+`NestActivityContent.kt` now gates the full room UI on the MoQ session
+having connected at least once (`hasConnected`, latched from
+`ConnectionUiState.Connected`). Before that it shows `RoomConnectingState`
+— a centered spinner with the live connect step (`connectingLabel`) and a
+Leave button, plus a Retry/Leave card on `ConnectionUiState.Failed`. After
+the first connect the room stays mounted across transient drops and
+`ConnectionOverlay` draws a translucent "Reconnecting…" card on top, so a
+weak-network blip never tears down chat scroll or the mic grid. This is
+what stops the "entered but nothing happens" confusion in a weak network.
+
+## Nests: join banner, larger bottom text
+
+- `stage/JoinBanner.kt` renders a transient "X joined the room" chip under
+  the mic grid, driven by `NestViewModel.roomNotices` (ENTERED notices),
+  auto-fading after ~3.5 s. String: `nest_join_banner` (EN + AR).
+- Bottom-of-room text was too small: the composer text + placeholder are
+  now 16 sp (`NestEditFieldRow.kt`) and the error status strip is
+  `bodyMedium` (`ActionBarStatusStrip` in `NestActionBar.kt`).

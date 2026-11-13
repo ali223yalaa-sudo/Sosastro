@@ -72,6 +72,7 @@ import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.reactions.RoomRe
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.stage.AudienceGrid
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.stage.HandRaiseQueueSection
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.stage.HostMicSeatAuthority
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.stage.JoinBanner
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.stage.MicSeatsGrid
 import com.vitorpamplona.amethyst.ui.stringRes
 import com.vitorpamplona.quartz.nip01Core.tags.aTag.ATag
@@ -148,6 +149,7 @@ internal fun NestFullScreen(
     val actionBarNav = remember(topBarContext, leaveScope) { BouncingIntentNav(topBarContext, leaveScope) }
 
     val presences by viewModel.presences.collectAsState()
+    val notices by viewModel.roomNotices.collectAsState()
     val reactionsByPubkey by viewModel.recentReactions.collectAsState()
     val zapsByPubkey by viewModel.recentZaps.collectAsState()
     val giftsByTarget by viewModel.recentGifts.collectAsState()
@@ -419,6 +421,13 @@ internal fun NestFullScreen(
                         modifier = Modifier.padding(horizontal = 8.dp),
                     )
                 }
+                // Transient "X joined the room" banner, pinned right
+                // under the mic grid. It self-fades after a few seconds
+                // so the stage stays readable in a busy room.
+                JoinBanner(
+                    notices = notices,
+                    accountViewModel = accountViewModel,
+                )
                 // Recent-gift ticker sits directly below the mic seats
                 // (in the normal column flow) rather than pinned to the
                 // top of the screen, so the "who sent what" chips read

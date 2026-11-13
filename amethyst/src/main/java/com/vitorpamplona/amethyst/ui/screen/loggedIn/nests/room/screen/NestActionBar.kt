@@ -164,7 +164,7 @@ internal fun ActionBarStatusStrip(ui: NestUiState) {
     val text = ui.statusStripText() ?: return
     Text(
         text = text,
-        style = MaterialTheme.typography.bodySmall,
+        style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.error,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
     )
@@ -392,7 +392,7 @@ private fun LeaveRoomButton(onClick: () -> Unit) {
 }
 
 @Composable
-private fun connectingLabel(connection: ConnectionUiState.Connecting): String =
+internal fun connectingLabel(connection: ConnectionUiState.Connecting): String =
     when (connection.step) {
         ConnectionUiState.Step.ResolvingRoom -> stringRes(R.string.nest_connecting_resolving)
         ConnectionUiState.Step.OpeningTransport -> stringRes(R.string.nest_connecting_transport)

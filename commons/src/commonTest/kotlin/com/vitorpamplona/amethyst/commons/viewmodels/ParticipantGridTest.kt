@@ -213,6 +213,49 @@ class ParticipantGridTest {
     }
 
     @Test
+    fun openMicGuestWithStaleParticipantRoleStillAscendsOnSeatClaim() {
+        // Regression: a guest who once stepped off a mic is stamped
+        // PARTICIPANT by leaveSeat. When they later self-claim an open
+        // seat their role is still PARTICIPANT, but the live micSeat
+        // claim must win so everyone subscribes to their audio.
+        val grid =
+            buildParticipantGrid(
+                participants = listOf(pTag(host, ROLE.HOST), pTag(listener, ROLE.PARTICIPANT)),
+                presences =
+                    mapOf(
+                        host to presence(host, 100L),
+                        listener to presence(listener, 200L).copy(micSeat = 3),
+                    ),
+                hostPubkey = host,
+                roleGrantSec = 50L,
+                openMic = true,
+            )
+        assertTrue(grid.onStage.any { it.pubkey == listener })
+        assertEquals(0, grid.audience.count { it.pubkey == listener })
+    }
+
+    @Test
+    fun openMicGuestWithoutSeatClaimStaysInAudience() {
+        // Guardrail for the fix above: merely being present in an
+        // open-mic room must NOT put an audience member on stage — the
+        // ascent is still driven by an explicit seat claim.
+        val grid =
+            buildParticipantGrid(
+                participants = listOf(pTag(host, ROLE.HOST), pTag(listener, ROLE.PARTICIPANT)),
+                presences =
+                    mapOf(
+                        host to presence(host, 100L),
+                        listener to presence(listener, 200L),
+                    ),
+                hostPubkey = host,
+                roleGrantSec = 50L,
+                openMic = true,
+            )
+        assertTrue(grid.onStage.none { it.pubkey == listener })
+        assertTrue(grid.audience.any { it.pubkey == listener })
+    }
+
+    @Test
     fun leftPresenceIsDroppedFromOccupancy() {
         val grid =
             buildParticipantGrid(
