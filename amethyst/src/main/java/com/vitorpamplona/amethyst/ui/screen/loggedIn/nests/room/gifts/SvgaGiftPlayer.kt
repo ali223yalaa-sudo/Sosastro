@@ -33,16 +33,14 @@ import com.opensource.svgaplayer.SVGAParser
 import com.opensource.svgaplayer.SVGAVideoEntity
 
 /**
- * Plays a bundled SVGA gift animation, sized to the gift's tier. Thin
- * Compose bridge over the official [SVGAImageView] (Apache-2.0): decode
- * the asset once, start it, and report completion so the overlay's
- * queue can advance to the next gift.
+ * Plays a bundled SVGA gift animation full-screen. Thin Compose bridge
+ * over the official [SVGAImageView] (Apache-2.0): decode the asset once,
+ * start it, and report completion so the overlay's queue can advance to
+ * the next gift.
  *
- * The clip is drawn centred inside a box that is [sizeFraction] of the
- * overlay, so a cheap gift reads as a small rising sticker while a
- * legendary one takes the whole screen — the same price-band scaling a
- * live-streaming app uses. [ImageView.ScaleType.FIT_CENTER] keeps the
- * clip's aspect ratio, so the box never distorts the art.
+ * The clip fills the overlay exactly as authored (the bundled clips are
+ * full-frame), and [ImageView.ScaleType.FIT_CENTER] keeps its aspect
+ * ratio so the box never distorts the art.
  *
  * The player is intentionally isolated to this one composable — the
  * rest of the overlay (queue, marquee, fallback emoji treatment)
@@ -53,14 +51,13 @@ fun SvgaGiftPlayer(
     assetPath: String,
     onFinished: () -> Unit,
     modifier: Modifier = Modifier,
-    sizeFraction: Float = 1f,
 ) {
     // Keep the latest callback without re-creating the view.
     val finished = remember { Ref(onFinished) }
     finished.value = onFinished
 
     AndroidView(
-        modifier = modifier.fillMaxSize(sizeFraction),
+        modifier = modifier.fillMaxSize(),
         factory = { ctx ->
             SVGAImageView(ctx).apply {
                 loops = 1

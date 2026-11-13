@@ -20,7 +20,6 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.chat
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
@@ -33,13 +32,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
@@ -75,9 +72,13 @@ import kotlinx.coroutines.FlowPreview
  * text field with gallery picker + send button.
  *
  * Differences from the channel `EditFieldRow`:
- *  - No `BackHandler`: the nest chat panel lives inside an Activity
- *    that owns its own back behaviour (leave room / enter PiP). The
- *    composer's draft auto-save runs on every text change via
+ *  - No `BackHandler` of its own. The room owns a single back handler
+ *    ([com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.screen.NestFullScreen])
+ *    that dismisses the keyboard first and only then minimizes to PIP.
+ *    This composer reports its focus up via [onFocusChanged] so that
+ *    handler can tell "typing" from "idle" without two enabled handlers
+ *    racing (which made back a no-op while typing).
+ *    The composer's draft auto-save runs on every text change via
  *    [NestNewMessageViewModel.draftTag], so there is nothing to flush
  *    on back press.
  */
@@ -88,6 +89,7 @@ fun NestEditFieldRow(
     accountViewModel: AccountViewModel,
     onSendNewMessage: suspend () -> Unit,
     nav: INav,
+    onFocusChanged: (Boolean) -> Unit = {},
 ) {
     StrippingFailureDialog(nestScreenModel.strippingFailureConfirmation)
 
@@ -110,24 +112,13 @@ fun NestEditFieldRow(
         }
     }
 
-    // This composer is the terminal focus sink in the room: it never
-    // requests focus on its own, but once the user taps it the keyboard
-    // owns the back gesture. `NestActivityContent` gates its
-    // minimize-to-PIP back on the IME inset, but that inset is only
-    // reported in edge-to-edge windows (`NestActivity` does not call
-    // `enableEdgeToEdge`), so on its own it can leave back unhandled
-    // and strand the keyboard. This handler keys off the text field's
-    // *focus* instead — independent of the inset — so back reliably
-    // dismisses the keyboard (and only the keyboard) before the room's
-    // back-to-PIP handler runs.
-    val focusManager: FocusManager = LocalFocusManager.current
-    val keyboard = LocalSoftwareKeyboardController.current
+    // Report focus up to the room's back handler so it can dismiss the
+    // keyboard before minimizing to PIP. The handler itself lives in
+    // NestFullScreen (single owner) — a second BackHandler here would
+    // race it and swallow back while typing.
     val composerInteraction = remember { MutableInteractionSource() }
     val isComposerFocused by composerInteraction.collectIsFocusedAsState()
-    BackHandler(enabled = isComposerFocused) {
-        focusManager.clearFocus()
-        keyboard?.hide()
-    }
+    LaunchedEffect(isComposerFocused) { onFocusChanged(isComposerFocused) }
 
     Column(
         modifier = EditFieldModifier,

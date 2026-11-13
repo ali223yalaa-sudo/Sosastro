@@ -53,8 +53,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,6 +69,13 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+
+/**
+ * Shortest time a gift burst stays on screen, even when its SVGA clip is
+ * shorter. The authored `gen_*` clips run 3 s; without this floor a burst
+ * ended the instant the clip did, so a gift flashed by like an emoji.
+ */
+private const val MIN_GIFT_HOLD_MS = 4_600L
 
 /**
  * Full-screen gift playback overlay — the Compose analogue of
@@ -141,9 +146,20 @@ fun RoomGiftOverlay(
             if (RoomGiftCatalog.byId(gift.skuId)?.svga != null) {
                 val done = CompletableDeferred<Unit>()
                 svgaDone = done
-                // Safety net: never hang the queue if the player stalls.
-                withTimeoutOrNull(giftBurstMillis(gift.tier) + 4_000L) { done.await() }
+                // Hold the burst for the clip's real runtime, with a
+                // floor so the shortest (3 s `gen_*`) clips still get a
+                // full-screen beat instead of a blink, and a generous
+                // ceiling so the queue never hangs if the player stalls.
+                val holdMs = maxOf(giftBurstMillis(gift.tier), MIN_GIFT_HOLD_MS)
+                val startedAt = System.currentTimeMillis()
+                withTimeoutOrNull(holdMs + 4_000L) { done.await() }
                 svgaDone = null
+                // If the clip finished before the floor (a short 3 s
+                // asset), keep it on screen for the remainder so the gift
+                // reads as a moment, not an emoji flash. SVGAImageView
+                // holds its final frame, so we only wait out the rest.
+                val remaining = holdMs - (System.currentTimeMillis() - startedAt)
+                if (remaining > 0) delay(remaining)
             } else {
                 delay(giftBurstMillis(gift.tier))
             }
@@ -175,7 +191,10 @@ private fun GiftBurst(
     val svgaAsset = RoomGiftCatalog.byId(gift.skuId)?.svga
     val theme = giftThemeFor(gift.skuId)
     val epic = gift.tier >= 3
-    val durationMs = giftBurstMillis(gift.tier).toInt()
+    // Match the queue's hold so the marquee/scrim animation runs the
+    // whole time the burst is on screen (a short authored clip still
+    // gets the full-screen beat the queue holds it for).
+    val durationMs = maxOf(giftBurstMillis(gift.tier), MIN_GIFT_HOLD_MS).toInt()
 
     // One-shot 0→1 progress the whole burst is driven from, so every
     // sub-layer animates off the same clock and stays in sync.
@@ -189,63 +208,27 @@ private fun GiftBurst(
     }
     val p = progress.value
 
-    // Price-band sizing: a standard gift is a small rising sticker, a
-    // legendary one a full-screen takeover — the same band→size mapping
-    // a live-streaming app uses. Small clips drift up (so they read as
-    // a throw from the sender) and fade at the edges; big ones are
-    // centred and steady.
-    val sizeFraction =
-        when (gift.tier) {
-            1 -> 0.40f
-            2 -> 0.58f
-            3 -> 0.85f
-            else -> 1f
-        }
-    val rise =
-        when (gift.tier) {
-            1 -> 1f
-            2 -> 0.7f
-            else -> 0f
-        }
-    val heightPx =
-        with(LocalDensity.current) {
-            LocalConfiguration.current.screenHeightDp.dp
-                .toPx()
-        }
-    val offsetY = (0.30f * rise + (-0.42f * rise) * p) * heightPx
-    val burstAlpha =
-        if (gift.tier >= 3) {
-            1f
-        } else {
-            minOf(1f, p / 0.12f) * minOf(1f, (1f - p) / 0.22f)
-        }
-
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        if (epic) {
-            EpicBackdrop(gift = gift, theme = theme, progress = p)
-        }
         if (svgaAsset != null) {
-            // Imported SVGA clip, scaled to the gift's price band. The
-            // emoji emblem is suppressed and only the sender line (or,
-            // for epic gifts, the sender→receiver marquee) overlays it.
-            Box(
-                modifier =
-                    Modifier
-                        .graphicsLayer {
-                            translationY = offsetY
-                            alpha = burstAlpha
-                        }.fillMaxSize(sizeFraction),
-                contentAlignment = Alignment.Center,
-            ) {
-                SvgaGiftPlayer(
-                    assetPath = svgaAsset,
-                    onFinished = onSvgaFinished,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
+            // A bundled SVGA clip IS the gift's cinematic: it plays full
+            // screen, exactly as authored (the imported TUILiveKit /
+            // SVGAPlayer clips are already full-frame 750x1334), and
+            // nothing is drawn behind it. An earlier version scaled the
+            // clip down to 40–85% by price band and laid a procedural
+            // scrim + rays + particle motif behind the luxe/legendary
+            // tiers — that read as "a background showing through behind
+            // the gift" and made the burst look like a small sticker
+            // instead of the full-screen takeover it was designed as.
+            // The clip holds at full opacity for its whole runtime and
+            // only the sender/receiver line overlays it.
+            SvgaGiftPlayer(
+                assetPath = svgaAsset,
+                onFinished = onSvgaFinished,
+                modifier = Modifier.fillMaxSize(),
+            )
             if (epic) {
                 GiftMarquee(
                     senderName = senderName,
@@ -264,6 +247,11 @@ private fun GiftBurst(
                 )
             }
         } else {
+            // No clip: fall back to the procedural emblem + its own
+            // themed backdrop (the only case where a backdrop is drawn).
+            if (epic) {
+                EpicBackdrop(gift = gift, theme = theme, progress = p)
+            }
             Emblem(gift = gift, theme = theme, senderName = senderName, receiverName = receiverName, epic = epic, progress = p)
         }
     }

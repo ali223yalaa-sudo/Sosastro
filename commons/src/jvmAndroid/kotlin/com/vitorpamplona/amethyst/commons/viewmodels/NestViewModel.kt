@@ -687,9 +687,11 @@ class NestViewModel(
 
     /**
      * Drop peers whose last heartbeat is older than [olderThanSec].
-     * The platform layer drives this on a periodic tick (typically
-     * every 60 s with `now - 6 * 60` so a peer that's missed one
-     * heartbeat plus a 5-min "still here" window gets evicted).
+     * The platform layer drives this on a periodic tick (currently
+     * every 15 s with `now - 60` — see
+     * `PresenceEvictionTicker` in `NestRoomEventCollectors`), so a peer
+     * that has missed four heartbeats is dropped within a tick of
+     * crossing the threshold.
      */
     fun evictStalePresences(olderThanSec: Long) {
         if (closed) return

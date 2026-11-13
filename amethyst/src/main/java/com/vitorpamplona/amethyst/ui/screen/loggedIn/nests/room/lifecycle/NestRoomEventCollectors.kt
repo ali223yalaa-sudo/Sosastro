@@ -86,17 +86,30 @@ private fun PresenceCollector(
                 tags = mapOf("a" to listOf(roomATag)),
             )
         LocalCache.observeEvents<MeetingRoomPresenceEvent>(filter).collect { events ->
-            events.forEach { viewModel.onPresenceEvent(it) }
+            val nowSec = System.currentTimeMillis() / 1000
+            events.forEach { event ->
+                // `LocalCache` keeps kind-10312 presence from earlier
+                // sessions and re-emits the whole matching list on every
+                // cache mutation, so a peer who was in the room an hour
+                // ago (and force-closed without publishing a `left`) would
+                // still be replayed as "present" on join — the "ghost
+                // member who isn't really here" bug. Drop anything older
+                // than the eviction window; a peer who IS here heartbeats
+                // every 15 s, so their latest presence is always fresh.
+                if (nowSec - event.createdAt > PRESENCE_STALE_THRESHOLD_SEC) return@forEach
+                viewModel.onPresenceEvent(event)
+            }
         }
     }
 }
 
 /**
- * Drop peers silent for >2 min (four missed 30-s heartbeats). This is
- * only the fallback for a peer whose explicit `left` never arrived
- * (process killed / network dropped before it could publish one) — a
- * normal leave is published and honoured instantly. A short window
- * keeps a dead peer's avatar from lingering for minutes.
+ * Drop peers silent for >[PRESENCE_STALE_THRESHOLD_SEC] (four missed
+ * 15-s heartbeats). This is only the fallback for a peer whose explicit
+ * `left` never arrived (process killed / network dropped before it
+ * could publish one) — a normal leave is published and honoured
+ * instantly. A short window keeps a dead peer's avatar from lingering
+ * for minutes.
  */
 @Composable
 private fun PresenceEvictionTicker(viewModel: NestViewModel) {
@@ -315,7 +328,16 @@ private fun AdminCommandsCollector(
 private const val ADMIN_COMMAND_FRESHNESS_SEC: Long = 60L
 
 private const val PRESENCE_EVICT_INTERVAL_MS = 15_000L
-private const val PRESENCE_STALE_THRESHOLD_SEC = 2L * 60L
+
+/**
+ * A peer is considered gone once its last heartbeat is older than this.
+ * Heartbeats are every 15 s ([NestPresencePublisher]), so 60 s tolerates
+ * three missed beats (a brief network blip) before dropping the avatar —
+ * long enough to ride out a hiccup, short enough that a peer who
+ * force-closed the app (and so never published a `left`) doesn't linger
+ * as a ghost member for minutes.
+ */
+private const val PRESENCE_STALE_THRESHOLD_SEC = 60L
 private const val REACTIONS_TICK_MS = 1_000L
 
 // Mirror of [com.vitorpamplona.amethyst.commons.viewmodels.REACTION_WINDOW_SEC]

@@ -20,6 +20,8 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.screen
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -46,7 +48,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import com.vitorpamplona.amethyst.R
 import com.vitorpamplona.amethyst.commons.viewmodels.NestUiState
@@ -54,8 +59,6 @@ import com.vitorpamplona.amethyst.commons.viewmodels.NestViewModel
 import com.vitorpamplona.amethyst.commons.viewmodels.ParticipantGrid
 import com.vitorpamplona.amethyst.commons.viewmodels.resolveMicSeats
 import com.vitorpamplona.amethyst.model.LocalCache
-import com.vitorpamplona.amethyst.ui.navigation.bottombars.KeyboardState
-import com.vitorpamplona.amethyst.ui.navigation.bottombars.keyboardAsState
 import com.vitorpamplona.amethyst.ui.navigation.navs.BouncingIntentNav
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.chat.NestChatPanel
@@ -156,6 +159,25 @@ internal fun NestFullScreen(
     val speakerCatalogs by viewModel.speakerCatalogs.collectAsState()
     val audioLevels by viewModel.audioLevels.collectAsState()
 
+    // Single back owner for the room. While the composer has focus (the
+    // keyboard is up) back dismisses the keyboard and nothing else; once
+    // focus/IME is gone, back runs the caller's minimize-to-PIP (or, when
+    // disconnected, falls through to Activity.finish()). Tracking focus
+    // directly — rather than the IME inset — makes this work on every
+    // Android version, edge-to-edge or not.
+    val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    var composerFocused by remember { mutableStateOf(false) }
+    BackHandler(enabled = composerFocused || canMinimize) {
+        if (composerFocused) {
+            focusManager.clearFocus()
+            keyboard?.hide()
+            composerFocused = false
+        } else {
+            onMinimize()
+        }
+    }
+
     val onStageKeys =
         remember(participantGrid) {
             participantGrid.onStage.map { it.pubkey }.toSet()
@@ -229,8 +251,6 @@ internal fun NestFullScreen(
         remember(participantGrid) {
             (participantGrid.onStage + participantGrid.audience).filter { !it.absent }
         }
-    val keyboard by keyboardAsState()
-    val imeOpen = keyboard == KeyboardState.Opened
     val micMutedNow =
         (ui.broadcast as? com.vitorpamplona.amethyst.commons.viewmodels.BroadcastUiState.Broadcasting)?.isMuted
             ?: true
@@ -300,17 +320,33 @@ internal fun NestFullScreen(
                             accountViewModel = accountViewModel,
                             onSendNewMessage = {},
                             nav = actionBarNav,
+                            onFocusChanged = { composerFocused = it },
                         )
                     },
                 )
             }
         },
     ) { padding ->
+        // Tapping empty space anywhere in the room dismisses the
+        // composer's keyboard, matching the user's expectation and the
+        // platform norm. A `pointerInput` tap detector only fires for
+        // taps that no child consumed (buttons, seats, chat rows all
+        // consume their own), so this never swallows a real tap.
+        val focusManager = LocalFocusManager.current
+        val keyboard = LocalSoftwareKeyboardController.current
         Box(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(padding),
+                    .padding(padding)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = {
+                                focusManager.clearFocus()
+                                keyboard?.hide()
+                            },
+                        )
+                    },
         ) {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -359,68 +395,74 @@ internal fun NestFullScreen(
                     (ui.broadcast as? com.vitorpamplona.amethyst.commons.viewmodels.BroadcastUiState.Broadcasting)?.let { state ->
                         { viewModel.setMicMuted(!state.isMuted) }
                     }
-                if (!imeOpen) {
-                    MicSeatsGrid(
-                        seatOccupants = seatOccupants,
-                        lockedSeats = lockedSeats,
-                        mutedPubkeys = mutedPubkeys,
-                        myPubkey = myPubkey,
-                        openMic = openMic,
-                        canSpeak = canSpeak,
-                        isHost = isHost,
-                        isHostOrMod = isHostOrMod,
-                        accountViewModel = accountViewModel,
-                        onTakeSeat = { seat, unlockIfLocked ->
-                            if (isHostOrMod) {
-                                RoomParticipantActions
-                                    .claimSeat(
-                                        original = event,
-                                        targetPubkey = myPubkey,
-                                        seat = seat,
-                                        requireOpenMic = false,
-                                        isHostOrMod = true,
-                                        unlockIfLocked = unlockIfLocked,
-                                    )?.let { publishRoomTemplate(it) }
+                // The mic grid is ALWAYS mounted. It used to be removed
+                // while the keyboard was up (`if (!imeOpen)`), but that
+                // added/removed a ~200 dp block on every IME transition,
+                // which re-laid-out the whole column and — together with
+                // `Modifier.imePadding()` — made the keyboard flicker
+                // closed-then-open and left the user unable to settle in
+                // the composer. `imePadding()` alone now lifts the room
+                // above the keyboard.
+                MicSeatsGrid(
+                    seatOccupants = seatOccupants,
+                    lockedSeats = lockedSeats,
+                    mutedPubkeys = mutedPubkeys,
+                    myPubkey = myPubkey,
+                    openMic = openMic,
+                    canSpeak = canSpeak,
+                    isHost = isHost,
+                    isHostOrMod = isHostOrMod,
+                    accountViewModel = accountViewModel,
+                    onTakeSeat = { seat, unlockIfLocked ->
+                        if (isHostOrMod) {
+                            RoomParticipantActions
+                                .claimSeat(
+                                    original = event,
+                                    targetPubkey = myPubkey,
+                                    seat = seat,
+                                    requireOpenMic = false,
+                                    isHostOrMod = true,
+                                    unlockIfLocked = unlockIfLocked,
+                                )?.let { publishRoomTemplate(it) }
+                            viewModel.takeMicSeat(seat)
+                        } else if (openMic || canSpeak || seatOccupants.values.any { it == myPubkey }) {
+                            if (seat !in lockedSeats) {
                                 viewModel.takeMicSeat(seat)
-                            } else if (openMic || canSpeak || seatOccupants.values.any { it == myPubkey }) {
-                                if (seat !in lockedSeats) {
-                                    viewModel.takeMicSeat(seat)
-                                }
                             }
-                        },
-                        onLeaveSeat = {
-                            if (isHostOrMod) {
-                                RoomParticipantActions.leaveSeat(event, myPubkey)?.let { publishRoomTemplate(it) }
-                            }
-                            viewModel.leaveMicSeat()
-                            if (ui.broadcast is com.vitorpamplona.amethyst.commons.viewmodels.BroadcastUiState.Broadcasting ||
-                                ui.broadcast == com.vitorpamplona.amethyst.commons.viewmodels.BroadcastUiState.Connecting
-                            ) {
-                                viewModel.stopBroadcast()
-                            }
-                        },
-                        onLockSeat = { seat, locked ->
-                            if (isHost) {
-                                RoomParticipantActions.setMicLocked(event, seat, locked)?.let { publishRoomTemplate(it) }
-                            }
-                        },
-                        onRemoveFromMic = { pubkey ->
-                            if (isHost) {
-                                RoomParticipantActions.leaveSeat(event, pubkey)?.let { publishRoomTemplate(it) }
-                            }
-                        },
-                        onViewProfile = { pubkey ->
-                            openProfileInMainActivity(
-                                context = topBarContext,
-                                target = pubkey,
-                                accountViewModel = accountViewModel,
-                                noAppMessage = stringRes(topBarContext, R.string.nest_no_app_to_open_link),
-                            )
-                        },
-                        onTapSelf = onTapSelf,
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                    )
-                }
+                        }
+                    },
+                    onLeaveSeat = {
+                        if (isHostOrMod) {
+                            RoomParticipantActions.leaveSeat(event, myPubkey)?.let { publishRoomTemplate(it) }
+                        }
+                        viewModel.leaveMicSeat()
+                        if (ui.broadcast is com.vitorpamplona.amethyst.commons.viewmodels.BroadcastUiState.Broadcasting ||
+                            ui.broadcast == com.vitorpamplona.amethyst.commons.viewmodels.BroadcastUiState.Connecting
+                        ) {
+                            viewModel.stopBroadcast()
+                        }
+                    },
+                    onLockSeat = { seat, locked ->
+                        if (isHost) {
+                            RoomParticipantActions.setMicLocked(event, seat, locked)?.let { publishRoomTemplate(it) }
+                        }
+                    },
+                    onRemoveFromMic = { pubkey ->
+                        if (isHost) {
+                            RoomParticipantActions.leaveSeat(event, pubkey)?.let { publishRoomTemplate(it) }
+                        }
+                    },
+                    onViewProfile = { pubkey ->
+                        openProfileInMainActivity(
+                            context = topBarContext,
+                            target = pubkey,
+                            accountViewModel = accountViewModel,
+                            noAppMessage = stringRes(topBarContext, R.string.nest_no_app_to_open_link),
+                        )
+                    },
+                    onTapSelf = onTapSelf,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
                 // Transient "X joined the room" banner, pinned right
                 // under the mic grid. It self-fades after a few seconds
                 // so the stage stays readable in a busy room.
