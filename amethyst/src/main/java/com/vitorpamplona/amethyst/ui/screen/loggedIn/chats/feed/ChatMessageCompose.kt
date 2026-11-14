@@ -42,8 +42,6 @@ import com.vitorpamplona.amethyst.ui.components.LocalChatSpeakOutside
 import com.vitorpamplona.amethyst.ui.components.LocalInlineQuoteRenderer
 import com.vitorpamplona.amethyst.ui.navigation.navs.INav
 import com.vitorpamplona.amethyst.ui.navigation.routes.routeFor
-import com.vitorpamplona.amethyst.ui.note.DrawPlayName
-import com.vitorpamplona.amethyst.ui.note.LoadDecryptedContentOrNull
 import com.vitorpamplona.amethyst.ui.note.UserPicture
 import com.vitorpamplona.amethyst.ui.note.WatchBlockAndReport
 import com.vitorpamplona.amethyst.ui.note.WatchNoteEvent
@@ -276,7 +274,9 @@ fun NormalChatNote(
             isLoggedInUser &&
             (isPeerSeen || (peerDeliveredUntil > 0L && created <= peerDeliveredUntil))
 
-    CompositionLocalProvider(LocalChatSpeakOutside provides !innerQuote) {
+    // The inline TTS button is suppressed inside chat bubbles; reading is offered from the
+    // long-press action sheet instead (ReadAloudRow).
+    CompositionLocalProvider(LocalChatSpeakOutside provides true) {
         ChatBubbleLayout(
             isLoggedInUser = isLoggedInUser,
             isDraft = note.event is DraftWrapEvent,
@@ -386,18 +386,6 @@ fun NormalChatNote(
                             accountViewModel = accountViewModel,
                             nav = nav,
                         )
-                    }
-                } else {
-                    null
-                },
-            speakOutside =
-                if (!innerQuote) {
-                    {
-                        LoadDecryptedContentOrNull(note, accountViewModel) { text ->
-                            if (!text.isNullOrBlank()) {
-                                DrawPlayName(name = text, playbackId = note.idHex, compact = true)
-                            }
-                        }
                     }
                 } else {
                     null

@@ -41,6 +41,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,16 +49,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vitorpamplona.amethyst.R
 import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
 import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbol
 import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
 import com.vitorpamplona.amethyst.model.Note
+import com.vitorpamplona.amethyst.service.tts.TextToSpeechHelper
 import com.vitorpamplona.amethyst.ui.actions.EditPostView
 import com.vitorpamplona.amethyst.ui.components.ClickableBox
 import com.vitorpamplona.amethyst.ui.navigation.navs.INav
@@ -214,6 +218,10 @@ fun ChatMessageActionSheet(
             // Stage one: the primary chat action (reply / edit draft) is always shown.
             ChatOnlyRow(note, state, onWantsToReply, onWantsToEditDraft, onDismiss)
 
+            if (!note.isDraft()) {
+                ReadAloudRow(note, accountViewModel, onDismiss)
+            }
+
             val handlers =
                 NoteActionHandlers(
                     onShare = { showShareSheet = true },
@@ -347,7 +355,42 @@ private fun ChatOnlyRow(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * Read the message aloud with the system TTS engine. Lives in the long-press sheet instead of
+ * a per-bubble speaker button, so a busy thread is not littered with identical icons.
+ */
+@Composable
+private fun ReadAloudRow(
+    note: Note,
+    accountViewModel: AccountViewModel,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var text by remember(note.event?.id) { mutableStateOf(accountViewModel.cachedDecrypt(note)) }
+
+    LaunchedEffect(note.event?.id) {
+        accountViewModel.decrypt(note) {
+            if (text != it) {
+                text = it
+            }
+        }
+    }
+
+    val message = text
+    if (message.isNullOrBlank()) return
+
+    TileRow {
+        ActionTile(MaterialSymbols.AutoMirrored.VolumeUp, stringRes(R.string.chat_read_aloud)) {
+            TextToSpeechHelper
+                .getInstance(context)
+                .registerLifecycle(lifecycleOwner)
+                .speak(message, note.idHex)
+            onDismiss()
+        }
+    }
+}
+
 @Composable
 private fun TileRow(content: @Composable () -> Unit) {
     FlowRow(

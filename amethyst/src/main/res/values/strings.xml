@@ -2966,6 +2966,8 @@
     <string name="chat_system_created_channel_unnamed">%1$s created the channel</string>
     <string name="chat_system_updated_channel">%1$s updated the channel profile</string>
     <string name="chat_delivery_details_title">Message Delivery</string>
+    <string name="chat_read_aloud">Read aloud</string>
+    <string name="chat_stop_reading">Stop reading</string>
     <string name="close">Close</string>
     <string name="chat_delivery_pending">Waiting for a relay to accept this message</string>
     <string name="chat_delivery_no_relay_info">No relay information for this message</string>

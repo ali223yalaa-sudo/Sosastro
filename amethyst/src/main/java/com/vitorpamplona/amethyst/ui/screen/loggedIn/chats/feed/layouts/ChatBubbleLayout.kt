@@ -138,8 +138,6 @@ fun ChatBubbleLayout(
     startGutter: (@Composable () -> Unit)? = null,
     // Messenger 1:1: Sent / Delivered / Seen + ticks sit under the bubble, not in it.
     belowBubble: (@Composable () -> Unit)? = null,
-    // TTS control sits beside the bubble, outside its fill.
-    speakOutside: (@Composable () -> Unit)? = null,
     drawAuthorLine: @Composable () -> Unit,
     inner: @Composable (MutableState<Color>) -> Unit,
 ) {
@@ -308,11 +306,6 @@ fun ChatBubbleLayout(
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (isLoggedInUser && speakOutside != null) {
-                    Box(Modifier.padding(end = 1.dp), contentAlignment = Alignment.Center) {
-                        speakOutside()
-                    }
-                }
                 InnerChatBubble(
                     isLoggedInUser = isLoggedInUser,
                     innerQuote = innerQuote,
@@ -333,11 +326,6 @@ fun ChatBubbleLayout(
                     drawAuthorLine = drawAuthorLine,
                     inner = inner,
                 )
-                if (!isLoggedInUser && speakOutside != null) {
-                    Box(Modifier.padding(start = 1.dp), contentAlignment = Alignment.Center) {
-                        speakOutside()
-                    }
-                }
             }
         }
     }
