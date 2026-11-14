@@ -238,9 +238,15 @@ parse. Verify the *downloaded* copy with `apksigner verify`, `zipalign -c 4` and
 - Files served: `astro-dm-arm64.apk` (arm64, ~157 MB), `astro-dm.apk`
   (universal, ~210 MB). Older archives (`astro-final-*.apk`, `astro-calls-fixed-*.apk`)
   stay in the dir but are no longer linked from `index.html`.
-- A durable fallback is the GitHub release `astro-v1.12.6` on the repo, but the
-  repo is **private**, so those asset URLs need authentication (HTTP 404 for
-  anonymous users). Keep that in mind before sharing release links.
+- **Durable public mirror (preferred):** the GitHub release `astro-v1.12.6` on
+  the public repo `hamza2234/ASTROOO12345` hosts the three signed APKs as
+  anonymous, permanent, Range-capable assets (verified: `206` to a
+  `Range: bytes=0-99` probe and a full download whose sha256 matches):
+  `https://github.com/hamza2234/ASTROOO12345/releases/download/astro-v1.12.6/<name>.apk`.
+  Prefer these links: they survive the sandbox idle-pause, so a phone never
+  saves a 502 "Bad Gateway" body as a truncated `.apk`. The release on the
+  **private** `hamza2234/astro-backup` repo still returns 404 for anonymous
+  users, so do not share those asset URLs.
 
 ### Build environment caveats (learned the hard way)
 
