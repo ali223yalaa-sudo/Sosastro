@@ -26,7 +26,25 @@ jobs:
           # for the "since last tag" window.
           fetch-depth: 0
 
+      # Crowdin secrets are not set on forks / unconfigured mirrors. Gate the
+      # sync on them so the workflow skips cleanly instead of failing with
+      # "For input string: \"\"". A dedicated step is used because `secrets`
+      # is not reliably available inside a step-level `if:` expression.
+      - name: Check Crowdin credentials
+        id: crowdin_creds
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          if [ -n "$CROWDIN_PROJECT_ID" ] && [ -n "$CROWDIN_PERSONAL_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Crowdin credentials are not set — skipping translation sync."
+          fi
+
       - name: crowdin action
+        if: ${{ steps.crowdin_creds.outputs.configured == 'true' }}
         uses: crowdin/github-action@v2
         with:
           upload_sources: true
@@ -46,6 +64,7 @@ jobs:
       # can resolve them to npubs. Only adds rows when a genuinely new contributor
       # appears.
       - name: Seed translator placeholders from Crowdin
+        if: ${{ steps.crowdin_creds.outputs.configured == 'true' }}
         run: bash scripts/translators.sh --seed
         env:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
@@ -54,6 +73,7 @@ jobs:
       - name: Open or update the combined Crowdin PR
         # peter-evans/create-pull-request is MIT-licensed CI-only tooling (not
         # linked into any shipped artifact). It no-ops when there is no diff.
+        if: ${{ steps.crowdin_creds.outputs.configured == 'true' }}
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
