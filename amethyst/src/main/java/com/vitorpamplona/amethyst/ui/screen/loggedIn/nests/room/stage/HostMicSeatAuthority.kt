@@ -51,7 +51,6 @@ internal fun HostMicSeatAuthority(
     if (!enabled) return
 
     val eventRef by rememberUpdatedState(event)
-    val openMicRef by rememberUpdatedState(openMic)
     val lockedRef by rememberUpdatedState(lockedSeats)
     val presenceRef by rememberUpdatedState(presences)
 
@@ -59,12 +58,6 @@ internal fun HostMicSeatAuthority(
         // Debounce rapid presence heartbeats so we don't thrash relays.
         delay(350)
         val current = eventRef
-        val speakers =
-            current
-                .participants()
-                .filter { it.canSpeak() }
-                .map { it.pubKey }
-                .toSet()
         val hostSeats = current.micSeats()
         val locked = lockedRef
 
@@ -77,8 +70,9 @@ internal fun HostMicSeatAuthority(
             val occupant = hostSeats[seat]
             if (occupant == p.pubkey) continue
             if (occupant != null) continue
-            val allowed = openMicRef || p.pubkey in speakers || p.pubkey == hostPubkey
-            if (!allowed) continue
+            // Promote any occupying self-claim to an authoritative mic tag so the
+            // host can see and remove it. Guests may step up in any room now, so
+            // this is no longer gated on the open-mic flag.
             RoomParticipantActions
                 .claimSeat(
                     original = current,

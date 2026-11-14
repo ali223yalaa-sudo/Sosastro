@@ -256,6 +256,28 @@ class ParticipantGridTest {
     }
 
     @Test
+    fun closedMicGuestWithSeatClaimAscends() {
+        // A guest may step up in someone else's room by self-claiming an
+        // empty seat, even when the host never opened the mic. The ascent
+        // is driven by the explicit seat claim, so the room must put them
+        // on stage regardless of the open-mic flag.
+        val grid =
+            buildParticipantGrid(
+                participants = listOf(pTag(host, ROLE.HOST), pTag(listener, ROLE.PARTICIPANT)),
+                presences =
+                    mapOf(
+                        host to presence(host, 100L),
+                        listener to presence(listener, 200L).copy(micSeat = 4),
+                    ),
+                hostPubkey = host,
+                roleGrantSec = 50L,
+                openMic = false,
+            )
+        assertTrue(grid.onStage.any { it.pubkey == listener })
+        assertEquals(0, grid.audience.count { it.pubkey == listener })
+    }
+
+    @Test
     fun openMicGuestWithSeatClaimOlderThanRoleGrantStillAscends() {
         // Regression: the host republishes the room every time a seat
         // changes, which bumps `created_at` past a guest's last 15-s

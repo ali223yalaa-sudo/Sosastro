@@ -133,18 +133,17 @@ fun buildParticipantGrid(
                 publishing = pres.publishing,
                 absent = false,
             )
-        // A live self-claim (`micSeat != null` + `onstage`) wins over a
-        // stale PARTICIPANT role tag: `leaveSeat` stamps every demoted
-        // peer PARTICIPANT, so without this a guest who once stepped off
-        // a mic could take an open seat and still be held off-stage —
-        // their audio was never subscribed by anyone (host ascends, the
-        // guest "takes" the seat and nobody hears them).
-        val openMicOnStage =
-            openMic &&
-                presenceIsFresh &&
+        // A live self-claim (`micSeat != null` + `onstage`) is a positive,
+        // peer-authored intent to be on the mic. Honour it regardless of the
+        // open-mic flag or the role-grant clock: a guest may step up in any
+        // room (open or closed mic, even an empty one) by taking a seat, and
+        // the host keeps control through seat locks + remove/mute. Without
+        // this a guest who self-claimed would be silently held in the audience.
+        val selfClaimOnStage =
+            presenceIsFresh &&
                 onstageFlag &&
-                (role != ROLE.PARTICIPANT || pres.micSeat != null)
-        if ((canSpeak && onstageFlag) || openMicOnStage) onStage += member else audience += member
+                pres.micSeat != null
+        if ((canSpeak && onstageFlag) || selfClaimOnStage) onStage += member else audience += member
     }
     return ParticipantGrid(onStage = onStage, audience = audience)
 }

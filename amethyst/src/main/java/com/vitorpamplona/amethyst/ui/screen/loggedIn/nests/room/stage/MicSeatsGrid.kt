@@ -132,13 +132,13 @@ internal fun MicSeatsGrid(
 
                 val locked = seat in lockedSeats && occupant == null
 
+                // Any guest may self-claim an empty, unlocked seat by tapping —
+                // no host invite and no open-mic flag required, so a listener can
+                // step up in someone else's room (including an empty one). The
+                // host keeps control via seat locks and can still remove/mute.
                 val canGuestTake =
-
                     !locked &&
-
-                        occupant == null &&
-
-                        (openMic || canSpeak || mySeat != null)
+                        occupant == null
 
                 MicSeatCell(
                     seatIndex = seat,

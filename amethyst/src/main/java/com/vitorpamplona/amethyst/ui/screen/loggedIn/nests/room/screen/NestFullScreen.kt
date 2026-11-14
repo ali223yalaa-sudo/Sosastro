@@ -427,10 +427,11 @@ internal fun NestFullScreen(
                                     unlockIfLocked = unlockIfLocked,
                                 )?.let { publishRoomTemplate(it) }
                             viewModel.takeMicSeat(seat)
-                        } else if (openMic || canSpeak || seatOccupants.values.any { it == myPubkey }) {
-                            if (seat !in lockedSeats) {
-                                viewModel.takeMicSeat(seat)
-                            }
+                        } else if (seat !in lockedSeats) {
+                            // Guests self-claim an empty unlocked seat directly —
+                            // no open-mic/invite gate. Host control stays via
+                            // locks + remove/mute.
+                            viewModel.takeMicSeat(seat)
                         }
                     },
                     onLeaveSeat = {
