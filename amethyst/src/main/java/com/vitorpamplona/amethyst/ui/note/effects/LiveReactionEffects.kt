@@ -62,6 +62,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.Dp
@@ -179,6 +180,39 @@ fun ReelsFloatingGroup(
         content()
     }
 }
+
+/**
+ * Places a reels overlay chip in the empty gutter *beside* its rail icon instead of on top of it.
+ * The side rail is a narrow column of icons at the screen's trailing edge, so there is no room
+ * above or below without burying a neighbouring icon. The full-width reel frame, however, keeps a
+ * wide band of empty video to the left of the rail, so the chip is pushed there — vertically
+ * centred on its icon, clear of the icon and clear of the media's focal centre.
+ *
+ * The chip reports a zero-size node to its parent, so it can never widen the rail slot and knock
+ * the icon column out of alignment; it is only placed (and hit-tested) to the left of the slot.
+ */
+@Composable
+fun BoxScope.ReelsSideChip(content: @Composable () -> Unit) {
+    val gutter = with(LocalDensity.current) { ReelsChipGutter.roundToPx() }
+    Box(
+        modifier =
+            Modifier
+                .align(Alignment.CenterEnd)
+                .layout { measurable, constraints ->
+                    val placeable = measurable.measure(constraints)
+                    layout(0, 0) {
+                        placeable.place(
+                            x = -placeable.width - gutter,
+                            y = -placeable.height / 2,
+                        )
+                    }
+                },
+    ) {
+        content()
+    }
+}
+
+private val ReelsChipGutter = 6.dp
 
 /**
  * Grab-and-flick for a reels overlay. The reels feed only scrolls vertically, so a horizontal

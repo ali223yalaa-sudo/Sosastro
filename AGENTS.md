@@ -424,10 +424,18 @@ Three reels-only rules, all in `shorts/VideoCardCompose.kt`,
   of the feed's `FloatingDismissible` bare pile — reels cover the content, so a
   single deliberate chip reads cleaner than avatars floating on the frame. The
   pill can be grabbed and flicked away in any direction (`Modifier.reelsDraggable`).
+- **Chip sits in the gutter, never on the icon.** Each reels pill is placed by
+  `ReelsSideChip`, which reports a zero-size node and parks the chip to the *left*
+  of its rail icon (vertically centred). The side rail is a narrow trailing column
+  with no room above or below, so an overlay on the icon would bury it; the empty
+  band of video left of the rail is the only clear space. The zero-size node keeps
+  the rail slot from widening, so the icon column stays aligned.
 - **One-reel snap.** `rememberReelsSnapFlingBehavior` in `ShortsFeedLoaded.kt`
-  wraps the stock `SnapLayoutInfoProvider` and clamps `calculateApproachOffset`
-  to ±one item, so a hard flick advances exactly one reel instead of coasting two
-  ahead. `rememberSnapFlingBehavior(lazyListState)` is not enough on its own.
+  drives the scroll itself instead of clamping the stock fling: a flick past
+  `minimumFlingVelocity` advances exactly one reel from where the drag ended, a
+  slow release settles on the nearest reel, and the coast is one bounded spring
+  animation. The old `calculateApproachOffset` clamp still let a hard flick coast
+  two items and the extra decode made the feed stutter.
 
 ## Tests: `nestsClient` `NestsAuthTest` decoded with the wrong Base64 alphabet
 

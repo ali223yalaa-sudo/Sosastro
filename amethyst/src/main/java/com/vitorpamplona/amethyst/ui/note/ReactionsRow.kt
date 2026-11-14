@@ -154,6 +154,7 @@ import com.vitorpamplona.amethyst.ui.note.effects.GiftLaunchBurst
 import com.vitorpamplona.amethyst.ui.note.effects.ReceivedGiftTrail
 import com.vitorpamplona.amethyst.ui.note.effects.ReelsFloatingDismissible
 import com.vitorpamplona.amethyst.ui.note.effects.ReelsFloatingGroup
+import com.vitorpamplona.amethyst.ui.note.effects.ReelsSideChip
 import com.vitorpamplona.amethyst.ui.note.elements.MoreOptionsButton
 import com.vitorpamplona.amethyst.ui.note.elements.ShareOptionsBottomSheet
 import com.vitorpamplona.amethyst.ui.note.types.EditState
@@ -1312,14 +1313,18 @@ fun LikeReaction(
 
         // Reels: the pile would sit straight on the playing video, so it goes in a frosted-glass
         // pill instead of loose stickers, and can be grabbed and flicked away in any direction.
+        // The pill is parked in the gutter beside the icon (ReelsSideChip) so it never covers the
+        // like star itself — the rail stays fully tappable.
         if (reelsFacepile && friendChips.isNotEmpty()) {
-            ReelsFloatingDismissible(modifier = Modifier.zIndex(10f)) {
-                ReelsFloatingGroup {
-                    FriendReactionFacepile(
-                        chips = friendChips,
-                        accountViewModel = accountViewModel,
-                        floating = true,
-                    )
+            ReelsSideChip {
+                ReelsFloatingDismissible {
+                    ReelsFloatingGroup {
+                        FriendReactionFacepile(
+                            chips = friendChips,
+                            accountViewModel = accountViewModel,
+                            floating = true,
+                        )
+                    }
                 }
             }
         }
@@ -1602,15 +1607,17 @@ fun ZapReaction(
             }
         }
 
-        // Reels: same frosted-glass pill treatment as the like pile, so gift stickers read as one
-        // deliberate overlay on the video and can be flicked away.
+        // Reels: same frosted-glass pill treatment as the like pile, parked in the gutter beside
+        // the star (ReelsSideChip) so gift stickers never cover the gift button, and flickable away.
         if (reelsTrail && giftEmojis.isNotEmpty()) {
-            ReelsFloatingDismissible(modifier = Modifier.zIndex(10f)) {
-                ReelsFloatingGroup {
-                    ReceivedGiftTrail(
-                        emojis = giftEmojis,
-                        floating = true,
-                    )
+            ReelsSideChip {
+                ReelsFloatingDismissible {
+                    ReelsFloatingGroup {
+                        ReceivedGiftTrail(
+                            emojis = giftEmojis,
+                            floating = true,
+                        )
+                    }
                 }
             }
         }
