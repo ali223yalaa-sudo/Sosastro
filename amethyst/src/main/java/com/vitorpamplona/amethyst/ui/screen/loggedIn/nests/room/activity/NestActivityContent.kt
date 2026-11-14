@@ -21,12 +21,12 @@
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.activity
 
 import androidx.activity.compose.LocalActivity
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -47,7 +48,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.vitorpamplona.amethyst.R
@@ -71,24 +71,12 @@ import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.lifecycle.PipBri
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.lifecycle.rememberNestViewModel
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.screen.NestFullScreen
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.screen.NestPipScreen
-import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.screen.connectingLabel
 import com.vitorpamplona.amethyst.ui.stringRes
 import com.vitorpamplona.nestsclient.NestsRoomConfig
 import com.vitorpamplona.quartz.nip01Core.core.Address
 import com.vitorpamplona.quartz.nip53LiveActivities.meetingSpaces.MeetingSpaceEvent
 import com.vitorpamplona.quartz.nip53LiveActivities.streaming.tags.ROLE
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharedFlow
-
-/**
- * How long the loading gate may block the room before it mounts
- * regardless of connect state. A healthy connect lands in 1-3 s; this
- * ceiling only fires when the transport keeps failing (UDP/QUIC blocked
- * by the carrier, a captive portal, a relay that never answers). It
- * exists so a failing connect can't strand the user on the
- * "loading room / reconnecting" spinner forever — see [NestActivityBody].
- */
-private const val ROOM_CONNECT_GATE_TIMEOUT_MS = 8_000L
 
 /**
  * Top-level composable for [NestActivity]. Resolves the kind-30312
@@ -383,34 +371,16 @@ private fun NestActivityBody(
     // composer's — raced and swallowed back while typing, which was the
     // "can't exit typing mode" report.
 
-    // Loading gate: the room only mounts once the MoQ session has come
-    // up at least once. Before that we show the dedicated "loading room"
-    // screen so the user never enters a room that looks alive but has no
-    // audio. After the first successful connect we keep the room mounted
-    // across transient drops and layer a gentle reconnecting overlay on
-    // top — tearing the screen down and rebuilding it on every blip
-    // would lose chat scroll and the mic grid the user is looking at.
-    var hasConnected by remember(roomNote) { mutableStateOf(false) }
-    LaunchedEffect(ui.connection) {
-        if (ui.connection is ConnectionUiState.Connected) hasConnected = true
-    }
-
-    // Escape hatch. The transport is wrapped in an unbounded reconnect
-    // policy (NestsReconnectPolicy.maxAttempts = Int.MAX_VALUE), so a
-    // connect that keeps failing — UDP/QUIC blocked by the carrier, a
-    // captive portal, a relay that never answers — would otherwise hold
-    // the gate shut forever: the user stares at "loading room /
-    // reconnecting" and the room never opens. After this ceiling we mount
-    // the room regardless and let [ConnectionOverlay] carry the live
-    // status (with its Retry / Leave actions), so the user always has a
-    // way in and a way out.
-    var gateTimedOut by remember(roomNote) { mutableStateOf(false) }
-    LaunchedEffect(roomNote) {
-        delay(ROOM_CONNECT_GATE_TIMEOUT_MS)
-        gateTimedOut = true
-    }
-    val showRoom = hasConnected || gateTimedOut
-
+    // The room is NOT gated on the audio handshake. The chat, presence,
+    // reactions and stage all ride the relay subscription (LocalCache),
+    // not the MoQ transport, so they are ready the moment the kind-30312
+    // resolves. Blocking the whole screen on `ConnectionUiState.Connected`
+    // — as the old gate did — meant a room whose audio couldn't come up
+    // (UDP/QUIC blocked by the carrier, a captive portal, a relay that
+    // never answers) showed "loading room / reconnecting" forever and
+    // never opened, even though everything else was ready. The room now
+    // mounts immediately and the connect status is a dismissible overlay
+    // layered on top; it clears itself the instant audio connects.
     if (isInPipMode) {
         NestPipScreen(
             title = event.room(),
@@ -420,7 +390,7 @@ private fun NestActivityBody(
             handRaised = handRaised,
             accountViewModel = accountViewModel,
         )
-    } else if (showRoom) {
+    } else {
         Box(modifier = Modifier.fillMaxSize()) {
             NestFullScreen(
                 event = event,
@@ -441,20 +411,17 @@ private fun NestActivityBody(
                 onLeave = onLeave,
             )
         }
-    } else {
-        RoomConnectingState(
-            connection = ui.connection,
-            onRetry = { viewModel.connect() },
-            onLeave = onLeave,
-        )
     }
 }
 
 /**
- * Gentle overlay shown over the live room when the transport drops and
- * the connector's retry loop is working ([ConnectionUiState.Reconnecting])
- * or has given up ([ConnectionUiState.Failed]). Renders nothing while the
- * session is healthy so it stays out of the way.
+ * Non-blocking status banner pinned to the top of the room while the
+ * MoQ transport is still coming up ([ConnectionUiState.Connecting] /
+ * [ConnectionUiState.Reconnecting]) or has given up
+ * ([ConnectionUiState.Failed]). It renders nothing once the session is
+ * healthy. Deliberately NOT a full-screen scrim: the room underneath is
+ * already live (chat, presence, stage ride the relay, not the audio
+ * transport), so the user can keep using it while audio settles.
  */
 @Composable
 private fun ConnectionOverlay(
@@ -464,121 +431,38 @@ private fun ConnectionOverlay(
 ) {
     if (connection is ConnectionUiState.Connected) return
     Box(
-        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f)),
-        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+        contentAlignment = Alignment.TopCenter,
     ) {
         Surface(
             shape = RoundedCornerShape(18.dp),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 6.dp,
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
             ) {
-                if (connection is ConnectionUiState.Failed) {
-                    Text(
-                        text = stringRes(R.string.nest_unjoinable_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center,
-                    )
-                    Text(
-                        text = connection.reason,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OutlinedButton(onClick = onLeave) {
-                            Text(stringRes(R.string.nest_leave))
-                        }
-                        Button(onClick = onRetry) {
-                            Text(stringRes(R.string.nest_retry))
-                        }
-                    }
-                } else {
-                    CircularProgressIndicator(modifier = Modifier.size(28.dp))
-                    Text(
-                        text = stringRes(R.string.nest_reconnecting),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    OutlinedButton(onClick = onLeave) {
-                        Text(stringRes(R.string.nest_leave))
-                    }
+                if (connection !is ConnectionUiState.Failed) {
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp))
                 }
-            }
-        }
-    }
-}
-
-/**
- * Full-screen "loading room" shown until [NestViewModel]'s MoQ session
- * reports [ConnectionUiState.Connected]. Carries the live connect step
- * so the user sees progress ("Resolving room" → "Opening transport" →
- * "Negotiating audio"), and turns into a gentle retry card if the
- * handshake lands in [ConnectionUiState.Failed]. This is the gate that
- * keeps the room from opening before everything inside is ready.
- */
-@Composable
-private fun RoomConnectingState(
-    connection: ConnectionUiState,
-    onRetry: () -> Unit,
-    onLeave: () -> Unit,
-) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-            modifier = Modifier.padding(24.dp),
-        ) {
-            if (connection is ConnectionUiState.Failed) {
                 Text(
-                    text = stringRes(R.string.nest_unjoinable_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = connection.reason,
+                    text =
+                        when (connection) {
+                            is ConnectionUiState.Failed -> connection.reason
+                            is ConnectionUiState.Connecting -> stringRes(R.string.nest_loading_room)
+                            else -> stringRes(R.string.nest_reconnecting)
+                        },
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedButton(onClick = onLeave) {
-                        Text(stringRes(R.string.nest_leave))
-                    }
+                if (connection is ConnectionUiState.Failed) {
                     Button(onClick = onRetry) {
                         Text(stringRes(R.string.nest_retry))
                     }
                 }
-            } else {
-                CircularProgressIndicator()
-                Text(
-                    text = stringRes(R.string.nest_loading_room),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                val stepLabel =
-                    when (connection) {
-                        is ConnectionUiState.Connecting -> connectingLabel(connection)
-                        is ConnectionUiState.Reconnecting -> stringRes(R.string.nest_reconnecting)
-                        else -> null
-                    }
-                stepLabel?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                OutlinedButton(onClick = onLeave) {
+                TextButton(onClick = onLeave) {
                     Text(stringRes(R.string.nest_leave))
                 }
             }
