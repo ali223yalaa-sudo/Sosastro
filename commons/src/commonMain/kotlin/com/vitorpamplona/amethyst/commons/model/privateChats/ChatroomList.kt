@@ -115,4 +115,15 @@ class ChatroomList(
         if (key == null) return false
         return rooms.get(key)?.ownerSentMessage == true
     }
+
+    /**
+     * Latest message time per 1:1 partner (single-user rooms only). Lets the Share
+     * picker rank friends by most recent conversation instead of alphabetically.
+     */
+    fun mostRecentMessageTimeByPartner(): Map<HexKey, Long> =
+        rooms
+            .mapNotNull { key, room ->
+                val partner = key.users.singleOrNull() ?: return@mapNotNull null
+                room.newestMessage?.createdAt()?.let { partner to it }
+            }.toMap()
 }

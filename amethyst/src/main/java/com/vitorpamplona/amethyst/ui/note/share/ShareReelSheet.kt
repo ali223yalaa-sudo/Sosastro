@@ -134,11 +134,17 @@ fun ShareReelSheet(
 
     val account = accountViewModel.account
     val follows by account.kind3FollowList.userList.collectAsStateWithLifecycle()
+    // Friends most recently chatted with float to the top, the way Instagram orders
+    // its share sheet; everyone else falls back to alphabetical.
     val friends =
         remember(follows) {
+            val recency = account.chatroomList.mostRecentMessageTimeByPartner()
             follows
                 .filter { !account.isHidden(it) }
-                .sortedBy { it.toBestDisplayName().lowercase() }
+                .sortedWith(
+                    compareByDescending<User> { recency[it.pubkeyHex] ?: 0L }
+                        .thenBy { it.toBestDisplayName().lowercase() },
+                )
         }
 
     var query by remember { mutableStateOf("") }

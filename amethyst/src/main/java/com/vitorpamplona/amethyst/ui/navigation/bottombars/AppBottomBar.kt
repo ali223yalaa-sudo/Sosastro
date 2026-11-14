@@ -21,7 +21,9 @@
 package com.vitorpamplona.amethyst.ui.navigation.bottombars
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
@@ -40,6 +42,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vitorpamplona.amethyst.commons.browser.OmniboxInput
@@ -193,6 +197,7 @@ private fun RowScope.FavoriteNavItem(
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun RowScope.HasNewItemsIcon(
     selected: Boolean,
@@ -201,6 +206,19 @@ private fun RowScope.HasNewItemsIcon(
     accountViewModel: AccountViewModel,
     nav: (Route) -> Unit,
 ) {
+    // Long-pressing the profile tab opens the account switcher, the Instagram-style
+    // shortcut for swapping accounts without diving into the drawer.
+    val haptic = LocalHapticFeedback.current
+    val onLongClick: (() -> Unit)? =
+        if (def.id == NavBarItem.PROFILE) {
+            {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                accountViewModel.openAccountSwitcher()
+            }
+        } else {
+            null
+        }
+
     NavigationBarItem(
         alwaysShowLabel = false,
         icon = {
@@ -209,6 +227,8 @@ private fun RowScope.HasNewItemsIcon(
                 def,
                 destination,
                 accountViewModel,
+                nav,
+                onLongClick,
             )
         },
         selected = selected,
@@ -216,18 +236,29 @@ private fun RowScope.HasNewItemsIcon(
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun NotifiableIcon(
     selected: Boolean,
     def: NavBarItemDef,
     destination: Route,
     accountViewModel: AccountViewModel,
+    nav: (Route) -> Unit,
+    onLongClick: (() -> Unit)? = null,
 ) {
     Box(Size27Modifier, contentAlignment = Alignment.Center) {
         Icon(
             symbol = def.icon,
             contentDescription = stringRes(def.labelRes),
-            modifier = Size25Modifier,
+            // The profile icon handles its own tap + long press. The child consumes the
+            // gesture so the parent NavigationBarItem does not also fire on a long press
+            // (a tap outside the icon still reaches the parent's onClick).
+            modifier =
+                if (onLongClick != null) {
+                    Size25Modifier.combinedClickable(onClick = { nav(destination) }, onLongClick = onLongClick)
+                } else {
+                    Size25Modifier
+                },
             tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface65,
         )
 

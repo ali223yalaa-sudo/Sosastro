@@ -221,6 +221,15 @@ class AccountViewModel(
     val broadcastTracker = BroadcastTracker()
     val feedStates = AccountFeedContentStates(account, viewModelScope)
 
+    /** Bumped when the user asks to open the account switcher (e.g. long-pressing the
+     *  profile tab). The drawer layout observes this and shows the switch sheet. */
+    private val _openAccountSwitcherRequest = MutableStateFlow(0L)
+    val openAccountSwitcherRequest: StateFlow<Long> = _openAccountSwitcherRequest
+
+    fun openAccountSwitcher() {
+        _openAccountSwitcherRequest.value += 1
+    }
+
     /**
      * `true` when feed/note media (images and videos in `MediaUrlContent`)
      * should be routed through the local Blossom cache. Requires the master

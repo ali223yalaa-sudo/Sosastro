@@ -37,6 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vitorpamplona.amethyst.ui.navigation.drawer.AccountSwitchBottomSheet
 import com.vitorpamplona.amethyst.ui.navigation.drawer.DrawerContent
 import com.vitorpamplona.amethyst.ui.navigation.navs.Nav
@@ -70,6 +71,16 @@ fun AccountSwitcherAndLeftDrawerLayout(
                 Unit
             }
         }
+
+    // Long-pressing the profile tab in the bottom bar requests the switcher from
+    // anywhere in the app; open it here where the sheet state lives.
+    val switcherRequest by accountViewModel.openAccountSwitcherRequest.collectAsStateWithLifecycle()
+    LaunchedEffect(switcherRequest) {
+        if (switcherRequest > 0L) {
+            openAccountSwitcherBottomSheet = true
+            sheetState.show()
+        }
+    }
 
     val orientation = LocalConfiguration.current.orientation
     val currentDrawerState = nav.drawerState.currentValue
