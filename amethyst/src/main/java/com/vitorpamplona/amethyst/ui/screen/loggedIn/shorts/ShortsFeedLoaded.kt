@@ -20,9 +20,11 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.gestures.FlingBehavior
-import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.gestures.ScrollScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -33,6 +35,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vitorpamplona.amethyst.commons.ui.feeds.FeedState
 import com.vitorpamplona.amethyst.service.tts.TextToSpeechHelper
@@ -40,6 +43,9 @@ import com.vitorpamplona.amethyst.ui.navigation.navs.INav
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts.datasource.isReelPlayableVideo
 import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.roundToInt
 
 @Composable
 fun ShortsFeedLoaded(
@@ -95,33 +101,50 @@ fun ShortsFeedLoaded(
 }
 
 /**
- * Snap fling for the reels pager. The stock [rememberSnapFlingBehavior] lets a hard flick coast
- * several items before it snaps, so one fast swipe can land two reels ahead — disorienting on a
- * full-screen feed. This clamps the coast to a single item: a flick advances exactly one reel,
- * however hard it is thrown, while a slow drag still settles on whichever reel is closest.
+ * Snap fling for the reels pager. The stock [rememberSnapFlingBehavior] lets a hard flick
+ * coast several items before it snaps, so one fast swipe can land two reels ahead —
+ * disorienting on a full-screen feed, and the extra decode work on the skipped pages is what
+ * makes the feed stutter. This drives the scroll itself: a flick advances exactly one reel
+ * (from wherever the drag ended), a slow release settles on the nearest reel, and the coast is
+ * a single bounded animation instead of a long free decay.
  */
 @Composable
 private fun rememberReelsSnapFlingBehavior(listState: LazyListState): FlingBehavior {
-    val provider =
-        remember(listState) {
-            object : SnapLayoutInfoProvider {
-                private val base = SnapLayoutInfoProvider(listState)
+    val viewConfiguration = LocalViewConfiguration.current
+    return remember(listState, viewConfiguration) {
+        object : FlingBehavior {
+            override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
+                val info = listState.layoutInfo
+                val itemSize = info.visibleItemsInfo.firstOrNull()?.size ?: 0
+                if (itemSize <= 0) return initialVelocity
 
-                override fun calculateApproachOffset(
-                    velocity: Float,
-                    decayOffset: Float,
-                ): Float {
-                    val itemSize =
-                        listState.layoutInfo.visibleItemsInfo
-                            .firstOrNull()
-                            ?.size ?: 0
-                    if (itemSize == 0) return base.calculateApproachOffset(velocity, decayOffset)
-                    // Never coast past one full item, so a hard flick cannot skip the next reel.
-                    return decayOffset.coerceIn(-itemSize.toFloat(), itemSize.toFloat())
+                // Continuous page position: an integer when a reel is perfectly snapped.
+                val position =
+                    listState.firstVisibleItemIndex +
+                        listState.firstVisibleItemScrollOffset.toFloat() / itemSize
+
+                val minFling = viewConfiguration.minimumFlingVelocity.toFloat()
+                val target =
+                    when {
+                        // Fast forward flick: exactly the next reel, never two.
+                        initialVelocity > minFling -> floor(position).toInt() + 1
+                        // Fast backward flick: exactly the previous reel.
+                        initialVelocity < -minFling -> ceil(position).toInt() - 1
+                        // Slow release: settle on whichever reel is closest.
+                        else -> position.roundToInt()
+                    }
+
+                val clamped = target.coerceIn(0, (info.totalItemsCount - 1).coerceAtLeast(0))
+                val delta = (clamped - position) * itemSize
+                if (abs(delta) < 0.5f) return 0f
+
+                var previous = 0f
+                animate(0f, delta, animationSpec = spring<Float>(stiffness = Spring.StiffnessMedium)) { value, _ ->
+                    scrollBy(value - previous)
+                    previous = value
                 }
-
-                override fun calculateSnapOffset(velocity: Float): Float = base.calculateSnapOffset(velocity)
+                return 0f
             }
         }
-    return rememberSnapFlingBehavior(snapLayoutInfoProvider = provider)
+    }
 }
