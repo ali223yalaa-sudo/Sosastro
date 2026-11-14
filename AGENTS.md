@@ -713,17 +713,27 @@ was originally added for). Regression tests
 `stalePresenceWithoutSeatClaimStillYieldsToRoleGrant` in
 `commons/.../viewmodels/ParticipantGridTest.kt`.
 
-## Nests: room opens only when ready + gentle reconnect overlay
+## Nests: room always opens immediately; audio status is a non-blocking banner
 
-`NestActivityContent.kt` now gates the full room UI on the MoQ session
-having connected at least once (`hasConnected`, latched from
-`ConnectionUiState.Connected`). Before that it shows `RoomConnectingState`
-— a centered spinner with the live connect step (`connectingLabel`) and a
-Leave button, plus a Retry/Leave card on `ConnectionUiState.Failed`. After
-the first connect the room stays mounted across transient drops and
-`ConnectionOverlay` draws a translucent "Reconnecting…" card on top, so a
-weak-network blip never tears down chat scroll or the mic grid. This is
-what stops the "entered but nothing happens" confusion in a weak network.
+`NestActivityContent.kt` mounts the full room (`NestFullScreen`)
+unconditionally. It used to gate the whole screen on the MoQ session
+having connected at least once (`hasConnected`), showing a full-screen
+`RoomConnectingState` until then — but the chat, presence, reactions and
+stage all ride the relay subscription (LocalCache), not the audio
+transport, so they are ready the moment the kind-30312 resolves. Gating
+them on audio meant a room whose audio couldn't come up (UDP/QUIC
+blocked by the carrier, a captive portal, a relay that never answers)
+never opened at all — the user was pinned on "loading room /
+reconnecting" forever. The transport also runs an unbounded reconnect
+policy, so it never gave up on its own. Do NOT reintroduce a gate here:
+the room must open instantly and stay usable even if audio fails.
+
+The connect status is now `ConnectionOverlay`, a compact banner pinned
+to the top of the room. It renders nothing once `ConnectionUiState` is
+`Connected`; while `Connecting`/`Reconnecting` it shows the live step +
+Leave; on `Failed` it adds a Retry button. It is deliberately NOT a
+full-screen scrim — the room underneath is live and must stay
+interactive.
 
 ## Nests: join banner, larger bottom text
 
