@@ -456,6 +456,17 @@ class NestViewModel(
         ensureAudioFocusObserverStarted()
         ensureNetworkChangeObserverStarted()
         launchConnect()
+
+        // Optimistically place ourselves in the room the instant we
+        // start connecting, instead of waiting for our own kind-10312
+        // heartbeat to travel out to a relay and come back through the
+        // room subscription. Without this the local user has no presence
+        // for the first several seconds, so they are absent from the
+        // participant grid and their name/picture only pop in once the
+        // round-trip lands — the "sometimes my name shows up on entry,
+        // sometimes it lags" report. The real heartbeat overwrites this
+        // hint when it arrives (see [publishLocalPresenceHint]).
+        publishLocalPresenceHint()
     }
 
     /**

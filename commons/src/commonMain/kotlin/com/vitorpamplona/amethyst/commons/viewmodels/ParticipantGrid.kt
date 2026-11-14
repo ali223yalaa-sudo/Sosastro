@@ -114,7 +114,14 @@ fun buildParticipantGrid(
         val p = roles[pubkey]
         val role = p?.effectiveRole() ?: if (pubkey == hostPubkey) ROLE.HOST else null
         val canSpeak = p?.canSpeak() == true || role == ROLE.HOST
-        val presenceIsFresh = pres.updatedAtSec >= roleGrantSec
+        // A live self-claim (a seat index + `onstage`) is positive,
+        // peer-authored intent: honour it regardless of the role-grant
+        // clock. Otherwise a host who republishes the room (which bumps
+        // `created_at` past the guest's last heartbeat) would drop the
+        // guest off-stage until their next 15-s heartbeat — the
+        // "guest flashes in and out of the stage" report.
+        val liveSelfClaim = pres.onstage && pres.micSeat != null
+        val presenceIsFresh = pres.updatedAtSec >= roleGrantSec || liveSelfClaim
         val onstageFlag = if (presenceIsFresh) pres.onstage else canSpeak
         val member =
             RoomMember(

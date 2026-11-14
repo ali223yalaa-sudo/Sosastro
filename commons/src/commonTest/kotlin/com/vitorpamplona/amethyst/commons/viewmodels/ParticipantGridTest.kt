@@ -256,6 +256,52 @@ class ParticipantGridTest {
     }
 
     @Test
+    fun openMicGuestWithSeatClaimOlderThanRoleGrantStillAscends() {
+        // Regression: the host republishes the room every time a seat
+        // changes, which bumps `created_at` past a guest's last 15-s
+        // heartbeat. The old freshness gate (`updatedAtSec >=
+        // roleGrantSec`) then treated the guest's live seat claim as
+        // stale and dropped them off-stage until their next heartbeat —
+        // the "guest flashes in and out of the stage" report. A live
+        // self-claim must survive a role grant newer than the heartbeat.
+        val grid =
+            buildParticipantGrid(
+                participants = listOf(pTag(host, ROLE.HOST), pTag(listener, ROLE.PARTICIPANT)),
+                presences =
+                    mapOf(
+                        host to presence(host, 500L),
+                        // Guest claimed seat 3 at t=100; host republished
+                        // at t=400 (roleGrantSec) — presence now "stale".
+                        listener to presence(listener, 100L).copy(micSeat = 3),
+                    ),
+                hostPubkey = host,
+                roleGrantSec = 400L,
+                openMic = true,
+            )
+        assertTrue(grid.onStage.any { it.pubkey == listener })
+        assertEquals(0, grid.audience.count { it.pubkey == listener })
+    }
+
+    @Test
+    fun stalePresenceWithoutSeatClaimStillYieldsToRoleGrant() {
+        // Guardrail: the freshness bypass is scoped to live self-claims.
+        // A guest with NO seat claim whose presence predates the role
+        // grant must still fall back to the role tag (the promoted-
+        // audience-member case the gate was added for).
+        val grid =
+            buildParticipantGrid(
+                participants = listOf(pTag(host, ROLE.HOST), pTag(speaker, ROLE.SPEAKER)),
+                presences =
+                    mapOf(
+                        host to presence(host, 500L),
+                        speaker to presence(speaker, 100L, onstage = false),
+                    ),
+                roleGrantSec = 400L,
+            )
+        assertEquals(setOf(host, speaker), grid.onStage.map { it.pubkey }.toSet())
+    }
+
+    @Test
     fun leftPresenceIsDroppedFromOccupancy() {
         val grid =
             buildParticipantGrid(

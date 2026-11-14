@@ -622,6 +622,53 @@ from 2 min to 60 s (four missed 15-s `PRESENCE_REFRESH_MS` heartbeats), which
 is the same window the `PresenceEvictionTicker` uses to drop a dead peer, so
 presence that is replayed and presence that is evicted can't disagree.
 
+## Nests: self identity lags on room entry (name/picture "زائر" feel)
+
+Report (Arabic): "when I enter a room sometimes my name and picture show
+up, sometimes they arrive late." Nothing renders a literal "guest"
+string — the perceived "visitor" is just the placeholder identity that
+shows while the local user's row is missing: `UsernameDisplay` falls
+back to a truncated `npub…` and `RobohashFallbackAsyncImage` to a
+generated robot when the kind-0 metadata (or the presence row itself) is
+not yet available.
+
+Root cause: `NestViewModel.connect()` used to wait for our own kind-10312
+heartbeat to travel out to a relay and come back through the room
+subscription before the local user appeared in `_presences`. Until that
+round-trip landed, the user was absent from the participant grid, so
+their avatar/name simply popped in seconds later — the intermittent
+delay.
+
+Fix: `connect()` now calls `publishLocalPresenceHint()` immediately, so
+the local user is placed in the room the instant we start connecting.
+The real heartbeat overwrites the optimistic hint when it arrives (the
+aggregator keeps the newest `created_at`). `UsernameDisplay`'s
+`observeUserInfo` then kicks off the metadata fetch for our own pubkey
+right away. The persisted `backupUserMetadata`
+(`UserMetadataState.init` → `LocalCache.justConsumeMyOwnEvent`) means the
+name/picture are already in cache on a returning user, so the seed makes
+them render on the first frame.
+
+## Nests: guest flashes off the stage after a host republish
+
+Follow-up to the open-mic fix above. `buildParticipantGrid` gated every
+presence on `presenceIsFresh = pres.updatedAtSec >= roleGrantSec`, where
+`roleGrantSec` is the room event's `created_at`. But `HostMicSeatAuthority`
+republishes the room (bumping `created_at` to now) on *every* seat
+change, so a guest whose last 15-s heartbeat predates that republish was
+treated as stale and dropped to the audience until their next heartbeat —
+the "guest keeps flashing off the mic" report.
+
+Fix: a live self-claim (`onstage && micSeat != null`) is positive,
+peer-authored intent and is now honoured regardless of the role-grant
+clock (`liveSelfClaim`). The freshness bypass is scoped to self-claims
+only — a peer with no seat claim whose presence predates the role grant
+still yields to the role tag (the promoted-audience-member case the gate
+was originally added for). Regression tests
+`openMicGuestWithSeatClaimOlderThanRoleGrantStillAscends` and
+`stalePresenceWithoutSeatClaimStillYieldsToRoleGrant` in
+`commons/.../viewmodels/ParticipantGridTest.kt`.
+
 ## Nests: room opens only when ready + gentle reconnect overlay
 
 `NestActivityContent.kt` now gates the full room UI on the MoQ session
