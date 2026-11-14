@@ -77,7 +77,18 @@ import com.vitorpamplona.nestsclient.NestsRoomConfig
 import com.vitorpamplona.quartz.nip01Core.core.Address
 import com.vitorpamplona.quartz.nip53LiveActivities.meetingSpaces.MeetingSpaceEvent
 import com.vitorpamplona.quartz.nip53LiveActivities.streaming.tags.ROLE
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharedFlow
+
+/**
+ * How long the loading gate may block the room before it mounts
+ * regardless of connect state. A healthy connect lands in 1-3 s; this
+ * ceiling only fires when the transport keeps failing (UDP/QUIC blocked
+ * by the carrier, a captive portal, a relay that never answers). It
+ * exists so a failing connect can't strand the user on the
+ * "loading room / reconnecting" spinner forever — see [NestActivityBody].
+ */
+private const val ROOM_CONNECT_GATE_TIMEOUT_MS = 8_000L
 
 /**
  * Top-level composable for [NestActivity]. Resolves the kind-30312
@@ -384,6 +395,22 @@ private fun NestActivityBody(
         if (ui.connection is ConnectionUiState.Connected) hasConnected = true
     }
 
+    // Escape hatch. The transport is wrapped in an unbounded reconnect
+    // policy (NestsReconnectPolicy.maxAttempts = Int.MAX_VALUE), so a
+    // connect that keeps failing — UDP/QUIC blocked by the carrier, a
+    // captive portal, a relay that never answers — would otherwise hold
+    // the gate shut forever: the user stares at "loading room /
+    // reconnecting" and the room never opens. After this ceiling we mount
+    // the room regardless and let [ConnectionOverlay] carry the live
+    // status (with its Retry / Leave actions), so the user always has a
+    // way in and a way out.
+    var gateTimedOut by remember(roomNote) { mutableStateOf(false) }
+    LaunchedEffect(roomNote) {
+        delay(ROOM_CONNECT_GATE_TIMEOUT_MS)
+        gateTimedOut = true
+    }
+    val showRoom = hasConnected || gateTimedOut
+
     if (isInPipMode) {
         NestPipScreen(
             title = event.room(),
@@ -393,7 +420,7 @@ private fun NestActivityBody(
             handRaised = handRaised,
             accountViewModel = accountViewModel,
         )
-    } else if (hasConnected) {
+    } else if (showRoom) {
         Box(modifier = Modifier.fillMaxSize()) {
             NestFullScreen(
                 event = event,
