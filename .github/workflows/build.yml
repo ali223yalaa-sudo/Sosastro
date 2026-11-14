@@ -106,6 +106,7 @@ jobs:
 
       - name: Upload Desktop Distribution
         uses: actions/upload-artifact@v7
+        continue-on-error: true
         with:
           name: ${{ matrix.desktop-artifact-name }}
           path: ${{ matrix.desktop-artifact-path }}
@@ -170,6 +171,7 @@ jobs:
 
       - name: Upload iOS Test Reports
         uses: actions/upload-artifact@v7
+        continue-on-error: true
         if: failure()
         with:
           name: Quartz iOS Test Reports
@@ -226,6 +228,7 @@ jobs:
 
       - name: Upload Android Lint Reports
         uses: actions/upload-artifact@v7
+        continue-on-error: true
         if: always()
         with:
           name: Android Lint Reports
@@ -237,6 +240,7 @@ jobs:
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v7
+        continue-on-error: true
         if: failure()
         with:
           name: Test Reports
@@ -247,6 +251,7 @@ jobs:
       # works if a contributor runs CI on a branch that doesn't pass the flag.
       - name: Upload Play APK Benchmark
         uses: actions/upload-artifact@v7
+        continue-on-error: true
         with:
           name: Play Benchmark APK
           path: |
@@ -255,6 +260,7 @@ jobs:
 
       - name: Upload FDroid APK Benchmark
         uses: actions/upload-artifact@v7
+        continue-on-error: true
         with:
           name: FDroid Benchmark APK
           path: |
@@ -263,6 +269,7 @@ jobs:
 
       - name: Upload Compose Reports
         uses: actions/upload-artifact@v7
+        continue-on-error: true
         with:
           name: Compose Reports
           path: amethyst/build/compose_compiler
