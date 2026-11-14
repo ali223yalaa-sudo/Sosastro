@@ -189,6 +189,44 @@ setsid nohup /workspace/apk-download/watchdog.sh &   # keeps it alive
   https://work-2-sjgrvfcdashedalw.prod-runtime.all-hands.dev/ (12001).
 
 
+### Release APK hosting (signed, per-ABI)
+
+Signed **release** APKs are served from `/workspace/apk-share`, not
+`/workspace/apk-download` (that dir holds the older debug/archive builds).
+`apk-share/server.py` is the Range-capable server; run it and the watchdog the
+same way as above:
+
+```bash
+(cd /workspace/apk-share && setsid nohup python3 server.py 12000 12001 >>server.log 2>&1 &)
+setsid nohup /workspace/apk-share/watchdog.sh &   # polls both ports, restarts on death
+```
+
+Served files (stable names): `astro-1.12.6-universal.apk` (177 MB),
+`astro-1.12.6-arm64-v8a.apk` (133 MB), `astro-1.12.6-armeabi-v7a.apk` (123 MB),
+plus `SHA256SUMS.txt`. `index.html` links to exactly these names.
+
+Release signing (Gradle emits the release variant unsigned):
+
+```bash
+BT=/workspace/android-sdk/build-tools/37.0.0
+PW=$(cat /workspace/keys/astro-release-password.txt)   # alias: astro
+for ABI in arm64-v8a armeabi-v7a universal; do
+  IN=$(ls amethyst/build/outputs/apk/fdroid/release/*${ABI}*unsigned.apk)
+  $BT/zipalign -f -p 4 "$IN" /tmp/z.apk
+  $BT/apksigner sign --ks /workspace/keys/astro-release.jks --ks-key-alias astro \
+    --ks-pass pass:"$PW" --key-pass pass:"$PW" \
+    --out /workspace/apk-share/astro-1.12.6-${ABI}.apk /tmp/z.apk
+done
+```
+
+**Symptom -> cause:** "الحزمة غير صالحة" (invalid package) on an otherwise
+correct APK is almost always a **truncated download**. If the server is plain
+`python -m http.server` it ignores HTTP Range, so an interrupted 130-185 MB
+transfer on a mobile network silently saves a partial file that Android cannot
+parse. Verify the *downloaded* copy with `apksigner verify`, `zipalign -c 4` and
+`sha256sum -c SHA256SUMS.txt`, and confirm the endpoint answers `206` to a
+`Range: bytes=0-99` probe, before blaming the build.
+
 ### Why the link can still look dead
 
 - The sandbox **idles out after 20 min** (`OH_RUNTIME_IDLE_TIMEOUT_SECONDS=1200`)
