@@ -24,8 +24,8 @@ import com.vitorpamplona.amethyst.model.topNavFeeds.global.GlobalTopNavPerRelayF
 import com.vitorpamplona.amethyst.service.relays.SincePerRelayMap
 import com.vitorpamplona.amethyst.ui.dal.astroRegionHashtagFilter
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.LegacyMimeTypeMap
-import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureAndVideoKinds
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureAndVideoLegacyKinds
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureVideoAndAudioKinds
 import com.vitorpamplona.quartz.nip01Core.relay.client.pool.RelayBasedFilter
 import com.vitorpamplona.quartz.nip01Core.relay.filters.Filter
 
@@ -43,7 +43,7 @@ fun filterPictureAndVideoGlobal(
                 relay = it.key,
                 filter =
                     Filter(
-                        kinds = PictureAndVideoKinds,
+                        kinds = PictureVideoAndAudioKinds,
                         limit = 50,
                         since = since,
                     ),
@@ -60,7 +60,7 @@ fun filterPictureAndVideoGlobal(
             ),
             astroRegionHashtagFilter(
                 relay = it.key,
-                kinds = PictureAndVideoKinds,
+                kinds = PictureVideoAndAudioKinds,
                 since = since,
                 limit = 50,
             ),

@@ -24,9 +24,9 @@ import com.vitorpamplona.amethyst.model.topNavFeeds.noteBased.community.SingleCo
 import com.vitorpamplona.amethyst.service.relays.SincePerRelayMap
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.LegacyMimeTypes
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureAndVideoKTags
-import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureAndVideoKinds
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureAndVideoLegacyKTags
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureAndVideoLegacyKinds
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureVideoAndAudioKinds
 import com.vitorpamplona.quartz.nip01Core.relay.client.pool.RelayBasedFilter
 import com.vitorpamplona.quartz.nip01Core.relay.filters.Filter
 import com.vitorpamplona.quartz.nip01Core.relay.normalizer.NormalizedRelayUrl
@@ -63,7 +63,7 @@ fun filterPictureAndVideoCommunity(
                 Filter(
                     authors = authors,
                     tags = mapOf("a" to listOf(community)),
-                    kinds = PictureAndVideoKinds,
+                    kinds = PictureVideoAndAudioKinds,
                     limit = 200,
                     since = since,
                 ),

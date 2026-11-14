@@ -37,6 +37,7 @@ import com.vitorpamplona.amethyst.ui.dal.usesAstroInterestOrder
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts.datasource.isReelPlayableVideo
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts.datasource.isVerticalReelVideo
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.SUPPORTED_VIDEO_FEED_MIME_TYPES_SET
+import com.vitorpamplona.quartz.experimental.audio.header.AudioHeaderEvent
 import com.vitorpamplona.quartz.experimental.ephemeralStory.EphemeralStoryEvent
 import com.vitorpamplona.quartz.nip01Core.core.AddressableEvent
 import com.vitorpamplona.quartz.nip01Core.core.Event
@@ -50,6 +51,7 @@ import com.vitorpamplona.quartz.nip71Video.VideoShortEvent
 import com.vitorpamplona.quartz.nip71Video.VideoVerticalEvent
 import com.vitorpamplona.quartz.nip92IMeta.imetas
 import com.vitorpamplona.quartz.nip94FileMetadata.FileHeaderEvent
+import com.vitorpamplona.quartz.nipA0VoiceMessages.VoiceEvent
 
 class VideoFeedFilter(
     val account: Account,
@@ -92,7 +94,6 @@ class VideoFeedFilter(
                 LocalCache.addressables.filterIntoSet(EphemeralStoryEvent.KIND) { _, it ->
                     acceptableEvent(it, params)
                 }
-
         return sort(notes)
     }
 
@@ -153,9 +154,10 @@ class VideoFeedFilter(
                 isAnimatedImage ||
                     (noteEvent is TextNoteEvent && noteEvent.isNewThread() && noteEvent.isPlainTextOrLinkPost())
             } else {
-                // Astro: Instagram-style Home — media only (photos + videos). Animated
-                // images (GIF) and audio/music posts are intentionally excluded, and
-                // text-only notes are dropped here (they stay reachable via the Texts chip).
+                // Astro: Instagram-style Home — media only (photos, videos + audio). Animated
+                // images (GIF) are intentionally excluded, and text-only notes are dropped here
+                // (they stay reachable via the Texts chip). Audio posts are kept so a published
+                // voice message / audio header shows in the feed instead of being hidden.
                 !isReelOnly &&
                     !isAnimatedImage &&
                     (
@@ -166,6 +168,8 @@ class VideoFeedFilter(
                             (noteEvent is VideoShortEvent && acceptanceEvent(noteEvent)) ||
                             (noteEvent is PictureEvent && acceptanceEvent(noteEvent)) ||
                             (noteEvent is EphemeralStoryEvent && acceptableEphemeralStory(noteEvent)) ||
+                            (noteEvent is VoiceEvent && note.isNewThread()) ||
+                            (noteEvent is AudioHeaderEvent && note.isNewThread()) ||
                             (noteEvent is TextNoteEvent && noteEvent.isNewThread() && noteEvent.hasImageOrVideoMedia())
                     )
             }
@@ -211,15 +215,15 @@ class VideoFeedFilter(
     }
 
     /**
-     * Astro Home: keep only text posts that actually carry an image or a video.
-     * Audio-only posts and plain text/link posts are dropped so the Home feed reads
-     * as an Instagram-style media wall (text-only stays available via the Texts chip).
+     * Astro Home: keep only text posts that actually carry feed media (image, video or
+     * audio). Plain text/link posts are dropped so the Home feed reads as an Instagram-style
+     * media wall (text-only stays available via the Texts chip).
      */
     private fun TextNoteEvent.hasImageOrVideoMedia(): Boolean {
         if (isReelPlayableVideo()) return true
         for (imeta in imetas()) {
             val mime = imeta.properties["m"]?.firstOrNull().orEmpty()
-            if (mime.startsWith("image/") || mime.startsWith("video/")) return true
+            if (mime.startsWith("image/") || mime.startsWith("video/") || mime.startsWith("audio/")) return true
             if (imeta.url.isNotBlank() && RichTextParser.isImageOrVideoUrl(imeta.url)) return true
         }
         val urls = UrlParser().parseValidUrls(content)

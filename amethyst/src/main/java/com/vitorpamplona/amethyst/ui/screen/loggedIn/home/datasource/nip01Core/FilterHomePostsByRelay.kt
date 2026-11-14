@@ -31,7 +31,7 @@ import com.vitorpamplona.amethyst.service.relays.SincePerRelayMap
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.home.datasource.nip65Follows.HomePostsConversationKinds
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.home.datasource.nip65Follows.HomePostsNewThreadKinds1
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.home.datasource.nip65Follows.HomePostsNewThreadKinds2
-import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureAndVideoKinds
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureVideoAndAudioKinds
 import com.vitorpamplona.quartz.nip01Core.relay.client.pool.RelayBasedFilter
 import com.vitorpamplona.quartz.nip01Core.relay.filters.Filter
 import com.vitorpamplona.quartz.nip10Notes.TextNoteEvent
@@ -98,7 +98,7 @@ fun filterHomePostsByRelay(
                 relay = me,
                 filter =
                     Filter(
-                        kinds = listOf(PictureEvent.KIND) + PictureAndVideoKinds,
+                        kinds = listOf(PictureEvent.KIND) + PictureVideoAndAudioKinds,
                         limit = 500,
                         since = meSince,
                     ),

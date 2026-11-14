@@ -20,6 +20,7 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource
 
+import com.vitorpamplona.quartz.experimental.audio.header.AudioHeaderEvent
 import com.vitorpamplona.quartz.experimental.nip95.header.FileStorageHeaderEvent
 import com.vitorpamplona.quartz.nip68Picture.PictureEvent
 import com.vitorpamplona.quartz.nip71Video.VideoHorizontalEvent
@@ -27,8 +28,31 @@ import com.vitorpamplona.quartz.nip71Video.VideoNormalEvent
 import com.vitorpamplona.quartz.nip71Video.VideoShortEvent
 import com.vitorpamplona.quartz.nip71Video.VideoVerticalEvent
 import com.vitorpamplona.quartz.nip94FileMetadata.FileHeaderEvent
+import com.vitorpamplona.quartz.nipA0VoiceMessages.VoiceEvent
 
-val SUPPORTED_VIDEO_FEED_MIME_TYPES = listOf("image/jpeg", "image/gif", "image/png", "image/webp", "video/mp4", "video/mpeg", "video/webm", "audio/aac", "audio/mpeg", "audio/webm", "audio/wav", "image/avif")
+// Every mime type the Home (video) feed will fetch and render. Audio is included so a
+// published audio post (voice message or an audio file header) lands in the feed instead
+// of being silently dropped — the legacy-kind REQ matches on this `#m` list.
+val SUPPORTED_VIDEO_FEED_MIME_TYPES =
+    listOf(
+        "image/jpeg",
+        "image/gif",
+        "image/png",
+        "image/webp",
+        "image/avif",
+        "video/mp4",
+        "video/mpeg",
+        "video/webm",
+        "video/quicktime",
+        "audio/aac",
+        "audio/mpeg",
+        "audio/mp4",
+        "audio/webm",
+        "audio/wav",
+        "audio/ogg",
+        "audio/opus",
+        "audio/flac",
+    )
 val SUPPORTED_VIDEO_FEED_MIME_TYPES_SET = SUPPORTED_VIDEO_FEED_MIME_TYPES.toSet()
 
 val PictureAndVideoKinds =
@@ -39,6 +63,16 @@ val PictureAndVideoKinds =
         VideoNormalEvent.KIND,
         VideoShortEvent.KIND,
     )
+
+/** Audio-only post kinds that belong in the Home feed: NIP-A0 voice messages and NIP-XX audio headers. */
+val AudioFeedKinds =
+    listOf(
+        VoiceEvent.KIND,
+        AudioHeaderEvent.KIND,
+    )
+
+/** Home feed media REQ kinds: pictures, videos and audio. */
+val PictureVideoAndAudioKinds = PictureAndVideoKinds + AudioFeedKinds
 
 val PictureAndVideoKTags =
     listOf(

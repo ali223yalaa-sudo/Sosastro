@@ -24,8 +24,8 @@ import com.vitorpamplona.amethyst.model.topNavFeeds.noteBased.author.AuthorsTopN
 import com.vitorpamplona.amethyst.model.topNavFeeds.noteBased.muted.MutedAuthorsTopNavPerRelayFilterSet
 import com.vitorpamplona.amethyst.service.relays.SincePerRelayMap
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.LegacyMimeTypeMap
-import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureAndVideoKinds
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureAndVideoLegacyKinds
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureVideoAndAudioKinds
 import com.vitorpamplona.quartz.nip01Core.core.HexKey
 import com.vitorpamplona.quartz.nip01Core.relay.client.pool.RelayBasedFilter
 import com.vitorpamplona.quartz.nip01Core.relay.filters.Filter
@@ -44,7 +44,7 @@ fun filterPictureAndVideoAuthors(
             filter =
                 Filter(
                     authors = authorList,
-                    kinds = PictureAndVideoKinds,
+                    kinds = PictureVideoAndAudioKinds,
                     limit = if (since == null) max(authorList.size * 20, 200) else null,
                     since = since,
                 ),

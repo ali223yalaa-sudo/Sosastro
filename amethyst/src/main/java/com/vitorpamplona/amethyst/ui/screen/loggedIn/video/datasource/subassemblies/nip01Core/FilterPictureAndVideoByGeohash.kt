@@ -23,8 +23,8 @@ package com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.subassemb
 import com.vitorpamplona.amethyst.model.topNavFeeds.aroundMe.LocationTopNavPerRelayFilterSet
 import com.vitorpamplona.amethyst.service.relays.SincePerRelayMap
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.LegacyMimeTypes
-import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureAndVideoKinds
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureAndVideoLegacyKinds
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureVideoAndAudioKinds
 import com.vitorpamplona.quartz.nip01Core.relay.client.pool.RelayBasedFilter
 import com.vitorpamplona.quartz.nip01Core.relay.filters.Filter
 import com.vitorpamplona.quartz.nip01Core.relay.normalizer.NormalizedRelayUrl
@@ -41,7 +41,7 @@ fun filterPictureAndVideoGeohash(
             relay = relay,
             filter =
                 Filter(
-                    kinds = PictureAndVideoKinds,
+                    kinds = PictureVideoAndAudioKinds,
                     tags = mapOf("g" to geoHashes),
                     limit = 200,
                     since = since,

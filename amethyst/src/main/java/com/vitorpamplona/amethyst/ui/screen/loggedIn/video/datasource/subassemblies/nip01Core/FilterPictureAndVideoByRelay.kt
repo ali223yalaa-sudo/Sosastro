@@ -30,8 +30,8 @@ import com.vitorpamplona.amethyst.model.topNavFeeds.relay.RelayTopNavPerRelayFil
 import com.vitorpamplona.amethyst.service.relays.SincePerRelayMap
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.home.stories.datasource.filterEphemeralStories
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.LegacyMimeTypeMap
-import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureAndVideoKinds
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureAndVideoLegacyKinds
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.datasource.PictureVideoAndAudioKinds
 import com.vitorpamplona.quartz.experimental.ephemeralStory.EphemeralStoryEvent
 import com.vitorpamplona.quartz.nip01Core.relay.client.pool.RelayBasedFilter
 import com.vitorpamplona.quartz.nip01Core.relay.filters.Filter
@@ -100,7 +100,7 @@ private fun pictureAndVideoFilters(
             relay = relayUrl,
             filter =
                 Filter(
-                    kinds = PictureAndVideoKinds,
+                    kinds = PictureVideoAndAudioKinds,
                     limit = limit,
                     since = sinceTime,
                     tags = astroTags,
