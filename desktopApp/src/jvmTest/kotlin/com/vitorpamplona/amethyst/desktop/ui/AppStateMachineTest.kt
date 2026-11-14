@@ -143,10 +143,10 @@ class AppStateMachineTest {
 
         compose.waitUntil(timeoutMillis = 5_000) {
             runCatching {
-                compose.onNodeWithText("Welcome to Amethyst").assertExists()
+                compose.onNodeWithText("Welcome to Astro").assertExists()
             }.isSuccess
         }
-        compose.onNodeWithText("Welcome to Amethyst").assertExists()
+        compose.onNodeWithText("Welcome to Astro").assertExists()
     }
 
     @Test

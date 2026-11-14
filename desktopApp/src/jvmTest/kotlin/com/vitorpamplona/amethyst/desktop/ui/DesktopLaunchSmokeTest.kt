@@ -74,7 +74,7 @@ class DesktopLaunchSmokeTest {
             }
         }
 
-        compose.onNodeWithText("Welcome to Amethyst").assertExists()
+        compose.onNodeWithText("Welcome to Astro").assertExists()
         compose.onNodeWithText("A Nostr client for desktop").assertExists()
     }
 }
