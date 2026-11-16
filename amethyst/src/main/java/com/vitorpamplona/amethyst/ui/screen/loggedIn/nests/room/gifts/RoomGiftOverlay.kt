@@ -27,6 +27,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -53,6 +54,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -79,6 +81,24 @@ import kotlin.math.sin
  * ended the instant the clip did, so a gift flashed by like an emoji.
  */
 private const val MIN_GIFT_HOLD_MS = 4_600L
+
+/**
+ * How long to wait for a clip to reach the screen before giving up and
+ * starting the burst anyway. Covers a cold-cache download (a dashboard
+ * clip is multi-megabyte) and, at the extreme, a clip that never
+ * arrives — the burst then falls back to its timed hold rather than
+ * stalling the queue behind an empty scene.
+ */
+private const val READY_TIMEOUT_MS = 8_000L
+
+/**
+ * Safety ceiling on how long a burst may stay on screen. The clip's own
+ * `onFinished` ends it at its real length, so this only covers a player
+ * that stalls and never reports back. It is deliberately far above any
+ * real clip: a shorter ceiling silently cut an operator's scene off
+ * partway through, which read as a broken, half-length animation.
+ */
+private const val MAX_GIFT_HOLD_MS = 120_000L
 
 /**
  * Full-screen gift playback overlay — the Compose analogue of
@@ -124,6 +144,10 @@ fun RoomGiftOverlay(
     // without an asset fall back to a timed burst.
     var svgaDone by remember { mutableStateOf<CompletableDeferred<Unit>?>(null) }
 
+    // Completed by the player once the clip is actually on screen, so
+    // the burst's hold clock starts then rather than at enqueue time.
+    var svgaStarted by remember { mutableStateOf<CompletableDeferred<Unit>?>(null) }
+
     // Per-gift sound effect, decoded once up front so the very first
     // gift is not silent.
     val sounds = rememberGiftSounds(clientBuilder)
@@ -138,6 +162,30 @@ fun RoomGiftOverlay(
         val builder = clientBuilder ?: return@LaunchedEffect
         RemoteGiftStore.catalogUrl = BuildConfig.GIFT_CATALOG_URL
         RemoteGiftStore.load(context, builder)
+    }
+
+    // Warm every remote clip as soon as the catalog is known. A
+    // dashboard clip is multi-megabyte; without this the first send
+    // downloaded it while the burst's hold window ran out, so the
+    // scene never appeared. Prefetching once means a send is instant.
+    LaunchedEffect(RoomGiftCatalog.effective.map { it.svga }) {
+        val builder = clientBuilder ?: return@LaunchedEffect
+        RoomGiftCatalog.effective.forEach { sku ->
+            // Warm the alpha video when the gift has one — it is the clip
+            // that will actually play, and it is small enough that this
+            // lands well before the first send.
+            sku.video?.let { v ->
+                val remote = giftAssetOf(v) as? GiftAsset.Remote ?: return@let
+                GiftAssetDownloader.localFileOrNull(context, remote.url, builder, ".mp4")
+                return@forEach
+            }
+            val remote = sku.svga?.let { giftAssetOf(it) as? GiftAsset.Remote } ?: return@forEach
+            val file = GiftAssetDownloader.localFileOrNull(context, remote.url, builder, ".svga") ?: return@forEach
+            // Decode the clip too: the parser caches only the file, so a
+            // send would otherwise re-parse a multi-megabyte asset while
+            // the burst is already on screen.
+            warmSvgaEntity(context, file)
+        }
     }
 
     // Single-slot queue fed by a producer that re-scans the (re-emitted)
@@ -159,17 +207,30 @@ fun RoomGiftOverlay(
             val sku = RoomGiftCatalog.byId(gift.skuId)
             current = gift
             sounds.play(sku?.sound)
-            if (sku?.svga != null) {
+            // A gift has a real cinematic if it carries either an alpha
+            // video or an SVGA clip; both signal ready/finished through
+            // the same deferreds, so the hold clock is identical.
+            if (sku?.video != null || sku?.svga != null) {
                 val done = CompletableDeferred<Unit>()
+                val started = CompletableDeferred<Unit>()
                 svgaDone = done
+                svgaStarted = started
                 // Hold the burst for the clip's real runtime, with a
                 // floor so the shortest (3 s `gen_*`) clips still get a
-                // full-screen beat instead of a blink, and a generous
-                // ceiling so the queue never hangs if the player stalls.
+                // full-screen beat instead of a blink. The clip's own
+                // `onFinished` ends the burst at its true length; the
+                // ceiling below is only a guard against a stalled player.
                 val holdMs = maxOf(giftBurstMillis(gift.tier), MIN_GIFT_HOLD_MS)
+                // Wait for the clip to be on screen before starting the
+                // clock: on a cold cache the download can outlast the
+                // hold window, and timing from enqueue would show the
+                // message with no scene at all. The ceiling covers a
+                // clip that never becomes ready (no network).
+                withTimeoutOrNull(READY_TIMEOUT_MS) { started.await() }
                 val startedAt = System.currentTimeMillis()
-                withTimeoutOrNull(holdMs + 4_000L) { done.await() }
+                withTimeoutOrNull(MAX_GIFT_HOLD_MS) { done.await() }
                 svgaDone = null
+                svgaStarted = null
                 // If the clip finished before the floor (a short 3 s
                 // asset), keep it on screen for the remainder so the gift
                 // reads as a moment, not an emoji flash. SVGAImageView
@@ -190,6 +251,7 @@ fun RoomGiftOverlay(
                 senderName = nameFor(gift.sourcePubkey),
                 receiverName = gift.targetPubkey?.let(nameFor),
                 onSvgaFinished = { svgaDone?.complete(Unit) },
+                onSvgaReady = { svgaStarted?.complete(Unit) },
                 modifier = modifier,
                 clientBuilder = clientBuilder,
             )
@@ -203,16 +265,29 @@ private fun GiftBurst(
     senderName: String,
     receiverName: String?,
     onSvgaFinished: () -> Unit,
+    onSvgaReady: () -> Unit,
     modifier: Modifier = Modifier,
     clientBuilder: IRoleBasedHttpClientBuilder? = null,
 ) {
     val sku = RoomGiftCatalog.byId(gift.skuId)
+    // Prefer the alpha-packed video: it is a fraction of the SVGA's size
+    // and decodes in hardware, so the burst starts sooner and costs less
+    // RAM. SVGA stays as the fallback for gifts authored before the
+    // packer existed and for any clip the operator has not re-published.
+    val videoAsset = sku?.video
+    val videoWidth = sku?.videoWidth ?: 0
+    val videoHeight = sku?.videoHeight ?: 0
     val svgaAsset = sku?.svga
+    val videoClip = videoAsset?.takeIf { videoWidth > 0 && videoHeight > 0 }
     val theme = giftThemeFor(gift.skuId)
     val epic = gift.tier >= 3
     // The operator can size a takeover from the dashboard; the bundled
     // catalog leaves this at 1.0 (clips are authored full-frame).
     val clipScale = (sku?.scale ?: 1f).coerceIn(0.4f, 1.2f)
+    // The operator can also nudge the takeover off centre, as a fraction
+    // of the screen, so a clip need not be dead-centre over the room.
+    val clipOffsetX = (sku?.offsetX ?: 0f).coerceIn(-0.5f, 0.5f)
+    val clipOffsetY = (sku?.offsetY ?: 0f).coerceIn(-0.5f, 0.5f)
     // Match the queue's hold so the marquee/scrim animation runs the
     // whole time the burst is on screen (a short authored clip still
     // gets the full-screen beat the queue holds it for).
@@ -230,19 +305,33 @@ private fun GiftBurst(
     }
     val p = progress.value
 
+    // The clip is scaled/translated in a graphicsLayer, so it needs the
+    // real pixel size to turn the fractional offsets into translations.
+    var boxW by remember { mutableStateOf(0) }
+    var boxH by remember { mutableStateOf(0) }
+
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .onSizeChanged {
+                    boxW = it.width
+                    boxH = it.height
+                },
         contentAlignment = Alignment.Center,
     ) {
-        if (svgaAsset != null) {
-            // The clip IS the gift's cinematic. It is authored
-            // full-frame and transparent, so it is drawn at full size
-            // with nothing behind it; the operator may still size it
-            // down from the dashboard (clipScale) to leave a
-            // transparent margin instead of covering the whole room.
-            SvgaGiftPlayer(
-                asset = svgaAsset,
+        if (videoClip != null) {
+            // The clip IS the gift's cinematic. It is authored full-frame
+            // and transparent, so it is drawn at full size with nothing
+            // behind it; the operator may still size it down and move it
+            // from the dashboard (clipScale / clipOffset*) to place it
+            // over the room.
+            AlphaVideoGiftPlayer(
+                asset = videoClip,
+                width = videoWidth,
+                height = videoHeight,
                 onFinished = onSvgaFinished,
+                onReady = onSvgaReady,
                 clientBuilder = clientBuilder,
                 modifier =
                     Modifier
@@ -250,25 +339,47 @@ private fun GiftBurst(
                         .graphicsLayer {
                             scaleX = clipScale
                             scaleY = clipScale
+                            translationX = clipOffsetX * boxW
+                            translationY = clipOffsetY * boxH
                         },
             )
-            if (epic) {
-                GiftMarquee(
-                    senderName = senderName,
-                    receiverName = receiverName,
-                    gift = gift,
-                    theme = theme,
-                    progress = p,
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp),
-                )
-            } else {
-                GiftSenderChip(
-                    senderName = senderName,
-                    gift = gift,
-                    theme = theme,
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 120.dp),
-                )
-            }
+            GiftBurstCaption(
+                epic = epic,
+                senderName = senderName,
+                receiverName = receiverName,
+                gift = gift,
+                theme = theme,
+                progress = p,
+            )
+        } else if (svgaAsset != null) {
+            // The clip IS the gift's cinematic. It is authored
+            // full-frame and transparent, so it is drawn at full size
+            // with nothing behind it; the operator may still size it
+            // down and move it from the dashboard (clipScale /
+            // clipOffset*) to place it over the room.
+            SvgaGiftPlayer(
+                asset = svgaAsset,
+                onFinished = onSvgaFinished,
+                onReady = onSvgaReady,
+                clientBuilder = clientBuilder,
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            scaleX = clipScale
+                            scaleY = clipScale
+                            translationX = clipOffsetX * boxW
+                            translationY = clipOffsetY * boxH
+                        },
+            )
+            GiftBurstCaption(
+                epic = epic,
+                senderName = senderName,
+                receiverName = receiverName,
+                gift = gift,
+                theme = theme,
+                progress = p,
+            )
         } else {
             // No clip: fall back to the procedural emblem + its own
             // themed backdrop (the only case where a backdrop is drawn).
@@ -277,6 +388,39 @@ private fun GiftBurst(
             }
             Emblem(gift = gift, theme = theme, senderName = senderName, receiverName = receiverName, epic = epic, progress = p)
         }
+    }
+}
+
+/**
+ * The sender/receiver caption drawn over a gift's clip: a full marquee for
+ * a tier-3+ takeover, a compact pill otherwise. Shared by the video and the
+ * SVGA branch so both paths present the gift identically.
+ */
+@Composable
+private fun BoxScope.GiftBurstCaption(
+    epic: Boolean,
+    senderName: String,
+    receiverName: String?,
+    gift: RoomGift,
+    theme: RoomGiftTheme,
+    progress: Float,
+) {
+    if (epic) {
+        GiftMarquee(
+            senderName = senderName,
+            receiverName = receiverName,
+            gift = gift,
+            theme = theme,
+            progress = progress,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp),
+        )
+    } else {
+        GiftSenderChip(
+            senderName = senderName,
+            gift = gift,
+            theme = theme,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 120.dp),
+        )
     }
 }
 

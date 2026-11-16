@@ -871,3 +871,222 @@ Gifts are editable from a web dashboard without shipping a new APK.
   ```bash
   cd /workspace/gift_dashboard && /workspace/venv/bin/python server.py --port 12001
   ```
+
+  `api_publish` must look the gift up **among `state["gifts"]` only**:
+  `find_gift()` also scans drafts, so using it there matched the draft
+  itself, skipped the "add to catalog" branch and deleted the draft —
+  publish answered `200` while the gift silently vanished. Regression
+  tests: `tools/gift-dashboard/test_server.py` (drives the real handler
+  in-process; run with `/workspace/venv/bin/python`).
+- **Instant burst.** A gift must appear the moment it is sent. Two
+  separate costs hid behind the delay, and both are now paid up front:
+  - *File.* `RoomGiftOverlay` prefetches every remote clip into the app
+    cache as soon as the catalog is known (`GiftAssetDownloader`).
+  - *Decoded entity.* The SVGA parser caches only the **file**, not the
+    decoded `SVGAVideoEntity`, so each send re-parsed a multi-megabyte
+    clip while the burst was already on screen. `SvgaEntityCache` (a
+    6-entry LRU in `SvgaGiftPlayer.kt`) holds the decoded entity, and
+    `warmSvgaEntity()` decodes each catalog clip right after its
+    download, so a send only calls `setVideoItem` + `startAnimation`.
+  - *Sound.* `GiftSounds.preload()` previously ignored remote sounds
+    (bundled only), so the first send paid the download + `prepare()`.
+    It now downloads the clip and keeps a prepared `MediaPlayer` per
+    URL, replayed with `seekTo(0)`.
+  - The dashboard exposes the built APK at `/download/apk` (newest
+    universal build under `/workspace/astro-backup`), with a download
+    button on the UI, so the operator can install the current app
+    without a manual `adb` push.
+
+- **Placement from the dashboard.** A SKU also carries `scale`, `posX`
+  and `posY`. `scale` (0.4–1.2) sizes the clip and `posX`/`posY`
+  (−0.5..0.5, a fraction of the screen) move its centre off dead-centre,
+  so an operator can seat a takeover over the room without re-encoding.
+  The dashboard's preview modal renders the clip on a phone-shaped,
+  checkerboard stage with sliders for all three; the same values are
+  editable inline in the gift table. The app maps them in
+  `RemoteGiftCatalog.toSkus` (clamped) onto `RoomGiftSku.offsetX/offsetY`,
+  which `RoomGiftOverlay` applies as a `graphicsLayer` scale + translate
+  (the box reports its pixel size via `onSizeChanged`). Absent fields
+  mean `scale = 1.0` and centred.
+- **Previews.** `clip_preview(gift)` looks up a per-gift WebM (VP9 alpha,
+  so the browser shows the real transparency) plus an opaque MP4
+  fallback and the icon as poster; `build_preview_from_clip(gift)`
+  rebuilds any that are missing from the stored SVGA at startup
+  (`video_to_svga.py --passthrough`), and `send_file` honours HTTP
+  Range so the player can seek.
+- **Text/watermark removal.** `video_to_svga.py` strips burnt-in
+  captions and watermarks by default: `remove_static_overlays()` flags
+  pixels that barely change across the clip, keeps only whole connected
+  components that are actually still, and erases the rest — the moving
+  subject survives. `--no-strip-text` keeps them.
+- **Edge fade.** A keyed source video usually keeps an opaque rectangle
+  right to its content edge, which the app draws as a hard-edged "screen"
+  floating over the room. `feather_border()` multiplies the alpha by a
+  smooth ramp that reaches zero at the content's own bounding box, so the
+  clip dissolves into the room instead. It runs by default on a normal
+  encode (`--edge-fade` sets the ramp width, `--no-edge-fade` disables
+  it). The ramp only scales alpha down, so a clip that already fades out
+  on its own (a soft glow) is left visually intact — the fade is never
+  doubled in a way that matters. `--passthrough` (which reproduces a
+  stored clip, e.g. to rebuild a preview) leaves the fade off unless
+  `--edge-fade` is passed, so a preview always matches what the app plays.
+- **Borderless blend (opaque clips).** A clip uploaded without background
+  removal (`--bg none`) is an opaque rectangle, and a border ramp only
+  softens it — the room still shows a rectangular glow around the video.
+  `blend_into_room()` instead feathers the alpha along a rounded-rectangle
+  signed-distance field, so the clip reaches zero alpha on its own outline
+  with rounded corners and no straight edge remains to read as a "screen".
+  It applies only when `_is_opaque_rectangle()` says the clip is an opaque
+  block (the bbox outline is mostly opaque); a keyed cutout's alpha is its
+  silhouette, so it keeps its shape and gets `feather_border()` instead.
+  `--blend-feather`/`--blend-corner` tune it, `--no-blend` falls back to
+  the plain ramp. The dashboard's "دمج الحواف في الغرفة" select maps
+  auto/strong/soft/off onto these flags, so the operator never picks a
+  numeric width.
+- **Decode resolution cap.** `extract_frames()` scales the source down so
+  its long side is at most `--decode-max` (default 720) before handing the
+  frames to numpy. A 1080p clip decodes to ~8 MB per RGBA frame, so 96
+  frames at source resolution peaked at ~4.6 GB and risked an OOM kill on
+  a large upload; capping the decode drops that to ~0.6 GB with no visible
+  loss (the clip is resized to `--size` at the end anyway). Set
+  `--decode-max 0` to decode at full resolution.
+- **"Off" must mean off.** `resolve_edge_fade()` is the single place that
+  turns the blend choices into fade flags, used by both the normal and
+  `--passthrough` paths. `--no-blend` used to still leave a 10% fade, so a
+  clip the operator asked to leave untouched arrived with a faint edge.
+  It now yields alpha 255 at the border, and the dashboard defaults the
+  "دمج الحواف" select to `off` for the same reason.
+- **Aspect, not a forced square.** `--fit aspect` (dashboard: "كامل بنسبة
+  الفيديو" + "لا تقصّ") keeps the source's real shape; the square default
+  squashed a vertical clip into 480×480, which read as "the video is
+  squeezed top and bottom". The preview stage uses `object-fit: contain`
+  on the same phone-shaped box as the room so it matches the app.
+- **Serve every work host.** The dashboard listens on 12001 *and* 12000
+  (`--also-port 12000`) because a work host with no listener answers the
+  proxy with `502`, which looks exactly like a dead button: the page never
+  loads and no request ever reaches the server. `STATE_LOCK` +
+  write-then-rename make the two listeners safe against concurrent
+  uploads, and a port that fails to bind is logged, not fatal.
+- **A "dead button" is usually a hidden message.** `#go`'s guard messages
+  render *below* a long form, so an operator who clicked without choosing
+  a file saw nothing happen. `setStatus()` now scrolls the message into
+  view, the button opens the file picker when no file is chosen, the
+  chosen filename is echoed back, and the upload handler is wrapped in
+  `try/catch` so a missing field reports itself instead of failing
+  silently.
+- **Client aborts are not errors.** A `<video>` with a WebM and an MP4
+  `<source>` cancels the loser, and the abort reached `send_file` as
+  `ConnectionResetError`/`BrokenPipeError` → a 500 and a traceback per
+  preview. `_write_body()` swallows `ConnectionError`. The page's
+  `window.onerror` handler also ignores resource-load failures
+  (`e.target.tagName` set), so a cancelled media fetch is never reported
+  as a page error.
+- **Read the clip's own stream, not its cover.** A phone video can carry an
+  attached cover image (a `mjpeg`/"attached pic" stream, usually 16:9).
+  `probe()` walked every `Video:` line and kept the last, and `ffmpeg`
+  selected the highest-resolution stream by default, so a 720×960 vertical
+  clip was decoded and reported as 1280×720 → the whole scene was squashed
+  into a landscape box and looked "bordered". `probe()` now stops at the
+  first real video stream and skips `mjpeg`/`attached pic`, and
+  `extract_frames` passes `-map 0:v:0`. The fps token also carries a
+  trailing comma (`30 fps,`), which is why it used to parse as `None`.
+- **`fit cover` = fill the room.** The operator wants a takeover that
+  reaches every edge of the room screen, cropping the overflow, with the
+  removed background letting the room show through — not a picture floating
+  with a transparent margin. `fit_cover()` scales to *cover* (max ratio,
+  centred crop) into a box shaped like the room (`cover_size()`,
+  `--room-aspect`, default 9:16), so no letterbox remains. `fit aspect`
+  (letterbox, keeps the source shape) and `fit square` are unchanged. The
+  dashboard exposes it as **ملء الغرفة بالكامل**; `shape_args_for()` passes
+  `--room-aspect` only in this mode. The app draws the clip with
+  `FIT_CENTER` over a `fillMaxSize` box, so the room's 9:16 shape is what a
+  cover clip must match.
+
+## Alpha-video gift clips (cinematic gifts, hardware-decoded)
+
+An SVGA clip is a zip of PNG frames: multi-megabyte, decoded on the CPU, and
+re-parsed on a cache miss. The *same* clip packs into an alpha video that is
+roughly a tenth the size and decodes in hardware. The app prefers the video
+and keeps SVGA as the fallback for gifts authored before the packer existed.
+
+- **Packer.** `/workspace/svga_tools/alpha_pack.py` reads an `.svga` and
+  writes an `.mp4`:
+
+  ```sh
+  python3 alpha_pack.py clips/<hash>.svga -o videos/<hash>.mp4
+  python3 alpha_pack.py --batch <in-dir> --out-dir <out-dir>   # whole catalog
+  ```
+
+  It stacks the RGB frame over a grayscale copy of its alpha into one image
+  (the video is twice the frame height), so a single H.264/VP9 stream carries
+  both planes and any player can decode it. `--crf`/`--preset` tune the
+  encode, `--json` prints a per-clip report. The alpha strip is three
+  identical channels, so the shader samples green — 4:2:0 chroma subsampling
+  cannot bleed into the matte.
+- **Playback.** `AlphaVideoGiftPlayer` wraps a `GLSurfaceView`;
+  `AlphaVideoRenderer` binds the decoder to an `GL_TEXTURE_EXTERNAL_OES`
+  `SurfaceTexture` and samples it with `samplerExternalOES`. The fragment
+  shader maps each output pixel into its own half of the packed image
+  (colour from the top half, alpha from the bottom), and both samples go
+  through `SurfaceTexture.getTransformMatrix`, which is what actually puts
+  the image upright on every device — never a hand-rolled V flip. The quad is
+  letterboxed to the clip's `videoWidth`/`videoHeight` so a square or vertical
+  clip keeps its shape instead of stretching to the screen.
+- **Catalog.** A remote SKU may carry `video` (a URL/path) plus
+  `videoWidth`/`videoHeight`; `RemoteGiftCatalog.toSkus` maps them onto
+  `RoomGiftSku.video/videoWidth/videoHeight`. `RoomGiftOverlay` uses the
+  video only when both dimensions are present, so a half-authored row falls
+  back to `svga`. Both clip kinds drive the same ready/finished deferreds, so
+  the burst's hold clock is identical either way.
+- **Worker + panel.** `POST /api/gifts/asset` with `kind=videos` stores the
+  file under `assets/videos/<sha>.mp4` and records the `width`/`height`
+  fields on the draft; `GET /gifts/videos/<name>` serves it as `video/mp4`.
+  The panel's **الهدايا** tab has an upload card (`gu-file`/`gu-go`/`gu-id`,
+  wired by `wireGiftUpload` in `gifts_ui.js`) that posts straight to that
+  route with the page's `authorization: Bearer` header — no `content-type`
+  on the multipart body, so the browser sets the boundary itself.
+
+## Room gifts served from Cloudflare (permanent hosting)
+
+The local dashboard (`gift_dashboard/server.py`) is the *authoring* tool: it
+runs ffmpeg to turn a phone video into an SVGA clip with the background
+removed. It is **not** the delivery path — the sandbox that runs it is
+recycled, and when it dies the app's catalog fetch 404s.
+
+Delivery lives in the Cloudflare worker `astro-admin`, in the same
+`hmzzhproxy29127.workers.dev` zone as the rest of the backend:
+
+- `GET /gifts/catalog.json` — the published catalog the app fetches.
+- `GET /gifts/clips|icons|sounds/<name>` — asset bytes from the R2 bucket
+  `astro-gifts` (`assets/<kind>/<name>`), immutable and long-cached.
+- `GET /gifts/app.apk` — the latest build, stored as `app.apk` in the bucket.
+- `GET /api/gifts/state`, `POST /api/gifts/{gift,delete,publish,discard,asset,meta}`
+  — the operator API behind the panel's **الهدايا** tab.
+
+The app's catalog URL is `BuildConfig.GIFT_CATALOG_URL`, defaulted in
+`amethyst/build.gradle.kts` to
+`https://astro-admin.hmzzhproxy29127.workers.dev/gifts/catalog.json` and
+overridable with `-PgiftCatalogUrl=...`. Changing it needs a new APK; the
+in-app value is only ever read (`RoomGiftOverlay.kt`).
+
+Publishing a newly authored gift from the local box:
+
+```sh
+cd /workspace/gift_dashboard
+python3 publish.py push <gift-id>   # one gift (assets + catalog row)
+python3 publish.py push-all         # resync every published gift
+```
+
+The publishing scripts live in `/workspace/cf_gifts/`:
+
+- `gifts_server.js` / `gifts_ui.js` — the module injected into the worker.
+- `build_admin.py` — patches the **pristine** original bundle (kept in
+  `pristine/index.js`) and deploys. It re-declares every plain_text and d1
+  binding on upload, because a `PUT` does not preserve them; `secret_text`
+  bindings are omitted, and Cloudflare keeps their stored value (verified).
+
+The injection is additive: the original bundle's lines are never rewritten,
+only new routes/nav/UI inserted at unique anchors. `node --check` on the
+patched bundle plus a diff that shows zero removed lines are the two guards
+worth re-running before a deploy.
+

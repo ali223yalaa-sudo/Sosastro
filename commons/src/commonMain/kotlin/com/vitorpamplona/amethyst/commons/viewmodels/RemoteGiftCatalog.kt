@@ -75,9 +75,14 @@ data class RemoteGiftCatalog(
                 tier = gift.tier,
                 value = gift.price,
                 svga = gift.svga.safeAsset(base),
+                video = gift.video.safeAsset(base),
+                videoWidth = gift.videoWidth?.takeIf { it > 0 },
+                videoHeight = gift.videoHeight?.takeIf { it > 0 },
                 icon = gift.icon.safeAsset(base),
                 sound = gift.sound.safeAsset(base),
                 scale = gift.scale?.coerceIn(0.4f, 1.2f),
+                offsetX = gift.posX?.coerceIn(-0.5f, 0.5f),
+                offsetY = gift.posY?.coerceIn(-0.5f, 0.5f),
                 remote = true,
             )
         }
@@ -110,12 +115,26 @@ data class RemoteGiftSku(
     val price: Int = 1,
     /** Absolute `https://` URL of the SVGA clip, or a bundled asset path. */
     val svga: String? = null,
+    /**
+     * Absolute `https://` URL of the alpha-packed H.264 clip, or a
+     * bundled asset path. Takes precedence over [svga] when both are
+     * set: the video is smaller and decodes in hardware.
+     */
+    val video: String? = null,
+    /** Frame width of [video], in px. */
+    val videoWidth: Int? = null,
+    /** Frame height of [video], in px. */
+    val videoHeight: Int? = null,
     /** Absolute `https://` URL of the 256² PNG icon, or a bundled asset path. */
     val icon: String? = null,
     /** Absolute `https://` URL of the sound file, or a `res/raw` name. */
     val sound: String? = null,
     /** Fraction of the screen the clip fills; `null` means 1.0. */
     val scale: Float? = null,
+    /** Horizontal offset of the clip centre, fraction of screen width. */
+    val posX: Float? = null,
+    /** Vertical offset of the clip centre, fraction of screen height. */
+    val posY: Float? = null,
 )
 
 /**

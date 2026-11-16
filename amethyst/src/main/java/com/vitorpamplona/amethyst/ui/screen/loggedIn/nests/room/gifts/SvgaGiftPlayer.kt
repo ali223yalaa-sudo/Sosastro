@@ -36,6 +36,10 @@ import com.opensource.svgaplayer.SVGAImageView
 import com.opensource.svgaplayer.SVGAParser
 import com.opensource.svgaplayer.SVGAVideoEntity
 import com.vitorpamplona.amethyst.model.privacyOptions.IRoleBasedHttpClientBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.resume
 
 /**
  * Plays one gift's SVGA clip full-screen and reports completion.
@@ -52,10 +56,13 @@ fun SvgaGiftPlayer(
     onFinished: () -> Unit,
     modifier: Modifier = Modifier,
     clientBuilder: IRoleBasedHttpClientBuilder? = null,
+    onReady: () -> Unit = {},
 ) {
-    // Keep the latest callback without re-creating the view.
+    // Keep the latest callbacks without re-creating the view.
     val finished = remember { Ref(onFinished) }
     finished.value = onFinished
+    val readyCb = remember { Ref(onReady) }
+    readyCb.value = onReady
 
     val context = LocalContext.current
     val source = giftAssetOf(asset)
@@ -72,6 +79,10 @@ fun SvgaGiftPlayer(
                             ?.let { GiftSource.Local(it) }
                     null -> null
                 }
+            // A remote clip that could not be fetched has nothing to play.
+            // Report ready so the overlay's queue is not stalled waiting
+            // for a burst that will never start.
+            if (value == null) readyCb.value()
         }
 
     val ready = resolved ?: return
@@ -106,7 +117,7 @@ fun SvgaGiftPlayer(
         update = { view ->
             if (view.tag != asset) {
                 view.tag = asset
-                decodeInto(view, view.context, ready, finished)
+                decodeInto(view, view.context, ready, finished, readyCb)
             }
         },
     )
@@ -117,17 +128,36 @@ private fun decodeInto(
     context: Context,
     source: GiftSource,
     finished: Ref<() -> Unit>,
+    onReady: Ref<() -> Unit>,
 ) {
+    // A decoded entity is reused across sends. The SVGA parser only
+    // caches the *file*, not the decoded entity, so without this every
+    // send re-parsed a multi-megabyte clip and the scene appeared late.
+    val key = source.cacheKey()
+    SvgaEntityCache.get(key)?.let { cached ->
+        runCatching {
+            view.setVideoItem(cached)
+            view.startAnimation()
+            onReady.value()
+            return
+        }
+    }
+
     val parser = SVGAParser(context)
     val onComplete =
         object : SVGAParser.ParseCompletion {
             override fun onComplete(videoItem: SVGAVideoEntity) {
+                SvgaEntityCache.put(key, videoItem)
                 view.setVideoItem(videoItem)
                 view.startAnimation()
+                // The clip is on screen now, so the burst's hold window
+                // can start counting.
+                onReady.value()
             }
 
             override fun onError() {
                 Log.w("SvgaGiftPlayer", "failed to decode $source")
+                onReady.value()
                 finished.value()
             }
         }
@@ -136,6 +166,66 @@ private fun decodeInto(
         is GiftSource.Local -> parser.decodeFromInputStream(source.file.inputStream(), source.file.name, onComplete, true)
     }
 }
+
+/**
+ * Decode a clip ahead of first use so the first send is instant rather
+ * than paying the parse cost with the burst already on screen.
+ */
+suspend fun warmSvgaEntity(
+    context: Context,
+    file: java.io.File,
+) {
+    val key = file.absolutePath
+    if (SvgaEntityCache.get(key) != null) return
+    withContext(Dispatchers.IO) {
+        suspendCancellableCoroutine<Unit> { cont ->
+            val parser = SVGAParser(context)
+            parser.decodeFromInputStream(
+                file.inputStream(),
+                file.name,
+                object : SVGAParser.ParseCompletion {
+                    override fun onComplete(videoItem: SVGAVideoEntity) {
+                        SvgaEntityCache.put(key, videoItem)
+                        if (cont.isActive) cont.resume(Unit)
+                    }
+
+                    override fun onError() {
+                        if (cont.isActive) cont.resume(Unit)
+                    }
+                },
+                true,
+            )
+        }
+    }
+}
+
+/** A small LRU of decoded entities, keyed by the local clip path. */
+private object SvgaEntityCache {
+    private const val MAX = 6
+    private val entries = LinkedHashMap<String, SVGAVideoEntity>(MAX, 0.75f, true)
+
+    fun get(key: String): SVGAVideoEntity? = synchronized(entries) { entries[key] }
+
+    fun put(
+        key: String,
+        entity: SVGAVideoEntity,
+    ) = synchronized(entries) {
+        entries[key] = entity
+        while (entries.size > MAX) {
+            val it = entries.entries.iterator()
+            if (it.hasNext()) {
+                it.next()
+                it.remove()
+            }
+        }
+    }
+}
+
+private fun GiftSource.cacheKey(): String =
+    when (this) {
+        is GiftSource.Bundled -> "assets:$path"
+        is GiftSource.Local -> file.absolutePath
+    }
 
 private sealed interface GiftSource {
     data class Bundled(
@@ -147,6 +237,6 @@ private sealed interface GiftSource {
     ) : GiftSource
 }
 
-private class Ref<T>(
+internal class Ref<T>(
     var value: T,
 )

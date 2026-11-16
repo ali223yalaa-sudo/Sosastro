@@ -24,6 +24,8 @@ import android.content.Context
 import android.util.Log
 import com.vitorpamplona.amethyst.model.privacyOptions.IRoleBasedHttpClientBuilder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import java.io.File
@@ -66,37 +68,61 @@ object GiftAssetDownloader {
     private const val TAG = "GiftAssetDownloader"
     private const val CACHE_DIR = "gift-assets"
 
+    // Serialise downloads so a prefetch and a play racing on the same
+    // URL never write the same `.part` file at once.
+    private val lock = Mutex()
+
     suspend fun localFileOrNull(
         context: Context,
         url: String,
         clientBuilder: IRoleBasedHttpClientBuilder,
         extension: String,
     ): File? =
-        withContext(Dispatchers.IO) {
-            runCatching {
-                val cacheDir = File(context.cacheDir, CACHE_DIR).apply { mkdirs() }
-                val file = File(cacheDir, hashName(url) + extension)
-                if (file.exists() && file.length() > 0L) return@runCatching file
+        lock.withLock {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    val cacheDir = File(context.cacheDir, CACHE_DIR).apply { mkdirs() }
+                    val file = File(cacheDir, hashName(url) + extension)
+                    if (file.exists() && file.length() > 0L) return@runCatching file
 
-                // Download to a temp file and rename, so a killed
-                // process never leaves a half-written asset that the
-                // next launch would treat as a cache hit.
-                val tmp = File(cacheDir, file.name + ".part")
-                val client = clientBuilder.okHttpClientForImage(url)
-                client.newCall(Request.Builder().url(url).build()).execute().use { resp ->
-                    if (!resp.isSuccessful) {
-                        Log.w(TAG, "HTTP ${resp.code} for $url")
+                    // Download to a temp file and rename, so a killed
+                    // process never leaves a half-written asset that the
+                    // next launch would treat as a cache hit.
+                    val tmp = File(cacheDir, file.name + ".part")
+                    val client = clientBuilder.okHttpClientForImage(url)
+                    client.newCall(Request.Builder().url(url).build()).execute().use { resp ->
+                        if (!resp.isSuccessful) {
+                            Log.w(TAG, "HTTP ${resp.code} for $url")
+                            return@runCatching null
+                        }
+                        tmp.outputStream().use { out -> resp.body.byteStream().copyTo(out) }
+                    }
+                    if (!tmp.renameTo(file)) {
+                        tmp.delete()
                         return@runCatching null
                     }
-                    tmp.outputStream().use { out -> resp.body.byteStream().copyTo(out) }
-                }
-                if (!tmp.renameTo(file)) {
-                    tmp.delete()
-                    return@runCatching null
-                }
-                file.takeIf { it.length() > 0L }
-            }.getOrNull()
+                    file.takeIf { it.length() > 0L }
+                }.getOrNull()
+            }
         }
+
+    /**
+     * Warm the cache for one asset so a later play is instant. Only
+     * remote assets do anything; a bundled path is already local. Call
+     * this when the catalog loads (and when the panel opens) so a
+     * multi-megabyte clip is on disk before the first send, instead of
+     * downloading it while the burst's hold window runs out.
+     */
+    suspend fun prefetch(
+        context: Context,
+        asset: String?,
+        clientBuilder: IRoleBasedHttpClientBuilder?,
+        extension: String,
+    ) {
+        val builder = clientBuilder ?: return
+        val remote = giftAssetOf(asset) as? GiftAsset.Remote ?: return
+        localFileOrNull(context, remote.url, builder, extension)
+    }
 
     private fun hashName(url: String): String {
         val bytes = MessageDigest.getInstance("SHA-256").digest(url.toByteArray(Charsets.UTF_8))

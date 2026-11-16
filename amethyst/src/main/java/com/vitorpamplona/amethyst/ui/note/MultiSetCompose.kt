@@ -143,6 +143,8 @@ fun MultiSetCompose(
             accountViewModel = accountViewModel,
         )
 
+    val isUnread = backgroundColor.value != MaterialTheme.colorScheme.background
+
     val openPost: () -> Unit = {
         scope.launch { routeFor(baseNote, accountViewModel.account)?.let { nav.nav(it) } }
     }
@@ -158,10 +160,12 @@ fun MultiSetCompose(
                 actorNote = comment,
                 extraActors = 0,
                 createdAt = comment.createdAt(),
+                activityType = NotificationActivityType.COMMENT,
                 sentenceRes = R.string.notification_activity_commented,
                 sentenceOthersRes = R.string.notification_activity_commented,
                 targetNote = baseNote,
                 preview = comment.event?.content?.takeIf { it.isNotBlank() },
+                isUnread = isUnread,
                 accountViewModel = accountViewModel,
                 nav = nav,
                 onClick = { commentsTarget = baseNote to comment.idHex },
@@ -176,9 +180,11 @@ fun MultiSetCompose(
                     actorNote = newest,
                     extraActors = (multiSetCard.boostEvents.size - 1).coerceAtLeast(0),
                     createdAt = newest.createdAt(),
+                    activityType = NotificationActivityType.REPOST,
                     sentenceRes = R.string.notification_activity_reposted,
                     sentenceOthersRes = R.string.notification_activity_reposted_others,
                     targetNote = baseNote,
+                    isUnread = isUnread,
                     accountViewModel = accountViewModel,
                     nav = nav,
                     onClick = openPost,
@@ -195,6 +201,12 @@ fun MultiSetCompose(
                 actorNote = newest,
                 extraActors = (events.size - 1).coerceAtLeast(0),
                 createdAt = newest.createdAt(),
+                activityType =
+                    when {
+                        isGift -> NotificationActivityType.GIFT
+                        isLike -> NotificationActivityType.LIKE
+                        else -> NotificationActivityType.REACT
+                    },
                 sentenceRes =
                     when {
                         isGift -> R.string.notification_activity_gift
@@ -208,6 +220,7 @@ fun MultiSetCompose(
                         else -> R.string.notification_activity_reacted_others
                     },
                 targetNote = baseNote,
+                isUnread = isUnread,
                 accountViewModel = accountViewModel,
                 nav = nav,
                 onClick = openPost,
@@ -222,9 +235,11 @@ fun MultiSetCompose(
                     actorNote = newest.request,
                     extraActors = (multiSetCard.zapEvents.size - 1).coerceAtLeast(0),
                     createdAt = newest.createdAt(),
+                    activityType = NotificationActivityType.ZAP,
                     sentenceRes = R.string.notification_activity_zapped,
                     sentenceOthersRes = R.string.notification_activity_zapped_others,
                     targetNote = baseNote,
+                    isUnread = isUnread,
                     accountViewModel = accountViewModel,
                     nav = nav,
                     onClick = openPost,
@@ -240,9 +255,11 @@ fun MultiSetCompose(
                     actorNote = newest,
                     extraActors = (multiSetCard.nutzapEvents.size - 1).coerceAtLeast(0),
                     createdAt = newest.createdAt(),
+                    activityType = NotificationActivityType.ZAP,
                     sentenceRes = R.string.notification_activity_zapped,
                     sentenceOthersRes = R.string.notification_activity_zapped_others,
                     targetNote = baseNote,
+                    isUnread = isUnread,
                     accountViewModel = accountViewModel,
                     nav = nav,
                     onClick = openPost,

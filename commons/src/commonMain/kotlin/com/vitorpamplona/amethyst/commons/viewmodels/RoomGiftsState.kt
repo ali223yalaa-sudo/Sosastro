@@ -65,6 +65,19 @@ data class RoomGiftSku(
      */
     val svga: String? = null,
     /**
+     * Alpha-packed H.264 clip (a URL, or a path under `assets/`). When
+     * set, this is played *instead of* [svga]: the colour frame and its
+     * alpha travel in one small video that the phone's hardware decoder
+     * renders, so the burst starts sooner and costs far less CPU and RAM
+     * than the software-decoded SVGA. [videoWidth] / [videoHeight] give
+     * the renderer the frame size it must split the two halves at.
+     */
+    val video: String? = null,
+    /** Width in px of one frame of [video] (not the doubled packed height). */
+    val videoWidth: Int? = null,
+    /** Height in px of one frame of [video]. */
+    val videoHeight: Int? = null,
+    /**
      * Bundled PNG icon (path under `assets/`), rendered from the real
      * upstream Twemoji vector set. The panel draws this instead of the
      * raw emoji glyph so every gift has a crisp, real icon.
@@ -83,6 +96,17 @@ data class RoomGiftSku(
      * without re-encoding the asset. `null` means `1.0`.
      */
     val scale: Float? = null,
+    /**
+     * Horizontal offset of the clip's centre, as a fraction of the screen
+     * width, `-0.5..0.5` (positive = right). Lets an operator nudge a
+     * takeover off centre from the dashboard. `null` means `0` (centred).
+     */
+    val offsetX: Float? = null,
+    /**
+     * Vertical offset of the clip's centre, as a fraction of the screen
+     * height, `-0.5..0.5` (positive = down). `null` means `0` (centred).
+     */
+    val offsetY: Float? = null,
     /**
      * True when this SKU came from the remote store rather than the
      * bundled catalog. Purely informational — asset resolution already

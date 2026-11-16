@@ -201,6 +201,8 @@ benchmark/src/main/jniLibs/
 # Cloudflare Worker local dependencies and state
 node_modules/
 .wrangler/
+__pycache__/
+*.pyc
 
 # Astro: local APK download page (large binaries, not for VCS)
 dist/

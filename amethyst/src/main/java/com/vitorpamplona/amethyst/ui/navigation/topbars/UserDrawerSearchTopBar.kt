@@ -21,6 +21,7 @@
 package com.vitorpamplona.amethyst.ui.navigation.topbars
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
@@ -32,12 +33,17 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.vitorpamplona.amethyst.R
+import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
+import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
+import com.vitorpamplona.amethyst.ui.navigation.bottombars.AddNotifIconIfNeeded
 import com.vitorpamplona.amethyst.ui.navigation.navs.INav
 import com.vitorpamplona.amethyst.ui.navigation.routes.Route
 import com.vitorpamplona.amethyst.ui.note.ArrowBackIcon
 import com.vitorpamplona.amethyst.ui.note.SearchIcon
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.stars.StarsTopBarChip
+import com.vitorpamplona.amethyst.ui.stringRes
 import com.vitorpamplona.amethyst.ui.theme.Size22Modifier
 import com.vitorpamplona.amethyst.ui.theme.placeholderText
 
@@ -70,6 +76,7 @@ fun UserDrawerSearchTopBar(
         actions = {
             StarsTopBarChip(accountViewModel) { nav.nav(Route.Wallet) }
             MemoryUsageChip()
+            NotificationsTopBarIcon(accountViewModel) { nav.nav(Route.Notification()) }
             IconButton(onClick = { nav.nav(Route.Search) }) {
                 SearchIcon(modifier = Size22Modifier, MaterialTheme.colorScheme.placeholderText)
             }
@@ -77,4 +84,30 @@ fun UserDrawerSearchTopBar(
         },
         windowInsets = windowInsets,
     )
+}
+
+/**
+ * The bell that mirrors the bottom-bar Notifications tab in the top bar, with the same
+ * unread dot so the indicator stays consistent wherever the user is in the app.
+ */
+@Composable
+private fun NotificationsTopBarIcon(
+    accountViewModel: AccountViewModel,
+    onClick: () -> Unit,
+) {
+    IconButton(onClick = onClick) {
+        Box(Size22Modifier, contentAlignment = Alignment.Center) {
+            Icon(
+                symbol = MaterialSymbols.Notifications,
+                contentDescription = stringRes(R.string.route_notifications),
+                modifier = Size22Modifier,
+                tint = MaterialTheme.colorScheme.onSurface,
+            )
+            AddNotifIconIfNeeded(
+                route = Route.Notification(),
+                accountViewModel = accountViewModel,
+                modifier = Modifier.align(Alignment.TopEnd),
+            )
+        }
+    }
 }

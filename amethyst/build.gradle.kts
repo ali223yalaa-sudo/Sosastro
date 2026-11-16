@@ -95,10 +95,15 @@ android {
                 .toInt()
         versionName = generateVersionName(libs.versions.app.get(), rootDir)
         buildConfigField("String", "RELEASE_NOTES_ID", "\"40e817712e397c07ba31784a92fa474aa095896a828c0e2dea0d09c60d49ee1e\"")
-        // Operator-editable gift catalog served from the web dashboard.
-        // Blank disables the remote layer, so a hermetic build fetches
-        // nothing; a distribution that wants live gifts overrides this.
-        buildConfigField("String", "GIFT_CATALOG_URL", "\"https://work-2-smlcaithtljritvk.prod-runtime.all-hands.dev/gifts/catalog.json\"")
+        // Operator-editable gift catalog served from the permanent Cloudflare
+        // worker (astro-admin /gifts). Blank disables the remote layer, so a
+        // hermetic build fetches nothing; override with
+        // -PgiftCatalogUrl=https://... to point a build elsewhere.
+        buildConfigField(
+            "String",
+            "GIFT_CATALOG_URL",
+            "\"${project.findProperty("giftCatalogUrl") ?: "https://astro-admin.hmzzhproxy29127.workers.dev/gifts/catalog.json"}\"",
+        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

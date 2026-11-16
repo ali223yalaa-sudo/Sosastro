@@ -136,8 +136,10 @@ class GiftSounds(
             ).build()
     private val loaded = HashMap<String, Int>()
 
-    // Remote clips are played by MediaPlayer; keep one per burst and
-    // release the previous so a busy room does not leak players.
+    // Remote clips are played by MediaPlayer. A prepared player is kept
+    // per URL so a send starts the sound immediately instead of paying
+    // the download + prepare cost while the burst is already on screen.
+    private val prepared = HashMap<String, MediaPlayer>()
     private var player: MediaPlayer? = null
 
     private fun idFor(name: String): Int {
@@ -149,9 +151,19 @@ class GiftSounds(
         return id
     }
 
-    /** Decode a bundled clip ahead of first use so the first gift is not silent. */
-    fun preload(name: String?) {
-        if (name != null && giftAssetOf(name) is GiftAsset.Bundled) idFor(name)
+    /**
+     * Make a gift's sound ready before it is first played. A bundled clip
+     * is decoded into [SoundPool]; a remote clip is downloaded to the app
+     * cache and a [MediaPlayer] is prepared on it, so the first send is
+     * not silent and does not wait on the network.
+     */
+    suspend fun preload(name: String?) {
+        if (name == null) return
+        when (val asset = giftAssetOf(name)) {
+            is GiftAsset.Bundled -> idFor(asset.path)
+            is GiftAsset.Remote -> prepareRemote(asset.url)
+            null -> Unit
+        }
     }
 
     suspend fun play(name: String?) {
@@ -161,9 +173,40 @@ class GiftSounds(
                 val id = idFor(asset.path)
                 if (id != 0) pool.play(id, 1f, 1f, 1, 0, 1f)
             }
-            is GiftAsset.Remote -> playRemote(asset.url)
+            is GiftAsset.Remote -> {
+                val ready = prepared[asset.url]
+                if (ready != null && ready !== player) {
+                    player?.runCatching { release() }
+                    player =
+                        runCatching {
+                            ready.seekTo(0)
+                            ready.start()
+                            ready
+                        }.getOrNull()
+                } else {
+                    playRemote(asset.url)
+                }
+            }
             null -> Unit
         }
+    }
+
+    /** Download a remote sound and hold a prepared player for instant replay. */
+    private suspend fun prepareRemote(url: String) {
+        if (prepared.containsKey(url)) return
+        val builder = clientBuilder ?: return
+        val file = GiftAssetDownloader.localFileOrNull(context, url, builder, ".wav") ?: return
+        val mp =
+            runCatching {
+                MediaPlayer().apply {
+                    setAudioAttributes(SONIFICATION)
+                    setDataSource(file.absolutePath)
+                    setOnCompletionListener { it.seekTo(0) }
+                    prepare()
+                }
+            }.getOrNull() ?: return
+        prepared[url]?.runCatching { release() }
+        prepared[url] = mp
     }
 
     private suspend fun playRemote(url: String) {
@@ -175,13 +218,7 @@ class GiftSounds(
         player =
             runCatching {
                 MediaPlayer().apply {
-                    setAudioAttributes(
-                        AudioAttributes
-                            .Builder()
-                            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
-                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                            .build(),
-                    )
+                    setAudioAttributes(SONIFICATION)
                     setDataSource(file.absolutePath)
                     setOnCompletionListener { it.release() }
                     prepare()
@@ -192,8 +229,19 @@ class GiftSounds(
 
     fun release() {
         pool.release()
+        prepared.values.forEach { it.runCatching { release() } }
+        prepared.clear()
         player?.runCatching { release() }
         player = null
+    }
+
+    private companion object {
+        val SONIFICATION: AudioAttributes =
+            AudioAttributes
+                .Builder()
+                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
     }
 }
 
