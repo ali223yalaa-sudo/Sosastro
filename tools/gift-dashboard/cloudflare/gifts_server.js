@@ -104,23 +104,54 @@ function giftsFind(state, id) {
   return (state.gifts || []).concat(state.drafts || []).find((g) => g && g.id === id);
 }
 
-// Serve a stored asset. Names are content-hashed and immutable, so a long
-// cache is safe and keeps the app's per-gift cost down to one fetch.
-async function giftsServeAsset(env, kind, name) {
+// Honor a single byte-range so the 190 MB APK download can resume. The R2
+// object API ignores a Range header, so the slice is requested explicitly and
+// the response is built by hand.
+function giftsRange(request, size) {
+  const h = request.headers.get("range");
+  if (!h) return null;
+  const m = /^bytes=(\d*)-(\d*)$/.exec(h.trim());
+  if (!m) return null;
+  let start = m[1] === "" ? null : parseInt(m[1], 10);
+  let end = m[2] === "" ? null : parseInt(m[2], 10);
+  if (start === null && end === null) return null;
+  if (start === null) {
+    // Suffix range: the last N bytes.
+    start = Math.max(0, size - end);
+    end = size - 1;
+  } else if (end === null || end >= size) {
+    end = size - 1;
+  }
+  if (start > end || start >= size) return null;
+  return { offset: start, length: end - start + 1, start, end };
+}
+
+// Serve an R2 object with byte-range support. Names are content-hashed and
+// immutable, so a long cache is safe and keeps the app's per-gift cost down to
+// one fetch; ranges let a big download resume and a clip seek.
+async function giftsServeObject(request, env, key, contentType, extra) {
+  const head = await env.GIFTS.head(key);
+  if (!head) return null;
+  const r = giftsRange(request, head.size);
+  const obj = await env.GIFTS.get(key, r ? { range: { offset: r.offset, length: r.length } } : undefined);
+  const headers = giftsHeaders({
+    "content-type": contentType,
+    "content-length": String(r ? r.length : head.size),
+    "accept-ranges": "bytes",
+    "cache-control": "public, max-age=31536000, immutable",
+    etag: head.httpEtag || '"' + key + '"',
+    ...(extra || {}),
+  });
+  if (r) headers["content-range"] = `bytes ${r.start}-${r.end}/${head.size}`;
+  return new Response(obj.body, { status: r ? 206 : 200, headers });
+}
+
+// Serve a stored asset.
+async function giftsServeAsset(request, env, kind, name) {
   if (!GIFT_KINDS.includes(kind)) return new Response("not found", { status: 404 });
   if (!/^[a-zA-Z0-9._-]{1,80}$/.test(name)) return new Response("not found", { status: 404 });
-  const key = "assets/" + kind + "/" + name;
-  const head = await env.GIFTS.head(key);
-  if (!head) return new Response("not found", { status: 404 });
-  const obj = await env.GIFTS.get(key);
-  return new Response(obj.body, {
-    headers: giftsHeaders({
-      "content-type": GIFT_CT[kind],
-      "content-length": String(head.size),
-      "cache-control": "public, max-age=31536000, immutable",
-      etag: head.httpEtag || '"' + name + '"',
-    }),
-  });
+  const res = await giftsServeObject(request, env, "assets/" + kind + "/" + name, GIFT_CT[kind]);
+  return res || new Response("not found", { status: 404 });
 }
 
 async function giftsRoute(request, env, url) {
@@ -129,16 +160,13 @@ async function giftsRoute(request, env, url) {
   // The built APK lives in R2 too, so the download link keeps working after
   // the local authoring box is gone.
   if (path === "/gifts/app.apk") {
-    const head = await env.GIFTS.head("app.apk");
-    if (!head) return new Response("no apk built", { status: 404 });
-    const obj = await env.GIFTS.get("app.apk");
-    return new Response(obj.body, {
-      headers: giftsHeaders({
-        "content-type": "application/vnd.android.package-archive",
-        "content-length": String(head.size),
-        "content-disposition": 'attachment; filename="amethyst-gifts.apk"',
-      }),
+    const res = await giftsServeObject(request, env, "app.apk", "application/vnd.android.package-archive", {
+      "content-disposition": 'attachment; filename="amethyst-gifts.apk"',
+      // The APK is replaced in place on each build, so it must not be cached
+      // immutably like the content-hashed assets are.
+      "cache-control": "no-cache",
     });
+    return res || new Response("no apk built", { status: 404 });
   }
 
   if (path === "/gifts/catalog.json") {
@@ -154,7 +182,7 @@ async function giftsRoute(request, env, url) {
   }
 
   const m = /^\/gifts\/(clips|videos|icons|sounds)\/(.+)$/.exec(path);
-  if (m) return giftsServeAsset(env, m[1], m[2]);
+  if (m) return giftsServeAsset(request, env, m[1], m[2]);
 
   return new Response("not found", { status: 404 });
 }
@@ -212,12 +240,20 @@ async function giftsApi(path, request, env, url) {
   if (path === "/api/gifts/publish" && method === "POST") {
     const payload = await request.json().catch(() => ({}));
     const state = await giftsLoadState(env);
+    const live = state.gifts.find((g) => g.id === payload.id);
     const draft = state.drafts.find((d) => d.id === payload.id);
-    if (!draft) return giftsJson({ error: "unknown draft" }, 404);
+    // Re-uploading an asset for an already-live gift runs the same
+    // upload-then-publish sequence as a new one; the asset route has already
+    // refreshed the row and the catalog, so a missing draft here means
+    // "already published", not an error.
+    if (!draft) {
+      if (live) return giftsJson({ ok: true, gift: live });
+      return giftsJson({ error: "unknown draft" }, 404);
+    }
     // A gift needs a clip to play: the alpha video when it has one, else
     // the legacy SVGA. Either is enough to publish.
     if (!draft.video && !draft.svga) return giftsJson({ error: "draft has no clip" }, 400);
-    let gift = state.gifts.find((g) => g.id === draft.id);
+    let gift = live;
     if (!gift) {
       gift = { id: draft.id };
       state.gifts.push(gift);

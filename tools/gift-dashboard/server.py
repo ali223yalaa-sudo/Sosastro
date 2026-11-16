@@ -601,15 +601,21 @@ class Handler(BaseHTTPRequestHandler):
         """Promote a draft into the live catalog."""
         payload = json.loads(self.read_body())
         state = load_state()
+        live = next((g for g in state["gifts"] if g["id"] == payload.get("id")), None)
         draft = next((d for d in state["drafts"] if d["id"] == payload.get("id")), None)
+        # Re-uploading an asset for an already-live gift runs the same
+        # upload-then-publish sequence as a new one; a missing draft here means
+        # "already published", not an error.
         if draft is None:
+            if live is not None:
+                return self.send_json({"ok": True, "gift": live})
             return self.send_json({"error": "unknown draft"}, 404)
         if not draft.get("svga") and not draft.get("video"):
             return self.send_json({"error": "draft has no clip"}, 400)
         # Search only the live gifts: find_gift() also scans drafts, so it
         # would return the draft itself and the gift would never be added to
         # the catalog — publishing would silently drop it.
-        gift = next((g for g in state["gifts"] if g["id"] == draft["id"]), None)
+        gift = live
         if gift is None:
             gift = {"id": draft["id"]}
             state["gifts"].append(gift)

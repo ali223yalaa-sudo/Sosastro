@@ -878,6 +878,23 @@ Gifts are editable from a web dashboard without shipping a new APK.
   publish answered `200` while the gift silently vanished. Regression
   tests: `tools/gift-dashboard/test_server.py` (drives the real handler
   in-process; run with `/workspace/venv/bin/python`).
+
+  `api_publish` must also succeed when there is **no draft** but the gift
+  is already live: replacing a clip for a published gift runs the same
+  upload-then-publish sequence as a new one, and the second publish used
+  to answer `404 unknown draft` even though the upload had landed and the
+  catalog had already been refreshed. The worker (`gifts_server.js`) and
+  the local server now both treat "no draft, but live" as success.
+- **Health check / prune.** `tools/gift-dashboard/check_catalog.py` reads
+  the live catalog and state straight from R2 and verifies, per gift,
+  that a clip exists, that every referenced asset is in the bucket, that
+  the frame size is sane, and that the clip is **not blank** — a
+  fully-transparent clip renders nothing while still charging the sender,
+  and gift `2585` shipped exactly like that (96 transparent SVGA frames,
+  an all-zero alpha video). `--prune [--apply]` drops the broken gifts
+  and republishes, copying `state.json`/`catalog.json` to `backups/` in
+  the bucket first, so a prune is reversible. It uses the Cloudflare API
+  token, not the panel's `ADMIN_TOKEN`, so it works with no worker auth.
 - **Instant burst.** A gift must appear the moment it is sent. Two
   separate costs hid behind the delay, and both are now paid up front:
   - *File.* `RoomGiftOverlay` prefetches every remote clip into the app
@@ -1009,7 +1026,7 @@ re-parsed on a cache miss. The *same* clip packs into an alpha video that is
 roughly a tenth the size and decodes in hardware. The app prefers the video
 and keeps SVGA as the fallback for gifts authored before the packer existed.
 
-- **Packer.** `/workspace/svga_tools/alpha_pack.py` reads an `.svga` and
+- **Packer.** `tools/gift-dashboard/alpha_pack.py` reads an `.svga` and
   writes an `.mp4`:
 
   ```sh
@@ -1026,6 +1043,15 @@ and keeps SVGA as the fallback for gifts authored before the packer existed.
   rejected (`fully transparent (nothing to pack)`) rather than packed into an
   all-black video that would draw *nothing*; in `--batch` that clip is listed
   under `skipped` in `manifest.json` and the rest still pack.
+- **Blank-clip guard in the authoring tool.** `video_to_svga.py` refuses to
+  write a clip whose subject coverage is below `--min-coverage` (default
+  0.5%). The guard originally ran only on the keyed path (`mode != "none"`),
+  so a source that already carried alpha — where no keying happens — skipped
+  it entirely; gift `2585` was authored through that hole and shipped 96
+  fully-transparent frames. The check now applies to every path, including
+  `--passthrough`. Regression tests: `tools/gift-dashboard/test_video_to_svga.py`.
+  The end-to-end check that catches a blank gift already live is
+  `check_catalog.py` (see the dashboard section).
 - **Playback.** `AlphaVideoGiftPlayer` wraps a `GLSurfaceView`;
   `AlphaVideoRenderer` binds the decoder to an `GL_TEXTURE_EXTERNAL_OES`
   `SurfaceTexture` and samples it with `samplerExternalOES`. The fragment
@@ -1063,11 +1089,28 @@ Delivery lives in the Cloudflare worker `astro-admin`, in the same
 `hmzzhproxy29127.workers.dev` zone as the rest of the backend:
 
 - `GET /gifts/catalog.json` — the published catalog the app fetches.
-- `GET /gifts/clips|icons|sounds/<name>` — asset bytes from the R2 bucket
-  `astro-gifts` (`assets/<kind>/<name>`), immutable and long-cached.
-- `GET /gifts/app.apk` — the latest build, stored as `app.apk` in the bucket.
-- `GET /api/gifts/state`, `POST /api/gifts/{gift,delete,publish,discard,asset,meta}`
-  — the operator API behind the panel's **الهدايا** tab.
+- `GET /gifts/clips|videos|icons|sounds/<name>` — asset bytes from the R2
+  bucket `astro-gifts` (`assets/<kind>/<name>`), immutable and long-cached.
+  `videos/` holds the alpha-packed H.264 the app actually plays. These
+  routes honour a single byte range (`Accept-Ranges: bytes`, `206` +
+  `Content-Range`), and the R2 slice is requested explicitly because the
+  R2 object API ignores a `Range` header — so a clip can seek and a big
+  download can resume.
+- `GET /gifts/app.apk` — the latest build, stored as `app.apk` in the
+  bucket. It also serves ranges (a 190 MB download resumes) and is
+  `no-cache` rather than immutable, because the file is replaced in place
+  on each build.
+- `GET /api/gifts/state`, `POST /api/gifts/{gift,delete,publish,discard,asset,meta,import}`
+  — the operator API behind the panel's **الهدايا** tab. `publish` accepts
+  a gift whose only clip is an alpha video (no `svga` required), and it is
+  idempotent for an already-live gift (see the publish note above).
+
+The worker module has a regression suite that needs no Worker runtime:
+`tools/gift-dashboard/test_worker.mjs` evaluates `gifts_server.js` in a VM
+with the Web globals the runtime provides and drives the handlers against a
+fake R2 bucket. Run it with `node tools/gift-dashboard/test_worker.mjs`; it
+pins catalog shape, video-only publish, re-publish, asset upload/serve,
+ranges, the traversal guard and delete.
 
 The app's catalog URL is `BuildConfig.GIFT_CATALOG_URL`, defaulted in
 `amethyst/build.gradle.kts` to

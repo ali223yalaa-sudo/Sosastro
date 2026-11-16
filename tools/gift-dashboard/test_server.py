@@ -141,6 +141,16 @@ class DashboardTest(unittest.TestCase):
         self.assertEqual(480, row["videoWidth"])
         self.assertEqual(480, row["videoHeight"])
 
+    def test_republish_of_a_live_gift_is_not_404(self):
+        """Re-uploading a clip for an already-published gift runs the same
+        upload-then-publish sequence; the second publish must not fail just
+        because there is no draft left."""
+        self.add_draft("live1", video="videos/a.mp4", videoWidth=480, videoHeight=480)
+        self.assertEqual(200, self.post("/api/publish", {"id": "live1"})[0])
+        code, body = self.post("/api/publish", {"id": "live1"})
+        self.assertEqual(200, code)
+        self.assertIn("gift", body)
+
     def test_draft_is_not_served_before_publish(self):
         """An unpublished draft must never reach the app's catalog."""
         self.add_draft("secret")

@@ -1202,6 +1202,17 @@ def main() -> int:
         if fade:
             feather_border(out_frames, width_frac=fade)
             print(f"edge-fade: border ramped {fade:.0%} to transparent")
+        # Reproducing a blank clip would publish a gift that renders nothing;
+        # the same guard the keyed path uses applies here too.
+        cov = subject_coverage(out_frames)
+        print(f"subject coverage: {cov * 100:.1f}%")
+        if cov < args.min_coverage:
+            print(
+                "error: the clip has no visible subject "
+                f"(coverage {cov * 100:.2f}% < {args.min_coverage * 100:.2f}%)",
+                file=sys.stderr,
+            )
+            return 3
         if args.output:
             os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
             build_svga(
@@ -1245,16 +1256,18 @@ def main() -> int:
         if not args.no_strip_text and remove_static_overlays(keyed):
             print("stripped static overlay (caption/watermark)")
 
-        # Guard against a matte that removed the subject. A blind colour key on
-        # a dark subject over a dark backdrop yields an all-transparent clip,
-        # which the app then shows as nothing at all. Fail loudly here instead
-        # of publishing an invisible gift.
+        # Guard against a matte that removed the subject — and against a
+        # source that was already empty (a clip whose own alpha is all zero
+        # needs no keying, so `mode` is "none", but it must not be published
+        # either). Either way the app would show nothing at all, so fail
+        # loudly here instead of shipping an invisible gift.
         cov = subject_coverage(keyed)
         print(f"subject coverage: {cov * 100:.1f}%")
-        if mode != "none" and cov < args.min_coverage:
+        if cov < args.min_coverage:
             print(
-                "error: the matte removed the subject "
+                "error: the clip has no visible subject "
                 f"(coverage {cov * 100:.2f}% < {args.min_coverage * 100:.2f}%); "
+                "the source may be blank, or the matte removed the subject — "
                 "try --matte birefnet, or --bg with the real backdrop colour",
                 file=sys.stderr,
             )
