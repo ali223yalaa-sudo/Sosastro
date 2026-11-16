@@ -857,13 +857,16 @@ Gifts are editable from a web dashboard without shipping a new APK.
   clip from the downloaded file. Relative paths in the payload resolve
   against the catalog's own directory; `javascript:`/`file:` are
   rejected in `RemoteGiftCatalog.safeAsset`.
-- **Dashboard.** `/workspace/gift_dashboard/server.py` (stdlib only) runs
-  on port 12001 and serves the UI, `/gifts/catalog.json` and the
-  content-addressed assets under `/gifts/`. Upload a video → it runs
+- **Dashboard.** `tools/gift-dashboard/server.py` (stdlib only; the
+  running copy is `/workspace/gift_dashboard`) serves the UI on port
+  12001 along with `/gifts/catalog.json` and the content-addressed
+  assets under `/gifts/`. Upload a video → it runs
   `/workspace/svga_tools/{video_to_svga,make_gift_sound}.py`
   (background key, crop, square fit, SVGA encode, icon, tier sound) →
-  animated preview → publish. Assets are named by content hash, so a
-  republish is a new URL and no client serves a stale clip.
+  an animated preview appears in the draft list → the operator presses
+  **publish** to promote the draft into the live catalog (a draft is
+  invisible to the app until then). Assets are named by content hash,
+  so a republish is a new URL and no client serves a stale clip.
 
   ```bash
   cd /workspace/gift_dashboard && /workspace/venv/bin/python server.py --port 12001
