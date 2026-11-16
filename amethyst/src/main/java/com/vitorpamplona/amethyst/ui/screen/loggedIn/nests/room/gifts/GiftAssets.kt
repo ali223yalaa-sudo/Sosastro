@@ -116,8 +116,9 @@ fun GiftIcon(
  * once and replayed with no per-play latency. A remote URL is
  * downloaded to the app cache on first use and then played with
  * [MediaPlayer], which — unlike SoundPool — accepts an arbitrary file
- * rather than only a packaged resource. Sonification usage means the
- * system media volume and mute still apply.
+ * rather than only a packaged resource. Both play on the media stream, so
+ * the user's normal volume and mute controls apply and a gift is actually
+ * audible.
  */
 class GiftSounds(
     private val context: Context,
@@ -127,13 +128,8 @@ class GiftSounds(
         SoundPool
             .Builder()
             .setMaxStreams(4)
-            .setAudioAttributes(
-                AudioAttributes
-                    .Builder()
-                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build(),
-            ).build()
+            .setAudioAttributes(SONIFICATION)
+            .build()
     private val loaded = HashMap<String, Int>()
 
     // Remote clips are played by MediaPlayer. A prepared player is kept
@@ -174,28 +170,31 @@ class GiftSounds(
                 if (id != 0) pool.play(id, 1f, 1f, 1, 0, 1f)
             }
             is GiftAsset.Remote -> {
-                val ready = prepared[asset.url]
-                if (ready != null && ready !== player) {
-                    player?.runCatching { release() }
-                    player =
-                        runCatching {
-                            ready.seekTo(0)
-                            ready.start()
-                            ready
-                        }.getOrNull()
-                } else {
-                    playRemote(asset.url)
+                // Every prepared player is kept and reused for the process's
+                // life. Stopping the previous clip only pauses it — releasing
+                // it would leave a dead player in [prepared], and the next
+                // play would seekTo() a released instance, throw, and silence
+                // that gift for good.
+                val p = prepared[asset.url] ?: prepareRemote(asset.url) ?: return
+                player?.takeIf { it !== p }?.runCatching {
+                    if (it.isPlaying) it.pause()
+                    it.seekTo(0)
                 }
+                runCatching {
+                    p.seekTo(0)
+                    p.start()
+                }
+                player = p
             }
             null -> Unit
         }
     }
 
     /** Download a remote sound and hold a prepared player for instant replay. */
-    private suspend fun prepareRemote(url: String) {
-        if (prepared.containsKey(url)) return
-        val builder = clientBuilder ?: return
-        val file = GiftAssetDownloader.localFileOrNull(context, url, builder, ".wav") ?: return
+    private suspend fun prepareRemote(url: String): MediaPlayer? {
+        prepared[url]?.let { return it }
+        val builder = clientBuilder ?: return null
+        val file = GiftAssetDownloader.localFileOrNull(context, url, builder, ".wav") ?: return null
         val mp =
             runCatching {
                 MediaPlayer().apply {
@@ -204,27 +203,9 @@ class GiftSounds(
                     setOnCompletionListener { it.seekTo(0) }
                     prepare()
                 }
-            }.getOrNull() ?: return
-        prepared[url]?.runCatching { release() }
+            }.getOrNull() ?: return null
         prepared[url] = mp
-    }
-
-    private suspend fun playRemote(url: String) {
-        // Download (or reuse the cached copy) off the main thread, then
-        // hand the local path to MediaPlayer, which needs a real file.
-        val builder = clientBuilder ?: return
-        val file = GiftAssetDownloader.localFileOrNull(context, url, builder, ".wav") ?: return
-        player?.runCatching { release() }
-        player =
-            runCatching {
-                MediaPlayer().apply {
-                    setAudioAttributes(SONIFICATION)
-                    setDataSource(file.absolutePath)
-                    setOnCompletionListener { it.release() }
-                    prepare()
-                    start()
-                }
-            }.getOrNull()
+        return mp
     }
 
     fun release() {
@@ -236,10 +217,14 @@ class GiftSounds(
     }
 
     private companion object {
+        // Media stream, not sonification: a gift sound is content the user
+        // asked for, and the sonification stream (USAGE_ASSISTANCE_SONIFICATION)
+        // is tied to the often-muted "system" volume, so gifts played silently
+        // on most phones. Media volume is the one users actually set.
         val SONIFICATION: AudioAttributes =
             AudioAttributes
                 .Builder()
-                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_MEDIA)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build()
     }

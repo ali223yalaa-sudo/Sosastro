@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -38,7 +37,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -49,13 +47,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -69,7 +63,6 @@ import com.vitorpamplona.quartz.nip53LiveActivities.meetingSpaces.MeetingSpaceEv
 import com.vitorpamplona.quartz.nip53LiveActivities.meetingSpaces.tags.StatusTag
 
 internal val NestGoldBorder = Color(0xFFD7B45A)
-internal val NestRibbonBlue = Color(0xFF3B6FE8)
 internal val NestSignalTeal = Color(0xFF2EE0C5)
 internal val NestLobbyCard = Color(0xFF171717)
 internal val NestTabTrack = Color(0xFF121212)
@@ -181,108 +174,72 @@ fun NestsMyRoomHero(
     Box(
         modifier = modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 2.dp),
     ) {
-        Box(
+        Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(top = 40.dp)
                     .background(NestLobbyCard, HeroCorner)
                     .border(1.5.dp, NestGoldBorder, HeroCorner)
                     .clickable(onClick = onClick)
-                    .height(124.dp),
+                    .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                RoomSignalBadge(
-                    count = listeners,
-                    live = live,
-                    modifier =
-                        Modifier
-                            .align(Alignment.TopStart)
-                            .padding(start = 10.dp, top = 10.dp),
-                )
-                MyRoomRibbon(modifier = Modifier.align(Alignment.TopEnd))
-            }
-            Column(
+            Box(
                 modifier =
                     Modifier
-                        .align(Alignment.Center)
-                        .padding(start = 16.dp, end = 16.dp, top = 32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                        .size(58.dp)
+                        .clip(AvatarCorner)
+                        .border(2.dp, NestGoldBorder, AvatarCorner)
+                        .background(MaterialTheme.colorScheme.surface),
             ) {
-                Text(
-                    text = title,
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                )
-                if (subtitle.isNotBlank()) {
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = subtitle,
-                        color = Color(0xFFB0B0B0),
-                        fontSize = 13.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center,
+                if (cover != null) {
+                    AsyncImage(
+                        model = cover,
+                        contentDescription = title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.matchParentSize(),
+                    )
+                } else {
+                    RobohashFallbackAsyncImage(
+                        robot = me.pubkeyHex,
+                        model = userState?.info?.picture,
+                        contentDescription = title,
+                        modifier = Modifier.matchParentSize(),
+                        contentScale = ContentScale.Crop,
+                        loadProfilePicture = accountViewModel.settings.showProfilePictures(),
+                        loadRobohash = accountViewModel.settings.isNotPerformanceMode(),
+                        autoPlayGif = autoPlay,
                     )
                 }
             }
-        }
-
-        Box(
-            modifier =
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .size(80.dp)
-                    .clip(AvatarCorner)
-                    .border(2.dp, Color(0xFFC8C8C8), AvatarCorner)
-                    .background(MaterialTheme.colorScheme.surface)
-                    .clickable(onClick = onClick),
-        ) {
-            if (cover != null) {
-                AsyncImage(
-                    model = cover,
-                    contentDescription = title,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.matchParentSize(),
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringRes(R.string.nest_my_room),
+                    color = NestGoldBorder,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
                 )
-            } else {
-                RobohashFallbackAsyncImage(
-                    robot = me.pubkeyHex,
-                    model = userState?.info?.picture,
-                    contentDescription = title,
-                    modifier = Modifier.matchParentSize(),
-                    contentScale = ContentScale.Crop,
-                    loadProfilePicture = accountViewModel.settings.showProfilePictures(),
-                    loadRobohash = accountViewModel.settings.isNotPerformanceMode(),
-                    autoPlayGif = autoPlay,
+                Text(
+                    text = title,
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = subtitle.ifBlank { stringRes(R.string.nests_tab_joined) },
+                    color = Color(0xFFB0B0B0),
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
+            Spacer(Modifier.width(8.dp))
+            RoomSignalBadge(count = listeners, live = live)
         }
-    }
-}
-
-@Composable
-private fun MyRoomRibbon(modifier: Modifier) {
-    Box(
-        modifier =
-            modifier
-                .offset(x = 22.dp, y = 18.dp)
-                .graphicsLayer { rotationZ = 40f }
-                .background(NestRibbonBlue)
-                .padding(horizontal = 28.dp, vertical = 3.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = stringRes(R.string.nest_my_room),
-            color = Color.White,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1,
-        )
     }
 }
 

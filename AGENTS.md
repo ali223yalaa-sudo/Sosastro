@@ -1142,3 +1142,31 @@ only new routes/nav/UI inserted at unique anchors. `node --check` on the
 patched bundle plus a diff that shows zero removed lines are the two guards
 worth re-running before a deploy.
 
+The panel's **الهدايا** tab has a live preview player (`gifts_ui.js`,
+`openGiftPreview`). A gift's `videos/` asset is *alpha-packed* — the packer
+stacks the colour frame over an alpha strip, two frames tall — so a plain
+`<video>` shows a doubled image. The preview unpacks it on a WebGL canvas the
+same way the app's renderer does: RGB from the top half, alpha from the green
+channel of the bottom half (`AlphaVideoRenderer.kt`), premultiplied and drawn
+over a mock of the room. It mirrors the app's `contain` / `fill` modes (fill =
+a vertical clip covers 95% of the phone height), plus scrub, frame-step, speed,
+loop, in/out points, scale, position, alpha and a grid. A **حفظ** button writes
+scale/posX/posY back through `POST /api/gifts/gift`, which is how a gift is
+placed without shipping a new APK.
+
+Authoring a matte (video → alpha) with BiRefNet peaks near 7 GiB of RAM, which
+on a shared box is enough to OOM-kill a run and the session with it. Two guards
+keep that from happening: the ONNX session is built with a small thread count,
+no CPU arena and no memory pattern (`_birefnet_session`), and
+`birefnet_affordable` refuses a run when free RAM minus `BIREFNET_PEAK_MB` is
+below a headroom margin — `--matte auto` then falls back to the colour key and
+`--matte birefnet` fails with a clear message rather than crashing. The rembg
+model cache is pinned to `/workspace/.rembg` (`REMBG_HOME`) because `/tmp` and
+`$HOME` are wiped on every sandbox restart.
+
+The pre-room screens were redesigned from a grid of full-width 16:9 cover
+cards into a compact list (`NestsFeedLoaded.kt`: `nestsRoomList` / `NestRoomRow`,
+an 84dp row with a 68dp thumbnail) and the "my room" hero is now a slim row
+(`NestsLobbyChrome.kt`). The room chrome gained a gradient header/footer and
+gradient mic rings (`MicSeatsGrid.kt`: `micSeatRing`).
+

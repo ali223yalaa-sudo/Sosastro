@@ -21,6 +21,7 @@
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +43,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -63,6 +65,20 @@ import com.vitorpamplona.amethyst.ui.stringRes
 
 internal val NestRoomPurple = Color(0xFF7C4DFF)
 internal val NestRoomCard = Color(0xFF1A1A1A)
+
+/** A near-black top-lit gradient for the room's bottom bar, so the controls
+ *  read as a raised surface rather than a flat black strip. */
+private val NestRoomFooterBrush =
+    Brush.verticalGradient(
+        colors = listOf(Color(0xFF141420), Color(0xFF0A0A0F)),
+    )
+
+/** The matching header gradient, lit from below so the two bars frame the
+ *  stage instead of banding it. */
+private val NestRoomHeaderBrush =
+    Brush.verticalGradient(
+        colors = listOf(Color(0xFF0A0A0F), Color(0xFF141420)),
+    )
 
 private val HeaderCardShape = RoundedCornerShape(22.dp)
 private val HeaderImageShape = RoundedCornerShape(10.dp)
@@ -105,7 +121,11 @@ internal fun NestRoomHeader(
 ) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Row(
-            modifier = modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp),
+            modifier =
+                modifier
+                    .fillMaxWidth()
+                    .background(NestRoomHeaderBrush)
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onLeave) {
@@ -291,7 +311,7 @@ internal fun NestRoomFooter(
             modifier =
                 modifier
                     .fillMaxWidth()
-                    .background(Color.Black)
+                    .background(NestRoomFooterBrush)
                     .padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -311,7 +331,14 @@ internal fun NestRoomFooter(
                             Modifier
                                 .size(44.dp)
                                 .clip(CircleShape)
-                                .background(NestRoomPurple),
+                                .border(1.dp, Color.White.copy(alpha = 0.18f), CircleShape)
+                                .background(
+                                    if (isMicMuted) {
+                                        NestRoomPurple
+                                    } else {
+                                        NestRoomCard
+                                    },
+                                ),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
@@ -331,7 +358,14 @@ internal fun NestRoomFooter(
                         Modifier
                             .size(44.dp)
                             .clip(CircleShape)
-                            .background(NestRoomPurple),
+                            .border(1.dp, Color.White.copy(alpha = 0.18f), CircleShape)
+                            .background(
+                                if (isMuted) {
+                                    NestRoomPurple
+                                } else {
+                                    NestRoomCard
+                                },
+                            ),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(

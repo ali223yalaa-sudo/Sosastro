@@ -54,6 +54,13 @@ internal class AlphaVideoRenderer(
     companion object {
         private const val TAG = "AlphaVideoRenderer"
 
+        /**
+         * How much of the phone's height a vertical gift clip fills. The
+         * operator asked for a near-full-height takeover (about 95%), so a
+         * vertical scene reads as part of the room rather than a small box.
+         */
+        private const val VERTICAL_FILL = 0.95f
+
         private const val VERTEX_SHADER = """
             attribute vec4 aPosition;
             attribute vec2 aTexCoord;
@@ -151,13 +158,20 @@ internal class AlphaVideoRenderer(
     ) {
         GLES20.glViewport(0, 0, width, height)
 
-        // Letterbox: scale the clip's aspect to fit inside the viewport,
-        // centred, so a square gift stays square on a tall phone screen.
+        // Letterbox a horizontal/square clip (scale to fit inside the
+        // viewport, centred) so a square gift stays square. A vertical clip
+        // instead fills the phone top-to-bottom at [VERTICAL_FILL] of the
+        // height, cropping any horizontal overflow: a vertical gift is a
+        // full-height takeover that reads as part of the room, not a small
+        // centred box with wide transparent bars.
         val clipAspect = videoWidth.toFloat() / videoHeight.toFloat()
         val viewAspect = width.toFloat() / height.toFloat()
         val sx: Float
         val sy: Float
-        if (clipAspect > viewAspect) {
+        if (videoHeight > videoWidth) {
+            sy = VERTICAL_FILL
+            sx = VERTICAL_FILL * clipAspect / viewAspect
+        } else if (clipAspect > viewAspect) {
             sx = 1f
             sy = viewAspect / clipAspect
         } else {

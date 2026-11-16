@@ -37,7 +37,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -49,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -61,6 +61,7 @@ import com.vitorpamplona.amethyst.model.LocalCache
 import com.vitorpamplona.amethyst.ui.note.ClickableUserPicture
 import com.vitorpamplona.amethyst.ui.note.UsernameDisplay
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.screen.NestRoomCard
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.screen.NestRoomPurple
 import com.vitorpamplona.amethyst.ui.stringRes
 import com.vitorpamplona.quartz.nip01Core.core.HexKey
@@ -78,6 +79,27 @@ internal sealed class MicSeatTap {
         val isMe: Boolean,
     ) : MicSeatTap()
 }
+
+/** A gradient ring around a mic seat: the app's purple for a live speaker, a
+ *  dimmed purple for an open seat, and a locked tint when the host closed it. */
+private fun micSeatRing(
+    occupied: Boolean,
+    locked: Boolean,
+): Brush =
+    when {
+        locked ->
+            Brush.linearGradient(
+                listOf(NestRoomPurple.copy(alpha = 0.9f), NestRoomPurple.copy(alpha = 0.4f)),
+            )
+        occupied ->
+            Brush.linearGradient(
+                listOf(NestRoomPurple, Color(0xFFB39DFF)),
+            )
+        else ->
+            Brush.linearGradient(
+                listOf(Color.White.copy(alpha = 0.28f), Color.White.copy(alpha = 0.1f)),
+            )
+    }
 
 /**
 
@@ -341,26 +363,26 @@ private fun MicSeatCell(
             contentAlignment = Alignment.Center,
             modifier =
                 Modifier
-                    .size(56.dp)
+                    .size(64.dp)
                     .clip(CircleShape)
                     .border(
-                        width = 2.dp,
-                        color = NestRoomPurple.copy(alpha = if (occupant != null) 0.95f else 0.85f),
+                        width = if (occupant != null) 2.dp else 1.5.dp,
+                        brush = micSeatRing(occupied = occupant != null, locked = isLocked),
                         shape = CircleShape,
                     ).background(
-                        if (isLocked) {
-                            NestRoomPurple
-                        } else {
-                            NestRoomPurple.copy(alpha = 0.28f)
+                        when {
+                            isLocked -> NestRoomPurple.copy(alpha = 0.35f)
+                            occupant != null -> NestRoomCard
+                            else -> Color.White.copy(alpha = 0.06f)
                         },
                     ),
         ) {
             when {
                 occupant != null -> {
-                    Box(modifier = Modifier.alpha(if (isMuted) 0.42f else 1f)) {
+                    Box(modifier = Modifier.alpha(if (isMuted) 0.45f else 1f)) {
                         ClickableUserPicture(
                             baseUserHex = occupant,
-                            size = 52.dp,
+                            size = 58.dp,
                             accountViewModel = accountViewModel,
                             onClick = { onClick() },
                             onLongClick = { onClick() },
@@ -371,16 +393,14 @@ private fun MicSeatCell(
                         Icon(
                             symbol = MaterialSymbols.MicOff,
                             contentDescription = stringRes(R.string.nest_mic_mute),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                            tint = Color.White,
                             modifier =
 
                                 Modifier
                                     .align(Alignment.BottomEnd)
-                                    .size(16.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.surface.copy(alpha = 0.75f),
-                                        CircleShape,
-                                    ).padding(1.dp),
+                                    .size(20.dp)
+                                    .background(Color.Black.copy(alpha = 0.72f), CircleShape)
+                                    .padding(3.dp),
                         )
                     }
                 }
@@ -401,11 +421,11 @@ private fun MicSeatCell(
                         tint =
 
                             if (canTake) {
-                                MaterialTheme.colorScheme.onSurface
+                                Color.White.copy(alpha = 0.9f)
                             } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                Color.White.copy(alpha = 0.4f)
                             },
-                        modifier = Modifier.size(28.dp),
+                        modifier = Modifier.size(26.dp),
                     )
                 }
             }

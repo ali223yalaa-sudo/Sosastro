@@ -735,22 +735,74 @@ INDEX_HTML = r"""<!doctype html>
                 padding:16px; text-align:center; max-width:min(680px,94vw); }
   .modal .box h3 { margin:0 0 4px; font-size:15px; }
   .modal .box .meta { color:var(--dim); font-size:12px; margin-bottom:12px; }
-  /* Checkerboard behind the clip: transparent pixels show the pattern,
-     so a failed background removal is immediately obvious. The room is a
-     phone-shaped stage so the operator can place the gift exactly where
-     it will land in the app. */
+  /* The preview mirrors the app's room: flat black, a 5x2 mic-seat stage,
+     a header pill and the bottom bar, so the operator judges the gift in
+     the exact place it lands. The gift video is a transparent layer over
+     the whole room, scaled and moved exactly like the app's overlay. */
   .roomwrap { display:flex; gap:18px; align-items:flex-start; justify-content:center; flex-wrap:wrap; }
-  .room { position:relative; width:252px; height:448px; border-radius:16px; overflow:hidden;
-          background:repeating-conic-gradient(#3a3550 0% 25%,#262135 0% 50%) 50%/26px 26px;
-          box-shadow:inset 0 0 0 1px var(--line); }
-  /* The clip keeps its own aspect ratio inside the phone-shaped room, exactly
-     as the app draws it (fit-centre), so a vertical scene reads as a full
-     vertical screen here instead of being stretched into a square. */
+  .room { position:relative; width:300px; height:540px; border-radius:18px; overflow:hidden;
+          background:#000; box-shadow:inset 0 0 0 1px var(--line), 0 10px 34px rgba(0,0,0,.55);
+          display:flex; flex-direction:column; }
+  /* "Transparent backdrop": hide the room chrome and show the checkerboard
+     so a failed background removal (a solid or haloed clip) is obvious. */
+  .room.noro { background:repeating-conic-gradient(#3a3550 0% 25%,#262135 0% 50%) 50%/26px 26px; }
+  .room.noro .rm-head, .room.noro .rm-aud, .room.noro .rm-stage,
+  .room.noro .rm-chat, .room.noro .rm-bar { visibility:hidden; }
+  .rm-head { display:flex; align-items:center; gap:8px; padding:7px 10px; }
+  .rm-ic { width:26px; height:26px; border-radius:50%; display:grid; place-items:center;
+           color:#fff; font-size:15px; }
+  .rm-title { margin-inline-start:auto; display:flex; align-items:center; gap:6px;
+              background:#1A1A1A; border-radius:22px; padding:4px 6px 4px 12px; max-width:190px; }
+  .rm-title b { font-size:11.5px; font-weight:600; color:#fff; white-space:nowrap;
+                overflow:hidden; text-overflow:ellipsis; }
+  .rm-title .th { width:26px; height:26px; border-radius:9px; background:#2B2B2B; flex:none; }
+  .rm-aud { display:flex; align-items:center; gap:6px; padding:4px 10px; }
+  .rm-count { height:30px; border-radius:999px; background:#7C4DFF; color:#fff; font-size:10px;
+              font-weight:700; display:flex; align-items:center; gap:4px; padding:0 10px; }
+  .rm-av { width:26px; height:26px; border-radius:50%;
+           background:linear-gradient(135deg,#3a3550,#5a4a7a);
+           box-shadow:inset 0 0 0 1px rgba(255,255,255,.08); }
+  .rm-stage { display:grid; grid-template-columns:repeat(5,1fr); gap:8px 6px;
+              padding:6px 10px; justify-items:center; }
+  .rm-seat { width:46px; height:46px; border-radius:50%; background:rgba(124,77,255,.28);
+             border:2px solid rgba(124,77,255,.85); display:grid; place-items:center;
+             position:relative; color:#fff; }
+  .rm-seat .mic { font-size:19px; opacity:.85; }
+  .rm-seat.occ { border-color:rgba(124,77,255,.95);
+                 background:linear-gradient(135deg,#5a3aa8,#8a6ae0); }
+  .rm-seat .moff { position:absolute; right:-1px; bottom:-1px; width:15px; height:15px;
+                   border-radius:50%; background:rgba(20,20,20,.85); display:grid;
+                   place-items:center; font-size:9px; }
+  .rm-chat { flex:1; padding:8px 10px; display:flex; flex-direction:column; gap:6px; overflow:hidden; }
+  .rm-msg { background:rgba(255,255,255,.05); border-radius:10px; padding:5px 8px;
+            font-size:10px; color:#c9c9d6; max-width:78%; }
+  .rm-bar { display:flex; align-items:center; gap:8px; padding:8px 10px; background:#000; }
+  .rm-star { font-size:22px; color:#FFD54F; }
+  .rm-comp { flex:1; height:30px; border-radius:16px; background:#1A1A1A; color:#8a8a95;
+             font-size:10.5px; display:flex; align-items:center; padding:0 12px; }
+  .rm-btn { width:34px; height:34px; border-radius:50%; background:#7C4DFF; color:#fff;
+            display:grid; place-items:center; font-size:15px; flex:none; }
+  /* The gift layer: transparent, scaled and moved exactly like the app's
+     overlay (letterboxed contain, then uniform scale + offset). It never
+     captures the pointer, so the sliders underneath stay usable. */
   .room video { position:absolute; inset:0; width:100%; height:100%; object-fit:contain;
-                transform-origin:center; }
-  .ctrls { display:flex; flex-direction:column; gap:10px; width:236px; text-align:right; }
+                transform-origin:center; pointer-events:none; z-index:5; }
+  .room video.fill { object-fit:cover; inset:auto; top:2.5%; left:0; width:100%; height:95%; }
+  .ctrls { display:flex; flex-direction:column; gap:8px; width:250px; text-align:right; }
   .ctrls label { font-size:12px; color:var(--dim); display:flex; flex-direction:column; gap:2px; }
   .ctrls input[type=range] { width:100%; }
+  .ctrls .chk { flex-direction:row; align-items:center; gap:6px; }
+  .ctrls .seg { display:flex; gap:6px; }
+  .ctrls .seg button { flex:1; padding:6px 4px; font-size:11.5px; border-radius:9px;
+                       background:var(--card); color:var(--txt); border:1px solid var(--line); cursor:pointer; }
+  .ctrls .seg button.on { background:#7C4DFF; border-color:#7C4DFF; color:#fff; font-weight:700; }
+  .ctrls .sect { font-size:11px; font-weight:800; color:var(--acc); margin-top:4px;
+                 border-top:1px solid var(--line); padding-top:8px; }
+  .transport { display:flex; align-items:center; gap:6px; }
+  .transport button { width:32px; height:30px; border-radius:8px; background:var(--card);
+                      color:var(--txt); border:1px solid var(--line); cursor:pointer; font-size:13px; }
+  .transport button:hover { border-color:var(--acc); }
+  .transport .tc { margin-inline-start:auto; font-size:11px; color:var(--dim); font-variant-numeric:tabular-nums; }
   .modal .actions { justify-content:center; margin-top:14px; }
   .pill { display:inline-block; padding:2px 9px; border-radius:999px; font-size:11.5px; font-weight:700; }
   .t1{background:#2b3a55;color:#a9c8ff}.t2{background:#3a2f55;color:#d0b6ff}
@@ -903,8 +955,52 @@ INDEX_HTML = r"""<!doctype html>
       <h3 id="vTitle"></h3>
       <div class="meta" id="vMeta"></div>
       <div class="roomwrap">
-        <div class="room" id="vRoom"><video id="vVid" playsinline autoplay loop muted></video></div>
+        <div class="room" id="vRoom">
+          <div class="rm-head">
+            <div class="rm-ic">↩</div>
+            <div class="rm-ic">⋮</div>
+            <div class="rm-title"><b id="rmName">الغرفة</b><span class="th"></span></div>
+          </div>
+          <div class="rm-aud">
+            <span class="rm-count">👤 <span id="rmCount">12</span></span>
+            <span class="rm-av"></span><span class="rm-av"></span><span class="rm-av"></span>
+            <span class="rm-av"></span><span class="rm-av"></span>
+          </div>
+          <div class="rm-stage" id="rmStage"></div>
+          <div class="rm-chat">
+            <div class="rm-msg">مرحبًا بالجميع 👋</div>
+            <div class="rm-msg" style="align-self:flex-end">أهلًا بك!</div>
+            <div class="rm-msg">أرسلوا هدية لتظهر هنا</div>
+          </div>
+          <div class="rm-bar">
+            <span class="rm-star">★</span>
+            <span class="rm-comp">قل شيئًا…</span>
+            <span class="rm-btn">🎤</span>
+            <span class="rm-btn">🔊</span>
+          </div>
+          <video id="vVid" playsinline autoplay loop muted></video>
+        </div>
         <div class="ctrls">
+          <div class="sect">التشغيل والفحص</div>
+          <div class="transport">
+            <button id="tStepB" title="إطار للخلف">⏮</button>
+            <button id="tPlay" title="تشغيل/إيقاف">⏸</button>
+            <button id="tStepF" title="إطار للأمام">⏭</button>
+            <button id="tLoop" title="تكرار" class="on">🔁</button>
+            <span class="tc" id="tTime">0.00 / 0.00</span>
+          </div>
+          <label>الموضع الزمني <b id="lTime"></b>
+            <input type="range" id="cTime" min="0" max="1000" step="1" value="0">
+          </label>
+          <label>سرعة التشغيل <b id="lSpeed"></b>
+            <input type="range" id="cSpeed" min="0.25" max="2" step="0.05" value="1">
+          </label>
+          <div class="sect">الوضع على الغرفة</div>
+          <label>طريقة الملء</label>
+          <div class="seg" id="segFit">
+            <button data-fit="contain" class="on">بالحجم الأصلي</button>
+            <button data-fit="fill">يغطي 95% من الطول</button>
+          </div>
           <label>الحجم <b id="lScale"></b>
             <input type="range" id="cScale" min="0.4" max="1.2" step="0.05">
           </label>
@@ -914,7 +1010,20 @@ INDEX_HTML = r"""<!doctype html>
           <label>الموضع العمودي (أسفل/أعلى) <b id="lPosY"></b>
             <input type="range" id="cPosY" min="-0.5" max="0.5" step="0.02">
           </label>
-          <div class="hint">حرّك المؤشر لترى الهدية مكانها فوق الغرفة، ثم اضغط حفظ في الجدول.</div>
+          <label>الشفافية <b id="lAlpha"></b>
+            <input type="range" id="cAlpha" min="0.1" max="1" step="0.05" value="1">
+          </label>
+          <label>تكبير/تصغير (بكسل) <b id="lZoom"></b>
+            <input type="range" id="cZoom" min="0.5" max="2" step="0.02" value="1">
+          </label>
+          <div class="sect">عرض</div>
+          <div class="seg">
+            <button id="tRoom" class="on">إظهار الغرفة</button>
+            <button id="tBg">خلفية شفافة</button>
+          </div>
+          <label class="chk"><input type="checkbox" id="cPlay" checked> تشغيل الصوت في المعاينة</label>
+          <label class="chk"><input type="checkbox" id="cGrid"> شبكة المحاذاة</label>
+          <div class="hint">شغّل وأوقف، تنقّل إطارًا بإطار، غيّر السرعة، واضبط الحجم والموضع والشفافية — ثم اضغط حفظ في الجدول ليثبت الحجم والموضع في التطبيق.</div>
         </div>
       </div>
       <div class="actions">
@@ -936,17 +1045,55 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&l
 // The sliders mirror the app's scale + position fields, so the operator can
 // place the gift over a phone-shaped room and see the result before saving.
 let previewGift = null;
-function applyPlacement(){
+// Advanced preview state. `fit` mirrors the app's renderer: `contain`
+// letterboxes a clip (its own shape), `fill` makes a vertical clip cover 95%
+// of the phone height. `zoom` is a pure preview magnifier (in CSS px) that
+// lets the operator inspect edges for a halo without touching the saved
+// scale. `alpha` fades the whole clip to check it sits over the room.
+let pvFit = 'contain';
+function buildRoom(){
+  const stage = $('#rmStage');
+  if (!stage || stage.childElementCount) return;
+  for (let i = 0; i < 10; i++){
+    const seat = document.createElement('div');
+    seat.className = 'rm-seat' + (i < 3 ? ' occ' : '');
+    seat.innerHTML = i < 3
+      ? '<span class="mic">' + ['🦁','🐯','🐧'][i] + '</span>' + (i === 1 ? '<span class="moff">🔇</span>' : '')
+      : '<span class="mic">🎙</span>';
+    stage.appendChild(seat);
+  }
+  const grid = document.createElement('div');
+  grid.id = 'rmGrid';
+  grid.style.cssText = 'position:absolute;inset:0;z-index:6;pointer-events:none;display:none;' +
+    'background:linear-gradient(rgba(255,255,255,.18) 1px,transparent 1px) 0 0/100% 33.33%,' +
+    'linear-gradient(90deg,rgba(255,255,255,.18) 1px,transparent 1px) 0 0/33.33% 100%';
+  $('#vRoom').appendChild(grid);
+}
+function applyView(){
   const v = $('#vVid');
   const sc = Number($('#cScale').value), px = Number($('#cPosX').value), py = Number($('#cPosY').value);
-  v.style.transform = `translate(${px * 252}px, ${py * 448}px) scale(${sc})`;
+  const alpha = Number($('#cAlpha').value), zoom = Number($('#cZoom').value);
+  v.style.transform = `translate(${px * 300}px, ${py * 540}px) scale(${sc * zoom})`;
+  v.style.opacity = alpha;
+  v.classList.toggle('fill', pvFit === 'fill');
   $('#lScale').textContent = Math.round(sc * 100) + '%';
   $('#lPosX').textContent = px.toFixed(2);
   $('#lPosY').textContent = py.toFixed(2);
+  $('#lAlpha').textContent = Math.round(alpha * 100) + '%';
+  $('#lZoom').textContent = Math.round(zoom * 100) + '%';
+}
+function syncTime(){
+  const v = $('#vVid');
+  const d = v.duration || 0;
+  if (!d) return;
+  $('#cTime').value = Math.round((v.currentTime / d) * 1000);
+  $('#lTime').textContent = v.currentTime.toFixed(2) + 's';
+  $('#tTime').textContent = v.currentTime.toFixed(2) + ' / ' + d.toFixed(2);
 }
 function openPreview(g){
   if (!g || !g.preview){ alert('لا توجد معاينة لهذه الهدية بعد.'); return; }
   previewGift = g;
+  buildRoom();
   const v = $('#vVid');
   const sources = [g.preview, g.previewMp4].filter(Boolean).map(u => '/' + u);
   v.innerHTML = '';
@@ -956,17 +1103,75 @@ function openPreview(g){
     s.type = src.includes('.webm') ? 'video/webm' : 'video/mp4';
     v.appendChild(s);
   }
+  // A vertical clip is meant to fill the phone screen; show that by default.
+  const vertical = (g.videoHeight || 0) > (g.videoWidth || 0);
+  pvFit = vertical ? 'fill' : 'contain';
+  document.querySelectorAll('#segFit button').forEach(b => b.classList.toggle('on', b.dataset.fit === pvFit));
+  v.muted = !$('#cPlay').checked;
+  v.loop = $('#tLoop').classList.contains('on');
+  v.playbackRate = Number($('#cSpeed').value);
   $('#vTitle').textContent = g.labelAr || g.id || '';
   $('#vMeta').textContent = [g.id, g.tier != null ? 'فئة ' + g.tier : '', g.status || ''].filter(Boolean).join(' · ');
   $('#cScale').value = g.scale ?? 1;
   $('#cPosX').value = g.posX ?? 0;
   $('#cPosY').value = g.posY ?? 0;
-  applyPlacement();
+  $('#cAlpha').value = 1;
+  $('#cZoom').value = 1;
+  $('#tPlay').textContent = '⏸';
+  applyView();
   $('#viewer').classList.add('open');
   v.load();
   v.play().catch(() => {});
 }
-['cScale','cPosX','cPosY'].forEach(id => { $('#'+id).oninput = applyPlacement; });
+['cScale','cPosX','cPosY','cAlpha','cZoom'].forEach(id => { $('#'+id).oninput = applyView; });
+$('#cPlay').onchange = () => { $('#vVid').muted = !$('#cPlay').checked; };
+$('#cGrid').onchange = () => { $('#rmGrid').style.display = $('#cGrid').checked ? 'block' : 'none'; };
+$('#cSpeed').oninput = () => {
+  const s = Number($('#cSpeed').value);
+  $('#vVid').playbackRate = s;
+  $('#lSpeed').textContent = s.toFixed(2) + '×';
+};
+$('#cTime').oninput = () => {
+  const v = $('#vVid');
+  if (v.duration) v.currentTime = (Number($('#cTime').value) / 1000) * v.duration;
+};
+$('#vVid').addEventListener('timeupdate', syncTime);
+$('#vVid').addEventListener('loadedmetadata', syncTime);
+$('#tPlay').onclick = () => {
+  const v = $('#vVid');
+  if (v.paused){ v.play().catch(() => {}); $('#tPlay').textContent = '⏸'; }
+  else { v.pause(); $('#tPlay').textContent = '▶'; }
+};
+function stepFrame(dir){
+  const v = $('#vVid');
+  v.pause(); $('#tPlay').textContent = '▶';
+  // Assume a 30 fps authored clip; a step is one frame at that rate.
+  v.currentTime = Math.max(0, Math.min(v.duration || 0, v.currentTime + dir / 30));
+  syncTime();
+}
+$('#tStepF').onclick = () => stepFrame(1);
+$('#tStepB').onclick = () => stepFrame(-1);
+$('#tLoop').onclick = () => {
+  const on = $('#tLoop').classList.toggle('on');
+  $('#vVid').loop = on;
+};
+document.querySelectorAll('#segFit button').forEach(b => {
+  b.onclick = () => {
+    pvFit = b.dataset.fit;
+    document.querySelectorAll('#segFit button').forEach(x => x.classList.toggle('on', x === b));
+    applyView();
+  };
+});
+$('#tRoom').onclick = () => {
+  const on = $('#tRoom').classList.toggle('on');
+  $('#tBg').classList.toggle('on', !on);
+  $('#vRoom').classList.toggle('noro', !on);
+};
+$('#tBg').onclick = () => {
+  const on = $('#tBg').classList.toggle('on');
+  $('#tRoom').classList.toggle('on', !on);
+  $('#vRoom').classList.toggle('noro', on);
+};
 $('#vSave').onclick = async () => {
   if (!previewGift) return;
   const body = {

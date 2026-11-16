@@ -67,6 +67,6 @@ fun NestsMyRoomsTab(
         modifier = Modifier.fillMaxSize(),
         contentPadding = rememberNestsGridContentPadding(),
     ) {
-        nestsTwoColumnGrid(gridRooms, accountViewModel, nav)
+        nestsRoomList(gridRooms, accountViewModel, nav)
     }
 }

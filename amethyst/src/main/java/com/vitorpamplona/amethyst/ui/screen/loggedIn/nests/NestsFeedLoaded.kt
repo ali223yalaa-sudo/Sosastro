@@ -21,6 +21,7 @@
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.nests
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +40,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -63,6 +65,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.vitorpamplona.amethyst.R
@@ -173,7 +176,7 @@ fun NestsFeedLoaded(
         contentPadding = rememberNestsGridContentPadding(),
         state = listState,
     ) {
-        nestsTwoColumnGrid(discoverRooms, accountViewModel, nav)
+        nestsRoomList(discoverRooms, accountViewModel, nav)
     }
 }
 
@@ -192,18 +195,18 @@ internal fun rememberNestsGridContentPadding(): PaddingValues {
 }
 
 @OptIn(ExperimentalFoundationApi::class)
-internal fun LazyListScope.nestsTwoColumnGrid(
+internal fun LazyListScope.nestsRoomList(
     rooms: ImmutableList<Note>,
     accountViewModel: AccountViewModel,
     nav: INav,
 ) {
     items(rooms.size, key = { rooms[it].idHex }) { index ->
-        NestGridCard(
+        NestRoomRow(
             baseNote = rooms[index],
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .padding(horizontal = 14.dp, vertical = 5.dp)
                     .animateItem(),
             accountViewModel = accountViewModel,
             nav = nav,
@@ -212,186 +215,16 @@ internal fun LazyListScope.nestsTwoColumnGrid(
 }
 
 /**
- * Audio-rooms list card. Mirrors [ObserveAndRenderSpace] visually and
- * gates a tap on the underlying [MeetingSpaceEvent] by the same liveness
- * heuristic the badge uses: cards rendering as [EndedFlag] (status =
- * ENDED, status = LIVE with stale presence, or unknown status) route
- * through the read-only [NestLobbyScreen] so re-entry can't accidentally
- * boot the audio pipeline or trigger a host-side kind-30312 refresh on
- * a dead room. Cards that the UI still shows as live, scheduled, or
- * private launch [NestActivity] directly — the lobby's purpose is only
- * to gate stale rooms.
- *
- * Long-pressing the card opens the standard [NoteQuickActionMenu] from
- * [LongPressToQuickAction], so authors can delete (kind:5 against the
- * room's `a`-tag) and listeners can share/copy the room link without
- * needing to enter the room first.
+ * Compact audio-rooms list row. The old grid card was a full-width 16:9
+ * cover, which filled the screen and forced a heavy cover decode per item.
+ * This is a single 84dp row with a small square thumbnail, so a dozen rooms
+ * fit on screen and the list scrolls cheaply. Same tap routing as before:
+ * [EndedFlag]-style cards go through the read-only lobby, live rooms launch
+ * [NestActivity] directly.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun NestFeedCard(
-    baseNote: Note,
-    modifier: Modifier,
-    accountViewModel: AccountViewModel,
-    nav: INav,
-) {
-    val meetingEvent = baseNote.event as? MeetingSpaceEvent ?: return
-    val addressableNote = baseNote as? AddressableNote ?: return
-
-    val context = LocalContext.current
-    val status = meetingEvent.checkStatus(meetingEvent.status())
-
-    val isUiClosed =
-        when (status) {
-            StatusTag.STATUS.LIVE -> {
-                val latestPresence by observeRoomLatestPresence(addressableNote, accountViewModel)
-                val presence = latestPresence
-                presence != null && presence <= TimeUtils.now() - PRESENCE_FRESHNESS_WINDOW_SECONDS
-            }
-
-            StatusTag.STATUS.PRIVATE,
-            -> {
-                false
-            }
-
-            else -> {
-                true
-            }
-        }
-
-    val onClick =
-        remember(meetingEvent, isUiClosed) {
-            {
-                openRoom(meetingEvent, baseNote, isUiClosed, accountViewModel, nav, context)
-            }
-        }
-
-    LongPressToQuickAction(baseNote, accountViewModel, nav) { showQuickAction ->
-        Column(
-            modifier
-                .combinedClickable(
-                    onClick = onClick,
-                    onLongClick = showQuickAction,
-                ),
-        ) {
-            Column(StdPadding) {
-                SensitivityWarning(
-                    note = baseNote,
-                    accountViewModel = accountViewModel,
-                ) {
-                    ObserveAndRenderSpace(addressableNote, accountViewModel, nav)
-                }
-            }
-        }
-    }
-}
-
-/**
- * Compact one-line variant for the "Recently ended" bucket. Skips the
- * 16:9 hero, participants gallery, and reaction row to keep the
- * historic list scannable while preserving the entry point — tapping
- * still routes through [Route.NestLobby] so users can open the
- * recording (NIP-53 EGG-11) if one is attached.
- */
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun NestEndedCompactCard(
-    baseNote: Note,
-    modifier: Modifier,
-    accountViewModel: AccountViewModel,
-    nav: INav,
-) {
-    val meetingEvent = baseNote.event as? MeetingSpaceEvent ?: return
-
-    val context = LocalContext.current
-    val onClick =
-        remember(meetingEvent) {
-            {
-                openRoom(meetingEvent, baseNote, isUiClosed = true, accountViewModel, nav, context)
-            }
-        }
-
-    val name = meetingEvent.room()?.ifBlank { null } ?: meetingEvent.dTag()
-    val cover = meetingEvent.image()?.ifBlank { null }
-    val endedAt = baseNote.createdAt()
-    val endedAgo = endedAt?.let { timeAgoNoDot(it, context) }.orEmpty()
-
-    LongPressToQuickAction(baseNote, accountViewModel, nav) { showQuickAction ->
-        Row(
-            modifier =
-                modifier
-                    .combinedClickable(
-                        onClick = onClick,
-                        onLongClick = showQuickAction,
-                    ).padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(Size55dp)
-                        .clip(QuoteBorder),
-            ) {
-                if (cover != null) {
-                    AsyncImage(
-                        model = cover,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                } else {
-                    val addressable = baseNote as? AddressableNote
-                    if (addressable != null) {
-                        DisplayAuthorBanner(addressable, accountViewModel)
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                val creator = baseNote.author
-                if (creator != null) {
-                    UsernameDisplay(
-                        baseUser = creator,
-                        fontWeight = FontWeight.Normal,
-                        textColor = MaterialTheme.colorScheme.grayText,
-                        accountViewModel = accountViewModel,
-                    )
-                }
-                Text(
-                    text =
-                        if (endedAgo.isNotEmpty()) {
-                            stringRes(R.string.nests_ended_ago, endedAgo)
-                        } else {
-                            stringRes(R.string.live_stream_ended_tag)
-                        },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.grayText,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-            MoreOptionsButton(
-                baseNote = baseNote,
-                accountViewModel = accountViewModel,
-                nav = nav,
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-internal fun NestGridCard(
+internal fun NestRoomRow(
     baseNote: Note,
     modifier: Modifier,
     accountViewModel: AccountViewModel,
@@ -415,7 +248,7 @@ internal fun NestGridCard(
     val subtitle = meetingEvent.summary()?.ifBlank { null }
     val listeners by observeRoomOccupancyCount(addressableNote, accountViewModel)
     val live = status == StatusTag.STATUS.LIVE
-    val cardShape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(14.dp)
 
     LongPressToQuickAction(baseNote, accountViewModel, nav) { showQuickAction ->
         Card(
@@ -424,21 +257,20 @@ internal fun NestGridCard(
                     onClick = onClick,
                     onLongClick = showQuickAction,
                 ),
-            shape = cardShape,
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = NestLobbyCard,
-                ),
+            shape = shape,
+            colors = CardDefaults.cardColors(containerColor = NestLobbyCard),
             border = BorderStroke(1.dp, NestGridBorder),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         ) {
-            Column {
+            Row(
+                modifier = Modifier.fillMaxWidth().height(84.dp).padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Box(
                     modifier =
                         Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(16f / 9f)
-                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                            .size(68.dp)
+                            .clip(RoundedCornerShape(11.dp)),
                 ) {
                     if (cover != null) {
                         AsyncImage(
@@ -450,18 +282,9 @@ internal fun NestGridCard(
                     } else {
                         UnknownPersonCover(Modifier.fillMaxSize())
                     }
-                    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                        RoomSignalBadge(
-                            count = listeners,
-                            live = live,
-                            modifier =
-                                Modifier
-                                    .align(Alignment.TopStart)
-                                    .padding(8.dp),
-                        )
-                    }
                 }
-                Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+                Spacer(Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = name,
                         color = Color.White,
@@ -488,7 +311,29 @@ internal fun NestGridCard(
                             accountViewModel = accountViewModel,
                         )
                     }
+                    Spacer(Modifier.height(5.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .size(7.dp)
+                                    .clip(CircleShape)
+                                    .background(if (live) NestSignalTeal else Color(0xFF6A6A6A)),
+                        )
+                        Spacer(Modifier.width(5.dp))
+                        Text(
+                            text = listeners.toString(),
+                            color = Color(0xFF9A9A9A),
+                            fontSize = 12.sp,
+                        )
+                    }
                 }
+                Text(
+                    text = "›",
+                    color = Color(0xFF6A6A6A),
+                    fontSize = 22.sp,
+                    modifier = Modifier.padding(start = 6.dp, end = 4.dp),
+                )
             }
         }
     }

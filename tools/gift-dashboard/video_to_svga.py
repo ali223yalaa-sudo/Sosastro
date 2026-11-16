@@ -47,6 +47,13 @@ from PIL import Image, ImageFilter
 
 import imageio_ffmpeg
 
+# Keep rembg's model cache in the workspace, not `$HOME`. The home directory
+# is wiped on a sandbox restart, which silently deleted the 214 MB BiRefNet
+# weights and dropped every matte back to the colour key. `/workspace`
+# persists, so the model survives and is downloaded only once.
+os.environ.setdefault("REMBG_HOME", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".rembg"))
+os.environ["REMBG_HOME"] = os.path.abspath(os.environ["REMBG_HOME"])
+
 try:
     from scipy import ndimage as ndi
 
@@ -256,8 +263,17 @@ def has_real_alpha(frames: list[np.ndarray], min_frac: float = 0.01) -> bool:
 
 
 def _rembg_model_present(name: str) -> bool:
-    d = os.path.join(os.path.expanduser("~"), ".rembg", "models", name)
-    return os.path.isdir(d) and any(f.endswith(".onnx") for f in os.listdir(d))
+    try:
+        from rembg.sessions import sessions_class
+    except Exception:
+        return False
+    cls = next((c for c in sessions_class if c.name() == name), None)
+    if cls is None:
+        return False
+    try:
+        return cls.resolve_existing(f"{name}.onnx") is not None
+    except Exception:
+        return False
 
 
 def birefnet_available(name: str) -> bool:
@@ -279,13 +295,69 @@ def birefnet_available(name: str) -> bool:
 
 _BIREFNET_SESSIONS: dict[str, object] = {}
 
+# One BiRefNet frame peaks near this much RSS (it always resizes to 1024x1024).
+# The gate below keeps a run from pushing a shared box into swap or an OOM
+# kill, which would take the whole session down mid-conversion.
+BIREFNET_PEAK_MB = 7200
+
+
+def _available_mb() -> float:
+    """Free RAM in MiB, honouring a cgroup limit when one is set."""
+    try:
+        with open("/proc/meminfo") as fh:
+            for line in fh:
+                if line.startswith("MemAvailable:"):
+                    avail = int(line.split()[1]) / 1024
+                    break
+            else:
+                return float("inf")
+    except OSError:
+        return float("inf")
+    for path in ("/sys/fs/cgroup/memory.max", "/sys/fs/cgroup/memory/memory.limit_in_bytes"):
+        try:
+            with open(path) as fh:
+                raw = fh.read().strip()
+        except OSError:
+            continue
+        if raw.isdigit():
+            avail = min(avail, int(raw) / 1024 / 1024)
+            break
+    return avail
+
+
+def birefnet_affordable(name: str, headroom_mb: int = 1200) -> bool:
+    """Whether a BiRefNet run fits in RAM right now, with headroom to spare.
+
+    Running it on a box that cannot hold its peak is how a conversion took the
+    whole machine down, so callers fall back to the colour key when this is
+    false rather than risk the kill.
+    """
+    return _available_mb() - BIREFNET_PEAK_MB >= headroom_mb
+
 
 def _birefnet_session(name: str):
     session = _BIREFNET_SESSIONS.get(name)
     if session is None:
-        from rembg import new_session
+        import onnxruntime as ort
+        from rembg.sessions import sessions_class
 
-        session = new_session(name)
+        # BiRefNet always resizes its input to 1024x1024, so a single frame
+        # peaks around 6-7 GB of RAM with onnxruntime's defaults (its CPU
+        # arena reserves the largest intermediate buffer). On a shared box
+        # that can take the whole machine down, so cap threads and turn the
+        # arena and memory pattern off: peak drops sharply for a modest
+        # slowdown, and the weights still load only once per process.
+        opts = ort.SessionOptions()
+        opts.intra_op_num_threads = 2
+        opts.inter_op_num_threads = 1
+        opts.enable_cpu_mem_arena = False
+        opts.enable_mem_pattern = False
+        opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
+
+        cls = next((c for c in sessions_class if c.name() == name), None)
+        if cls is None:
+            raise ValueError(f"unknown rembg model: {name}")
+        session = cls(name, opts)
         _BIREFNET_SESSIONS[name] = session
     return session
 
@@ -694,6 +766,21 @@ def subject_coverage(frames: list[np.ndarray], thresh: int = 12) -> float:
     subject along with the background and leaves every frame empty. This is
     the number that catches it: a clip whose subject was really isolated
     reports a healthy fraction, one that was keyed away reports ~0.
+    """
+    if not frames:
+        return 0.0
+    step = max(1, len(frames) // 12)
+    vals = [float((fr[..., 3] > thresh).mean()) for fr in frames[::step]]
+    return sum(vals) / len(vals)
+
+
+def opaque_coverage(frames: list[np.ndarray], thresh: int = 247) -> float:
+    """Fraction of pixels that are fully opaque, averaged over the clip.
+
+    The mirror of [subject_coverage]: a clip that was never keyed (or whose
+    key failed) keeps its own background, so nearly every pixel is opaque and
+    the gift paints a solid rectangle over the room. This is the number that
+    catches that, so an opaque upload can never ship as a black box.
     """
     if not frames:
         return 0.0
@@ -1126,6 +1213,17 @@ def main() -> int:
         ),
     )
     ap.add_argument("--min-coverage", type=float, default=0.005)
+    ap.add_argument(
+        "--max-opaque",
+        type=float,
+        default=0.97,
+        help=(
+            "fail if this fraction of the frame is opaque across the whole clip. "
+            "An un-keyed upload keeps its own background, so it ships as a solid "
+            "rectangle that hides the room; this catches that before publish. "
+            "Raise it (or pass 1.0) for a scene that is genuinely full-frame."
+        ),
+    )
     ap.add_argument("--icon")
     ap.add_argument("--preview")
     ap.add_argument("--preview-video", dest="preview_video")
@@ -1169,9 +1267,25 @@ def main() -> int:
         if not birefnet_available(args.matte_model):
             print(f"error: --matte birefnet but model {args.matte_model!r} is not on disk", file=sys.stderr)
             return 2
+        if not birefnet_affordable(args.matte_model):
+            print(
+                "error: --matte birefnet needs about "
+                f"{BIREFNET_PEAK_MB / 1024:.1f} GiB of free RAM and only "
+                f"{_available_mb() / 1024:.1f} GiB is available; free memory or "
+                "use --matte key",
+                file=sys.stderr,
+            )
+            return 2
         use_birefnet = True
     elif args.matte == "auto" and mode != "none" and birefnet_available(args.matte_model):
-        use_birefnet = True
+        if birefnet_affordable(args.matte_model):
+            use_birefnet = True
+        else:
+            print(
+                "matte: skipping BiRefNet (needs ~"
+                f"{BIREFNET_PEAK_MB / 1024:.1f} GiB free, "
+                f"{_available_mb() / 1024:.1f} GiB available) — using the colour key"
+            )
 
     if args.passthrough:
         # Reproducing an existing clip: keep every frame as decoded so the
@@ -1272,6 +1386,25 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 3
+
+        # The mirror guard: a clip that was never keyed keeps its own
+        # background. With edge-blending on (the default) the converter
+        # dissolves it into the room, so a hard rectangle never ships. With
+        # blending off the operator asked for a clean edge, and an opaque clip
+        # would then be exactly the solid rectangle that hides the room — so
+        # fail loudly and point at real background removal instead.
+        if args.no_blend:
+            opq = opaque_coverage(keyed)
+            print(f"opaque coverage: {opq * 100:.1f}%")
+            if opq > args.max_opaque:
+                print(
+                    "error: the clip is a solid rectangle "
+                    f"(opaque {opq * 100:.1f}% > {args.max_opaque * 100:.1f}%) "
+                    "and edge-blending is off; the background was not removed — "
+                    "use --matte birefnet, or --bg with the real backdrop colour",
+                    file=sys.stderr,
+                )
+                return 4
 
         # Crop to the subject only when the matte actually produced a cutout.
         # For a full scene the subject bbox is the whole frame anyway, so
