@@ -38,6 +38,9 @@ sections.gifts = async () => {
       .gu-track { flex: 1; height: 10px; border-radius: 6px; background: var(--panel2, #1b2130); overflow: hidden; }
       .gu-fill { height: 100%; width: 0; border-radius: 6px; background: linear-gradient(90deg, #4b6bfb, #7C4DFF); transition: width .12s linear; }
       .gu-pct { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--muted, #8b93a7); min-width: 3.5rem; text-align: center; }
+      .gu-pct.wide { min-width: 0; flex: 1; text-align: start; }
+      .gu-prog.busy .gu-fill { width: 100% !important; background: linear-gradient(90deg, #7C4DFF, #4b6bfb, #7C4DFF); background-size: 200% 100%; animation: gupslide 1s linear infinite; }
+      @keyframes gupslide { to { background-position: -200% 0; } }
     </style>
     <p class="lead">\u0627\u0644\u0647\u062F\u0627\u064A\u0627 \u0627\u0644\u0645\u0646\u0634\u0648\u0631\u0629 \u062A\u0623\u062A\u064A \u0645\u0646 \u0647\u0646\u0627 \u0645\u0628\u0627\u0634\u0631\u0629\u064B. \u0627\u0644\u062A\u0637\u0628\u064A\u0642 \u064A\u0642\u0631\u0623 \u0627\u0644\u0643\u062A\u0627\u0644\u0648\u062C \u0639\u0646\u062F \u0643\u0644 \u062A\u0634\u063A\u064A\u0644.</p>
     <div class="card">
@@ -102,15 +105,29 @@ function wireGiftUpload(state) {
   const go = q("gu-go");
   if (!go) return;
   const msg = (t, cls) => { const m = q("gu-msg"); m.textContent = t; m.className = "help " + (cls || ""); };
-  // The bar shows bytes-in-flight; the worker then stores the object, so the
-  // last slice is labelled rather than left stuck just under 100%.
+  // The bar covers the whole operation, not just the byte transfer: it fills
+  // with real bytes during the upload, then becomes an indeterminate sweep for
+  // the store-and-publish tail, which the worker reports no progress for.
   const setProg = (pct, label) => {
     const wrap = q("gu-prog");
-    wrap.classList.add("on");
+    wrap.classList.add("on"); wrap.classList.remove("busy");
+    q("gu-pct").classList.remove("wide");
     q("gu-fill").style.width = Math.max(0, Math.min(100, pct)) + "%";
     q("gu-pct").textContent = label || (Math.round(pct) + "%");
   };
-  const hideProg = () => { q("gu-prog").classList.remove("on"); q("gu-fill").style.width = "0%"; q("gu-pct").textContent = "0%"; };
+  const busyProg = (label) => {
+    const wrap = q("gu-prog");
+    wrap.classList.add("on", "busy");
+    q("gu-pct").classList.add("wide");
+    q("gu-pct").textContent = label;
+  };
+  const hideProg = () => {
+    const wrap = q("gu-prog");
+    wrap.classList.remove("on", "busy");
+    q("gu-fill").style.width = "0%";
+    q("gu-pct").classList.remove("wide");
+    q("gu-pct").textContent = "0%";
+  };
 
   // Upload with progress. fetch() cannot report upload progress, so the
   // multipart POST goes through XHR, which fires upload.onprogress as the
@@ -120,7 +137,7 @@ function wireGiftUpload(state) {
     xhr.open("POST", "/api/gifts/asset");
     xhr.setRequestHeader("authorization", "Bearer " + TOKEN);
     xhr.upload.onprogress = (e) => { if (e.lengthComputable) setProg((e.loaded / e.total) * 100); };
-    xhr.upload.onload = () => setProg(100, "\u0627\u0643\u062A\u0645\u0644 \u0627\u0644\u0631\u0641\u0639");
+    xhr.upload.onload = () => busyProg("\u0627\u0643\u062A\u0645\u0644 \u0627\u0644\u0631\u0641\u0639 \u2014 \u062C\u0627\u0631\u064D \u0625\u0632\u0627\u0644\u0629 \u0627\u0644\u062E\u0644\u0641\u064A\u0629 \u0648\u0627\u0644\u0642\u0635 \u0648\u0627\u0644\u062A\u0631\u0645\u064A\u0632\u2026");
     xhr.onload = () => {
       let j = {};
       try { j = JSON.parse(xhr.responseText); } catch (e) { /* keep {} */ }
@@ -189,7 +206,9 @@ function wireGiftUpload(state) {
         if (h > 0) form.append("height", String(h));
       }
       await uploadWithProgress(form);
-      setProg(100, "\u0627\u0643\u062A\u0645\u0644 \u0627\u0644\u0631\u0641\u0639");
+      // The asset is stored; the meta write and publish are the tail of the
+      // same operation, so the bar keeps sweeping until they are done.
+      busyProg("\u0627\u0643\u062A\u0645\u0644 \u0627\u0644\u0631\u0641\u0639 \u2014 \u062C\u0627\u0631\u064D \u0625\u0632\u0627\u0644\u0629 \u0627\u0644\u062E\u0644\u0641\u064A\u0629 \u0648\u0627\u0644\u0642\u0635 \u0648\u0627\u0644\u062A\u0631\u0645\u064A\u0632\u2026");
 
       // Fill in the operator-facing fields on the same row, then publish.
       await api("/api/gifts/meta", {

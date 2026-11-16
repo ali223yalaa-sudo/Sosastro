@@ -819,7 +819,10 @@ INDEX_HTML = r"""<!doctype html>
   .prog.on { display:flex; }
   .ptrack { flex:1; height:10px; border-radius:6px; background:#1b2130; overflow:hidden; }
   .pfill { height:100%; width:0; border-radius:6px; background:linear-gradient(90deg,#4b6bfb,#7C4DFF); transition:width .12s linear; }
-  .plabel { font-variant-numeric:tabular-nums; font-size:12px; color:var(--dim); min-width:5rem; text-align:center; }
+  .plabel { font-variant-numeric:tabular-nums; font-size:12px; color:var(--dim); min-width:5rem; text-align:center; white-space:nowrap; }
+  .prog.busy { flex-wrap:wrap; }
+  .prog.busy .plabel { flex:1 1 100%; order:-1; text-align:start; min-width:0; white-space:normal; }
+  .prog.busy .ptrack { flex:1 1 100%; }
   .prog.busy .pfill { width:100% !important; background:linear-gradient(90deg,#7C4DFF,#4b6bfb,#7C4DFF); background-size:200% 100%; animation:pslide 1s linear infinite; }
   @keyframes pslide { to { background-position:-200% 0; } }
 </style>
@@ -1316,7 +1319,7 @@ $('#go').onclick = () => {
     xhr.upload.onprogress = (e) => { if (e.lengthComputable) setProg((e.loaded/e.total)*100); };
     // Upload finished, server now transcodes; switch to the indeterminate
     // sweep so the operator sees it is still working, not stuck at 100%.
-    xhr.upload.onload = () => { busyProg('جارٍ المعالجة…'); setStatus('اكتمل الرفع — جارٍ إزالة الخلفية والقص والترميز…', true); };
+    xhr.upload.onload = () => { busyProg('اكتمل الرفع — جارٍ إزالة الخلفية والقص والترميز…'); setStatus('اكتمل الرفع — جارٍ إزالة الخلفية والقص والترميز…', true); };
     xhr.onload = () => {
       let res = {}; try { res = JSON.parse(xhr.responseText); } catch(e){}
       if (xhr.status === 200 && res.ok) {
