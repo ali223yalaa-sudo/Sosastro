@@ -168,7 +168,9 @@ fun RoomGiftOverlay(
     // dashboard clip is multi-megabyte; without this the first send
     // downloaded it while the burst's hold window ran out, so the
     // scene never appeared. Prefetching once means a send is instant.
-    LaunchedEffect(RoomGiftCatalog.effective.map { it.svga }) {
+    // Keyed on *both* asset kinds: a gift may be video-only, and a
+    // re-published clip (same id, new URL) must warm the new file.
+    LaunchedEffect(RoomGiftCatalog.effective.map { it.video to it.svga }) {
         val builder = clientBuilder ?: return@LaunchedEffect
         RoomGiftCatalog.effective.forEach { sku ->
             // Warm the alpha video when the gift has one — it is the clip

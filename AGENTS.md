@@ -1022,7 +1022,10 @@ and keeps SVGA as the fallback for gifts authored before the packer existed.
   both planes and any player can decode it. `--crf`/`--preset` tune the
   encode, `--json` prints a per-clip report. The alpha strip is three
   identical channels, so the shader samples green — 4:2:0 chroma subsampling
-  cannot bleed into the matte.
+  cannot bleed into the matte. A source whose every pixel is transparent is
+  rejected (`fully transparent (nothing to pack)`) rather than packed into an
+  all-black video that would draw *nothing*; in `--batch` that clip is listed
+  under `skipped` in `manifest.json` and the rest still pack.
 - **Playback.** `AlphaVideoGiftPlayer` wraps a `GLSurfaceView`;
   `AlphaVideoRenderer` binds the decoder to an `GL_TEXTURE_EXTERNAL_OES`
   `SurfaceTexture` and samples it with `samplerExternalOES`. The fragment
@@ -1037,7 +1040,10 @@ and keeps SVGA as the fallback for gifts authored before the packer existed.
   `RoomGiftSku.video/videoWidth/videoHeight`. `RoomGiftOverlay` uses the
   video only when both dimensions are present, so a half-authored row falls
   back to `svga`. Both clip kinds drive the same ready/finished deferreds, so
-  the burst's hold clock is identical either way.
+  the burst's hold clock is identical either way. `videoWidth`/`videoHeight`
+  are always the *single-frame* size: the browser panel halves the packed
+  file's height (`Math.round(h / 2)`) before sending it, matching the local
+  tool's `read_alpha_meta`, so the client never has to guess the split.
 - **Worker + panel.** `POST /api/gifts/asset` with `kind=videos` stores the
   file under `assets/videos/<sha>.mp4` and records the `width`/`height`
   fields on the draft; `GET /gifts/videos/<name>` serves it as `video/mp4`.
@@ -1077,7 +1083,10 @@ python3 publish.py push <gift-id>   # one gift (assets + catalog row)
 python3 publish.py push-all         # resync every published gift
 ```
 
-The publishing scripts live in `/workspace/cf_gifts/`:
+The publishing scripts live in `/workspace/cf_gifts/` and are mirrored
+into the repo under `tools/gift-dashboard/cloudflare/` (plus `alpha_pack.py`
+and `video_to_svga.py` beside `server.py`) so the whole pipeline is versioned
+rather than living only on the sandbox:
 
 - `gifts_server.js` / `gifts_ui.js` — the module injected into the worker.
 - `build_admin.py` — patches the **pristine** original bundle (kept in

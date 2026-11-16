@@ -139,6 +139,39 @@ class RemoteGiftCatalogTest {
     }
 
     @Test
+    fun videoFieldsAreMappedAndInvalidDimensionsDropped() {
+        val sku =
+            RemoteGiftCatalog(
+                gifts =
+                    listOf(
+                        RemoteGiftSku(
+                            id = "a",
+                            tier = 3,
+                            price = 100,
+                            video = "videos/abc.mp4",
+                            videoWidth = 480,
+                            videoHeight = 480,
+                        ),
+                    ),
+            ).toSkus(base).single()
+        assertEquals("https://gifts.example.com/gifts/videos/abc.mp4", sku.video)
+        assertEquals(480, sku.videoWidth)
+        assertEquals(480, sku.videoHeight)
+
+        // A zero/negative size cannot be letterboxed, so it is dropped and
+        // the player falls back to the SVGA branch.
+        val zero =
+            RemoteGiftCatalog(
+                gifts =
+                    listOf(
+                        RemoteGiftSku(id = "b", tier = 1, price = 1, video = "videos/x.mp4", videoWidth = 0, videoHeight = -5),
+                    ),
+            ).toSkus(base).single()
+        assertNull(zero.videoWidth)
+        assertNull(zero.videoHeight)
+    }
+
+    @Test
     fun malformedJsonIsNullNotACrash() {
         assertNull(RemoteGiftCatalog.parseOrNull("not json at all"))
         assertNull(RemoteGiftCatalog.parseOrNull(""))

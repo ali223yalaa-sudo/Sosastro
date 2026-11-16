@@ -134,6 +134,11 @@ def _save_state_locked(state: dict) -> None:
                 "tier": g.get("tier", 1),
                 "price": g.get("price", 1),
                 "svga": g.get("svga"),
+                # The alpha video is what the app plays when present; SVGA
+                # stays for older clients, exactly as the worker publishes.
+                "video": g.get("video"),
+                "videoWidth": g.get("videoWidth"),
+                "videoHeight": g.get("videoHeight"),
                 "icon": g.get("icon"),
                 "sound": g.get("sound"),
                 "scale": g.get("scale"),
@@ -141,7 +146,7 @@ def _save_state_locked(state: dict) -> None:
                 "posY": g.get("posY", 0),
             }
             for g in state["gifts"]
-            if g.get("svga")
+            if g.get("svga") or g.get("video")
         ],
     }
     (DATA / "published.json").write_text(json.dumps(published, ensure_ascii=False, indent=2))
@@ -599,7 +604,7 @@ class Handler(BaseHTTPRequestHandler):
         draft = next((d for d in state["drafts"] if d["id"] == payload.get("id")), None)
         if draft is None:
             return self.send_json({"error": "unknown draft"}, 404)
-        if not draft.get("svga"):
+        if not draft.get("svga") and not draft.get("video"):
             return self.send_json({"error": "draft has no clip"}, 400)
         # Search only the live gifts: find_gift() also scans drafts, so it
         # would return the draft itself and the gift would never be added to

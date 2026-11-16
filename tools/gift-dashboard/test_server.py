@@ -128,6 +128,19 @@ class DashboardTest(unittest.TestCase):
         self.assertEqual(code, 400)
         self.assertIn("error", body)
 
+    def test_video_only_draft_publishes_with_its_dimensions(self):
+        """A gift whose only clip is an alpha video must publish, and its
+        frame size must reach the app's catalog (the app plays the video and
+        needs the size to letterbox it)."""
+        self.add_draft("vidon", svga=None, video="videos/abc.mp4", videoWidth=480, videoHeight=480)
+        code, _ = self.post("/api/publish", {"id": "vidon"})
+        self.assertEqual(code, 200)
+        _, cat = self.get("/gifts/catalog.json")
+        row = next(g for g in cat["gifts"] if g["id"] == "vidon")
+        self.assertEqual("videos/abc.mp4", row["video"])
+        self.assertEqual(480, row["videoWidth"])
+        self.assertEqual(480, row["videoHeight"])
+
     def test_draft_is_not_served_before_publish(self):
         """An unpublished draft must never reach the app's catalog."""
         self.add_draft("secret")
