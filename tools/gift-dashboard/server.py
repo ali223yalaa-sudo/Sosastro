@@ -181,16 +181,23 @@ def process_upload(
     }
 
 
-def make_clip_preview(svga_rel: str, gift_id: str) -> str | None:
-    """Render the stored clip to an animated GIF for the dashboard."""
+def make_clip_preview(svga_rel: str, gift_id: str, *, generate: bool = True) -> str | None:
+    """Render the stored clip to an animated GIF for the dashboard.
+
+    The GIF is expensive to build, so the upload path builds it once
+    (the operator is already waiting on that request) while the state
+    read only reports an existing file — polling the catalog must never
+    block on an encode.
+    """
     clip = ASSETS / svga_rel
     if not clip.exists():
         return None
-    out_dir = DATA / "previews"
-    out_dir.mkdir(exist_ok=True)
-    out = out_dir / f"{gift_id}.gif"
-    if out.exists() and out.stat().st_mtime >= clip.stat().st_mtime:
+    out = DATA / "previews" / f"{gift_id}.gif"
+    if out.exists():
         return f"previews/{gift_id}.gif?t={int(out.stat().st_mtime)}"
+    if not generate:
+        return None
+    out.parent.mkdir(parents=True, exist_ok=True)
     try:
         run_tool([PYTHON, str(TOOLS / "svga_to_gif.py"), str(clip), str(out)])
         return f"previews/{gift_id}.gif?t={int(time.time())}"
@@ -250,7 +257,7 @@ class Handler(BaseHTTPRequestHandler):
                 state = load_state()
                 for g in state["gifts"] + state["drafts"]:
                     if g.get("svga"):
-                        g["preview"] = make_clip_preview(g["svga"], g["id"]) or g.get("preview")
+                        g["preview"] = make_clip_preview(g["svga"], g["id"], generate=False)
                 return self.send_json(state)
             if p == "/gifts/catalog.json":
                 return self.send_file(DATA / "published.json", "application/json; charset=utf-8", cache=False)
@@ -328,6 +335,14 @@ class Handler(BaseHTTPRequestHandler):
             }
         )
         save_state(state)
+        # The clip changed, so any GIF from a previous upload of this id
+        # is stale; drop it and rebuild now while the operator waits.
+        stale = DATA / "previews" / f"{gift_id}.gif"
+        stale.unlink(missing_ok=True)
+        preview = make_clip_preview(draft["svga"], gift_id)
+        if preview:
+            draft["preview"] = preview
+            save_state(state)
         # Nothing is live yet: the draft must be reviewed and published.
         return self.send_json({"ok": True, "draft": draft})
 
