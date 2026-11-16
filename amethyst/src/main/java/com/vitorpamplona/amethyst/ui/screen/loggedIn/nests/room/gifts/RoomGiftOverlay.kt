@@ -53,15 +53,18 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vitorpamplona.amethyst.BuildConfig
 import com.vitorpamplona.amethyst.commons.viewmodels.GiftMotif
 import com.vitorpamplona.amethyst.commons.viewmodels.RoomGift
 import com.vitorpamplona.amethyst.commons.viewmodels.RoomGiftCatalog
 import com.vitorpamplona.amethyst.commons.viewmodels.RoomGiftTheme
 import com.vitorpamplona.amethyst.commons.viewmodels.giftBurstMillis
 import com.vitorpamplona.amethyst.commons.viewmodels.giftThemeFor
+import com.vitorpamplona.amethyst.model.privacyOptions.IRoleBasedHttpClientBuilder
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -102,6 +105,7 @@ fun RoomGiftOverlay(
     giftsByTarget: Map<String, List<RoomGift>>,
     nameFor: (String) -> String,
     modifier: Modifier = Modifier,
+    clientBuilder: IRoleBasedHttpClientBuilder? = null,
 ) {
     // Flatten to a stable, arrival-ordered list. Dedup by event id
     // (the aggregator already does, but LocalCache re-emits the full
@@ -122,8 +126,19 @@ fun RoomGiftOverlay(
 
     // Per-gift sound effect, decoded once up front so the very first
     // gift is not silent.
-    val sounds = rememberGiftSounds()
-    LaunchedEffect(Unit) { RoomGiftCatalog.all.forEach { sounds.preload(it.sound) } }
+    val sounds = rememberGiftSounds(clientBuilder)
+    LaunchedEffect(Unit) { RoomGiftCatalog.effective.forEach { sounds.preload(it.sound) } }
+
+    // Pull the operator-editable catalog once per process. The store
+    // applies the on-disk copy first and then refreshes over the
+    // network, so a cold start is never blocked on a request and a
+    // failed fetch leaves the last good catalog in place.
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        val builder = clientBuilder ?: return@LaunchedEffect
+        RemoteGiftStore.catalogUrl = BuildConfig.GIFT_CATALOG_URL
+        RemoteGiftStore.load(context, builder)
+    }
 
     // Single-slot queue fed by a producer that re-scans the (re-emitted)
     // gift list on every change. A Channel is essential here: keying the
@@ -141,9 +156,10 @@ fun RoomGiftOverlay(
     }
     LaunchedEffect(Unit) {
         for (gift in pending) {
+            val sku = RoomGiftCatalog.byId(gift.skuId)
             current = gift
-            sounds.play(RoomGiftCatalog.byId(gift.skuId)?.sound)
-            if (RoomGiftCatalog.byId(gift.skuId)?.svga != null) {
+            sounds.play(sku?.sound)
+            if (sku?.svga != null) {
                 val done = CompletableDeferred<Unit>()
                 svgaDone = done
                 // Hold the burst for the clip's real runtime, with a
@@ -175,6 +191,7 @@ fun RoomGiftOverlay(
                 receiverName = gift.targetPubkey?.let(nameFor),
                 onSvgaFinished = { svgaDone?.complete(Unit) },
                 modifier = modifier,
+                clientBuilder = clientBuilder,
             )
         }
     }
@@ -187,10 +204,15 @@ private fun GiftBurst(
     receiverName: String?,
     onSvgaFinished: () -> Unit,
     modifier: Modifier = Modifier,
+    clientBuilder: IRoleBasedHttpClientBuilder? = null,
 ) {
-    val svgaAsset = RoomGiftCatalog.byId(gift.skuId)?.svga
+    val sku = RoomGiftCatalog.byId(gift.skuId)
+    val svgaAsset = sku?.svga
     val theme = giftThemeFor(gift.skuId)
     val epic = gift.tier >= 3
+    // The operator can size a takeover from the dashboard; the bundled
+    // catalog leaves this at 1.0 (clips are authored full-frame).
+    val clipScale = (sku?.scale ?: 1f).coerceIn(0.4f, 1.2f)
     // Match the queue's hold so the marquee/scrim animation runs the
     // whole time the burst is on screen (a short authored clip still
     // gets the full-screen beat the queue holds it for).
@@ -213,21 +235,22 @@ private fun GiftBurst(
         contentAlignment = Alignment.Center,
     ) {
         if (svgaAsset != null) {
-            // A bundled SVGA clip IS the gift's cinematic: it plays full
-            // screen, exactly as authored (the imported TUILiveKit /
-            // SVGAPlayer clips are already full-frame 750x1334), and
-            // nothing is drawn behind it. An earlier version scaled the
-            // clip down to 40–85% by price band and laid a procedural
-            // scrim + rays + particle motif behind the luxe/legendary
-            // tiers — that read as "a background showing through behind
-            // the gift" and made the burst look like a small sticker
-            // instead of the full-screen takeover it was designed as.
-            // The clip holds at full opacity for its whole runtime and
-            // only the sender/receiver line overlays it.
+            // The clip IS the gift's cinematic. It is authored
+            // full-frame and transparent, so it is drawn at full size
+            // with nothing behind it; the operator may still size it
+            // down from the dashboard (clipScale) to leave a
+            // transparent margin instead of covering the whole room.
             SvgaGiftPlayer(
-                assetPath = svgaAsset,
+                asset = svgaAsset,
                 onFinished = onSvgaFinished,
-                modifier = Modifier.fillMaxSize(),
+                clientBuilder = clientBuilder,
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            scaleX = clipScale
+                            scaleY = clipScale
+                        },
             )
             if (epic) {
                 GiftMarquee(

@@ -21,6 +21,7 @@
 package com.vitorpamplona.amethyst.commons.viewmodels
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.mutableStateMapOf
 import com.vitorpamplona.quartz.nip25Reactions.ReactionEvent
 
 /**
@@ -31,6 +32,12 @@ import com.vitorpamplona.quartz.nip25Reactions.ReactionEvent
  * contained (no HTTP, no NIP-98 signing, no wallet) while still
  * giving the panel the tiers, emoji and localized labels TRTC's
  * `GiftListView` renders.
+ *
+ * A gift's `svga`/`icon`/`sound` may point either at a bundled asset
+ * (a path under `assets/` or a `res/raw` name) or, when the catalog
+ * entry came from the remote store, at an absolute `http(s)://` URL
+ * the client downloads and caches. Callers resolve both through the
+ * same field — see `GiftAssetSource`.
  */
 @Immutable
 data class RoomGiftSku(
@@ -69,6 +76,19 @@ data class RoomGiftSku(
      * has its own clip and no two share one.
      */
     val sound: String? = null,
+    /**
+     * Fraction of the screen the clip fills, `0.4..1.2`. The built-in
+     * catalog leaves this at `1.0` (clips are authored full-frame); the
+     * remote store sets it per gift so an operator can size a takeover
+     * without re-encoding the asset. `null` means `1.0`.
+     */
+    val scale: Float? = null,
+    /**
+     * True when this SKU came from the remote store rather than the
+     * bundled catalog. Purely informational — asset resolution already
+     * branches on whether a field is a URL.
+     */
+    val remote: Boolean = false,
 ) {
     fun label(arabic: Boolean): String = if (arabic) labelAr else labelEn
 }
@@ -324,6 +344,7 @@ object RoomGiftCatalog {
             RoomGiftSku("castle", "🏰", "قلعة", "Castle", 3, 999, svga = "gifts/castle.svga", icon = "gifts/icons/castle.png", sound = "gift_castle"),
             RoomGiftSku("helicopter", "🚁", "هليكوبتر", "Helicopter", 3, 3000, svga = "gifts/gen_helicopter.svga", icon = "gifts/icons/helicopter.png", sound = "gift_helicopter"),
             RoomGiftSku("yacht", "🛥️", "يخت", "Yacht", 3, 5200, svga = "gifts/gen_yacht.svga", icon = "gifts/icons/yacht.png", sound = "gift_yacht"),
+            RoomGiftSku("liongif", "🦁", "أسد الوميض", "Lion Flare", 3, 1600, svga = "gifts/liongif.svga", icon = "gifts/icons/liongif.png", sound = "gift_liongif"),
             // ── Legendary (mega takeover) ────────────────────────────
             RoomGiftSku("jet", "✈️", "طائرة خاصة", "Private Jet", 4, 8888, svga = "gifts/gen_jet.svga", icon = "gifts/icons/jet.png", sound = "gift_jet"),
             RoomGiftSku("lion", "🦁", "أسد", "Golden Lion", 4, 9999, svga = "gifts/gen_lion.svga", icon = "gifts/icons/lion.png", sound = "gift_lion"),
@@ -337,7 +358,37 @@ object RoomGiftCatalog {
 
     val tiers: List<Int> = listOf(1, 2, 3, 4)
 
-    fun byId(id: String): RoomGiftSku? = all.firstOrNull { it.id == id }
+    /**
+     * SKUs pulled from the remote store, keyed by id. Empty until the
+     * client fetches `gifts.json`; the bundled [all] list is always the
+     * offline fallback, so a gift panel works with no network at all.
+     */
+    private val remoteById = mutableStateMapOf<String, RoomGiftSku>()
+
+    /**
+     * The catalog the UI actually renders: the bundled gifts with any
+     * remote entry overriding its same-id twin, followed by the remote
+     * gifts that have no bundled counterpart. Remote wins so an
+     * operator can retune a shipped gift (price, label, clip, scale)
+     * live without an app release.
+     */
+    val effective: List<RoomGiftSku>
+        get() {
+            if (remoteById.isEmpty()) return all
+            val out = ArrayList<RoomGiftSku>(all.size + remoteById.size)
+            for (sku in all) out.add(remoteById[sku.id] ?: sku)
+            val known = all.mapTo(HashSet()) { it.id }
+            for (sku in remoteById.values) if (sku.id !in known) out.add(sku)
+            return out
+        }
+
+    /** Replace the remote layer (called after a successful fetch). */
+    fun setRemote(skus: List<RoomGiftSku>) {
+        remoteById.clear()
+        for (sku in skus) remoteById[sku.id] = sku
+    }
+
+    fun byId(id: String): RoomGiftSku? = remoteById[id] ?: all.firstOrNull { it.id == id }
 }
 
 /**

@@ -23,6 +23,7 @@ package com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.gifts
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.media.AudioAttributes
+import android.media.MediaPlayer
 import android.media.SoundPool
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -41,23 +42,38 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
+import com.vitorpamplona.amethyst.model.privacyOptions.IRoleBasedHttpClientBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Decode a bundled gift icon once and cache it in composition. Returns
- * `null` while the (small) asset decodes or if it is missing, so callers
- * can fall back to the emoji glyph.
+ * Decode a gift icon once and cache it in composition. The catalog
+ * stores either a bundled icon path or an absolute URL;
+ * a URL is downloaded once into the app cache and then decoded from
+ * disk. Returns `null` while the asset resolves or if it is missing,
+ * so callers can fall back to the emoji glyph.
  */
 @Composable
-fun rememberGiftIcon(iconPath: String?): ImageBitmap? {
+fun rememberGiftIcon(
+    iconPath: String?,
+    clientBuilder: IRoleBasedHttpClientBuilder? = null,
+): ImageBitmap? {
     if (iconPath == null) return null
     val context = LocalContext.current
+    val source = giftAssetOf(iconPath)
     val icon by produceState<ImageBitmap?>(null, iconPath) {
         value =
             withContext(Dispatchers.IO) {
                 runCatching {
-                    context.assets.open(iconPath).use { BitmapFactory.decodeStream(it)?.asImageBitmap() }
+                    when (source) {
+                        is GiftAsset.Bundled ->
+                            context.assets.open(source.path).use { BitmapFactory.decodeStream(it)?.asImageBitmap() }
+                        is GiftAsset.Remote ->
+                            clientBuilder
+                                ?.let { GiftAssetDownloader.localFileOrNull(context, source.url, it, ".png") }
+                                ?.let { BitmapFactory.decodeFile(it.absolutePath)?.asImageBitmap() }
+                        null -> null
+                    }
                 }.getOrNull()
             }
     }
@@ -76,8 +92,9 @@ fun GiftIcon(
     size: Dp,
     emojiSize: Int,
     modifier: Modifier = Modifier,
+    clientBuilder: IRoleBasedHttpClientBuilder? = null,
 ) {
-    val icon = rememberGiftIcon(iconPath)
+    val icon = rememberGiftIcon(iconPath, clientBuilder)
     Box(modifier = modifier.size(size), contentAlignment = Alignment.Center) {
         if (icon != null) {
             Image(
@@ -93,14 +110,18 @@ fun GiftIcon(
 }
 
 /**
- * Plays each gift's own `res/raw` sound effect once when its burst
- * starts. Backed by [SoundPool] so clips are decoded once and replayed
- * with no per-play latency; the pool is released when the overlay
- * leaves composition. Sonification usage means the system media volume
- * and mute still apply.
+ * Plays each gift's own sound effect once when its burst starts.
+ *
+ * A bundled `res/raw` clip goes through [SoundPool] so it is decoded
+ * once and replayed with no per-play latency. A remote URL is
+ * downloaded to the app cache on first use and then played with
+ * [MediaPlayer], which — unlike SoundPool — accepts an arbitrary file
+ * rather than only a packaged resource. Sonification usage means the
+ * system media volume and mute still apply.
  */
 class GiftSounds(
     private val context: Context,
+    private val clientBuilder: IRoleBasedHttpClientBuilder?,
 ) {
     private val pool =
         SoundPool
@@ -115,6 +136,10 @@ class GiftSounds(
             ).build()
     private val loaded = HashMap<String, Int>()
 
+    // Remote clips are played by MediaPlayer; keep one per burst and
+    // release the previous so a busy room does not leak players.
+    private var player: MediaPlayer? = null
+
     private fun idFor(name: String): Int {
         loaded[name]?.let { return it }
         val res = context.resources.getIdentifier(name, "raw", context.packageName)
@@ -124,27 +149,59 @@ class GiftSounds(
         return id
     }
 
-    /** Decode a clip ahead of first use so the first gift is not silent. */
+    /** Decode a bundled clip ahead of first use so the first gift is not silent. */
     fun preload(name: String?) {
-        if (name != null) idFor(name)
+        if (name != null && giftAssetOf(name) is GiftAsset.Bundled) idFor(name)
     }
 
-    fun play(name: String?) {
+    suspend fun play(name: String?) {
         if (name == null) return
-        val id = idFor(name)
-        if (id != 0) pool.play(id, 1f, 1f, 1, 0, 1f)
+        when (val asset = giftAssetOf(name)) {
+            is GiftAsset.Bundled -> {
+                val id = idFor(asset.path)
+                if (id != 0) pool.play(id, 1f, 1f, 1, 0, 1f)
+            }
+            is GiftAsset.Remote -> playRemote(asset.url)
+            null -> Unit
+        }
+    }
+
+    private suspend fun playRemote(url: String) {
+        // Download (or reuse the cached copy) off the main thread, then
+        // hand the local path to MediaPlayer, which needs a real file.
+        val builder = clientBuilder ?: return
+        val file = GiftAssetDownloader.localFileOrNull(context, url, builder, ".wav") ?: return
+        player?.runCatching { release() }
+        player =
+            runCatching {
+                MediaPlayer().apply {
+                    setAudioAttributes(
+                        AudioAttributes
+                            .Builder()
+                            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build(),
+                    )
+                    setDataSource(file.absolutePath)
+                    setOnCompletionListener { it.release() }
+                    prepare()
+                    start()
+                }
+            }.getOrNull()
     }
 
     fun release() {
         pool.release()
+        player?.runCatching { release() }
+        player = null
     }
 }
 
 @Composable
-fun rememberGiftSounds(): GiftSounds {
+fun rememberGiftSounds(clientBuilder: IRoleBasedHttpClientBuilder?): GiftSounds {
     val context = LocalContext.current
-    val sounds = remember { GiftSounds(context) }
-    DisposableEffect(Unit) {
+    val sounds = remember(clientBuilder) { GiftSounds(context, clientBuilder) }
+    DisposableEffect(sounds) {
         onDispose { sounds.release() }
     }
     return sounds

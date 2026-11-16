@@ -20,41 +20,61 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.gifts
 
+import android.content.Context
 import android.util.Log
 import android.widget.ImageView
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.opensource.svgaplayer.SVGACallback
 import com.opensource.svgaplayer.SVGAImageView
 import com.opensource.svgaplayer.SVGAParser
 import com.opensource.svgaplayer.SVGAVideoEntity
+import com.vitorpamplona.amethyst.model.privacyOptions.IRoleBasedHttpClientBuilder
 
 /**
- * Plays a bundled SVGA gift animation full-screen. Thin Compose bridge
- * over the official [SVGAImageView] (Apache-2.0): decode the asset once,
- * start it, and report completion so the overlay's queue can advance to
- * the next gift.
+ * Plays one gift's SVGA clip full-screen and reports completion.
  *
- * The clip fills the overlay exactly as authored (the bundled clips are
- * full-frame), and [ImageView.ScaleType.FIT_CENTER] keeps its aspect
- * ratio so the box never distorts the art.
- *
- * The player is intentionally isolated to this one composable — the
- * rest of the overlay (queue, marquee, fallback emoji treatment)
- * stays platform-agnostic Compose.
+ * Handles both a bundled asset and a remote URL: a remote clip is
+ * downloaded once into the app cache (see [GiftAssetDownloader]) and
+ * then decoded from that local file, so replaying a gift costs no
+ * network. While a download is in flight the player renders nothing
+ * rather than a blank frame.
  */
 @Composable
 fun SvgaGiftPlayer(
-    assetPath: String,
+    asset: String,
     onFinished: () -> Unit,
     modifier: Modifier = Modifier,
+    clientBuilder: IRoleBasedHttpClientBuilder? = null,
 ) {
     // Keep the latest callback without re-creating the view.
     val finished = remember { Ref(onFinished) }
     finished.value = onFinished
+
+    val context = LocalContext.current
+    val source = giftAssetOf(asset)
+    // Resolve a remote clip to a local file before touching the player;
+    // a bundled path resolves synchronously to itself.
+    val resolved by
+        produceState<GiftSource?>(null, asset) {
+            value =
+                when (source) {
+                    is GiftAsset.Bundled -> GiftSource.Bundled(source.path)
+                    is GiftAsset.Remote ->
+                        clientBuilder
+                            ?.let { GiftAssetDownloader.localFileOrNull(context, source.url, it, ".svga") }
+                            ?.let { GiftSource.Local(it) }
+                    null -> null
+                }
+        }
+
+    val ready = resolved ?: return
 
     AndroidView(
         modifier = modifier.fillMaxSize(),
@@ -63,6 +83,9 @@ fun SvgaGiftPlayer(
                 loops = 1
                 isClickable = false
                 scaleType = ImageView.ScaleType.FIT_CENTER
+                // Hold the last frame until the overlay swaps the gift
+                // out, so a short clip does not blink to an empty box.
+                clearsAfterStop = false
                 callback =
                     object : SVGACallback {
                         override fun onFinished() {
@@ -78,26 +101,52 @@ fun SvgaGiftPlayer(
                             percentage: Double,
                         ) = Unit
                     }
-                SVGAParser(ctx).decodeFromAssets(
-                    assetPath,
-                    object : SVGAParser.ParseCompletion {
-                        override fun onComplete(videoItem: SVGAVideoEntity) {
-                            setVideoItem(videoItem)
-                            startAnimation()
-                        }
-
-                        override fun onError() {
-                            Log.w("SvgaGiftPlayer", "failed to decode $assetPath")
-                            finished.value()
-                        }
-                    },
-                )
+            }
+        },
+        update = { view ->
+            if (view.tag != asset) {
+                view.tag = asset
+                decodeInto(view, view.context, ready, finished)
             }
         },
     )
 }
 
-/** Minimal mutable holder so a lambda can be updated without recomposing the view. */
+private fun decodeInto(
+    view: SVGAImageView,
+    context: Context,
+    source: GiftSource,
+    finished: Ref<() -> Unit>,
+) {
+    val parser = SVGAParser(context)
+    val onComplete =
+        object : SVGAParser.ParseCompletion {
+            override fun onComplete(videoItem: SVGAVideoEntity) {
+                view.setVideoItem(videoItem)
+                view.startAnimation()
+            }
+
+            override fun onError() {
+                Log.w("SvgaGiftPlayer", "failed to decode $source")
+                finished.value()
+            }
+        }
+    when (source) {
+        is GiftSource.Bundled -> parser.decodeFromAssets(source.path, onComplete)
+        is GiftSource.Local -> parser.decodeFromInputStream(source.file.inputStream(), source.file.name, onComplete, true)
+    }
+}
+
+private sealed interface GiftSource {
+    data class Bundled(
+        val path: String,
+    ) : GiftSource
+
+    data class Local(
+        val file: java.io.File,
+    ) : GiftSource
+}
+
 private class Ref<T>(
     var value: T,
 )

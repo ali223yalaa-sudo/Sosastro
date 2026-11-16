@@ -773,3 +773,98 @@ plenty of user-visible copy still said "Amethyst". Rules:
   they are: the client tag is a protocol identifier that other clients match
   on, and a package rename touches every import + the manifest. `Amethyst`
   in comments/Kdoc is fine to leave.
+
+## Notifications: Instagram/Facebook-style activity rows
+
+`ui/note/NotificationActivityRow.kt` renders one activity per row, IG/FB style:
+an actor avatar with a small coloured badge stamped bottom-right for the
+activity kind (`NotificationActivityType`: LIKE red, COMMENT blue, REPOST green,
+ZAP orange, GIFT purple, REACT blue, FOLLOW blue), the actor name in bold inside
+the sentence, a 56 dp rounded thumbnail of the target post (with a play glyph for
+video), and an unread accent dot. `MultiSetCompose.kt` computes `isUnread` from
+the row background vs `colorScheme.background` and passes the matching
+`activityType` for comments, boosts, likes/reactions/gifts, and zaps.
+
+The bell lives in the Home top bar via `NotificationsTopBarIcon` in
+`navigation/topbars/UserDrawerSearchTopBar.kt`, next to the create (+) and search
+actions, and reuses `AddNotifIconIfNeeded` so its unread dot matches the bottom bar.
+
+Note: the notification feed is built from reactions on your own posts
+(`MultiSetCard`); there is no "started following you" data source, so the FOLLOW
+badge exists for future use but no follow events are produced yet.
+
+## Build environment (container)
+
+The container recycles periodically and wipes `/usr/lib/jvm` and `~/.gradle`.
+Keep toolchains under `/workspace` so they survive:
+
+- JDK 21 copied to `/workspace/jdk` (`org.gradle.java.home=/workspace/jdk`).
+- `GRADLE_USER_HOME=/workspace/gradle-home` (wrapper + dependency cache).
+- Android SDK at `/workspace/android-sdk`.
+- Source `/workspace/env.sh` before every Gradle call.
+
+### Repairing the JDK after a container recycle
+
+The copied JDK keeps `/etc/java-21-openjdk/...` and `/usr/share/...` symlinks
+that the recycle deletes, leaving `conf/security/java.security` (and friends) as
+dangling links. Every JVM then dies with `InternalError: Error loading
+java.security file` — including the Gradle wrapper, which needs `MessageDigest`
+just to hash its distribution path. Restore the files from the JDK's own jmods:
+
+```bash
+python3 - <<'PY'
+import zipfile, os, glob
+for p in glob.glob('/workspace/jdk/jmods/*.jmod'):
+    z = zipfile.ZipFile(p)
+    for n in z.namelist():
+        if n.endswith('/') or not (n.startswith('conf/') or n.startswith('lib/security/')):
+            continue
+        out = os.path.join('/workspace/jdk', n)
+        if os.path.islink(out) or not os.path.exists(out):
+            os.makedirs(os.path.dirname(out), exist_ok=True)
+            if os.path.islink(out):
+                os.unlink(out)
+            open(out, 'wb').write(z.read(n))
+PY
+```
+
+`java -version` still prints fine with the broken links, so check with
+`/workspace/jdk/bin/jmod --version` (or any `MessageDigest` call) instead.
+
+`gradle.properties` pins `-Xmx4g` for the Gradle and Kotlin daemons: 3 GB OOMs on
+`:amethyst`, and going much higher risks a container restart. Builds:
+
+- `./gradlew --no-daemon :amethyst:compileFdroidDebugKotlin` to type-check fast.
+- `./gradlew --no-daemon :amethyst:assembleFdroidDebug` for the APK
+  (`amethyst/build/outputs/apk/fdroid/debug/`).
+
+## Remote-editable gift catalog
+
+Gifts are editable from a web dashboard without shipping a new APK.
+
+- **App side.** `RemoteGiftCatalog` (commons) is the `@Serializable`
+  payload; `RoomGiftCatalog.setRemote()` installs it as an override over
+  the bundled SKUs, and `effective` is what the panel and overlay read.
+  `RemoteGiftStore` (amethyst `nests/room/gifts`) applies the on-disk
+  copy first, then refreshes over the network, so a cold start is never
+  blocked on a request and a failed fetch keeps the last good catalog.
+  The catalog URL is `BuildConfig.GIFT_CATALOG_URL` (blank disables the
+  remote layer; the F-Droid build stays hermetic by default).
+- **Assets.** A SKU's `svga`/`icon`/`sound` is either a bundled path or
+  an `http(s)` URL. `GiftAsset.of()` classifies it and
+  `GiftAssetDownloader` fetches it into the app cache keyed by the URL's
+  SHA-256, mirroring `RoomFontLoader`. `SvgaGiftPlayer` decodes a remote
+  clip from the downloaded file. Relative paths in the payload resolve
+  against the catalog's own directory; `javascript:`/`file:` are
+  rejected in `RemoteGiftCatalog.safeAsset`.
+- **Dashboard.** `/workspace/gift_dashboard/server.py` (stdlib only) runs
+  on port 12001 and serves the UI, `/gifts/catalog.json` and the
+  content-addressed assets under `/gifts/`. Upload a video → it runs
+  `/workspace/svga_tools/{video_to_svga,make_gift_sound}.py`
+  (background key, crop, square fit, SVGA encode, icon, tier sound) →
+  animated preview → publish. Assets are named by content hash, so a
+  republish is a new URL and no client serves a stale clip.
+
+  ```bash
+  cd /workspace/gift_dashboard && /workspace/venv/bin/python server.py --port 12001
+  ```

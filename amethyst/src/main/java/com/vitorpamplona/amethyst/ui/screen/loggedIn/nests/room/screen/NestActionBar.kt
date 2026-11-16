@@ -323,6 +323,7 @@ internal fun NestZapButton(
     if (openGifts) {
         RoomGiftPanel(
             toLabel = roomNote.author?.toBestDisplayName(),
+            clientBuilder = accountViewModel.httpClientBuilder,
             onSend = { sku, quantity ->
                 sendRoomGift(
                     accountViewModel = accountViewModel,

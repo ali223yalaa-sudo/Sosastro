@@ -64,6 +64,7 @@ import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
 import com.vitorpamplona.amethyst.commons.viewmodels.RoomGiftCatalog
 import com.vitorpamplona.amethyst.commons.viewmodels.RoomGiftSku
 import com.vitorpamplona.amethyst.commons.viewmodels.theme
+import com.vitorpamplona.amethyst.model.privacyOptions.IRoleBasedHttpClientBuilder
 
 /**
  * Room gift selection panel — the Compose analogue of TUILiveKit's
@@ -80,6 +81,7 @@ fun RoomGiftPanel(
     onSend: (sku: RoomGiftSku, quantity: Int) -> Unit,
     onDismiss: () -> Unit,
     toLabel: String?,
+    clientBuilder: IRoleBasedHttpClientBuilder? = null,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val arabic = LocalConfiguration.current.locales[0]?.language == "ar"
@@ -122,11 +124,12 @@ fun RoomGiftPanel(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.height(240.dp),
             ) {
-                items(RoomGiftCatalog.all.filter { it.tier == selectedTier }, key = { it.id }) { sku ->
+                items(RoomGiftCatalog.effective.filter { it.tier == selectedTier }, key = { it.id }) { sku ->
                     GiftCell(
                         sku = sku,
                         arabic = arabic,
                         selected = selected?.id == sku.id,
+                        clientBuilder = clientBuilder,
                         onClick = {
                             selected = sku
                             quantity = 1
@@ -204,6 +207,7 @@ private fun GiftCell(
     arabic: Boolean,
     selected: Boolean,
     onClick: () -> Unit,
+    clientBuilder: IRoleBasedHttpClientBuilder? = null,
 ) {
     val theme = remember(sku.id) { sku.theme() }
     val accent = Color(theme.accent)
@@ -235,7 +239,7 @@ private fun GiftCell(
                     .background(Brush.verticalGradient(listOf(accent.copy(alpha = 0.35f), accentDeep.copy(alpha = 0.25f)))),
             contentAlignment = Alignment.Center,
         ) {
-            GiftIcon(iconPath = sku.icon, emoji = sku.emoji, size = 30.dp, emojiSize = 24)
+            GiftIcon(iconPath = sku.icon, emoji = sku.emoji, size = 30.dp, emojiSize = 24, clientBuilder = clientBuilder)
         }
         Text(
             text = sku.label(arabic),

@@ -505,6 +505,7 @@ internal fun NestFullScreen(
                 nameFor = { pk ->
                     LocalCache.getUserIfExists(pk)?.toBestDisplayName() ?: pk.take(8)
                 },
+                clientBuilder = accountViewModel.httpClientBuilder,
                 modifier = Modifier.fillMaxSize(),
             )
         }
