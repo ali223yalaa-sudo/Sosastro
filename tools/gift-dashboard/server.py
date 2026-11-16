@@ -520,7 +520,7 @@ INDEX_HTML = r"""<!doctype html>
         <div><label>الهامش الشفاف</label><input id="pad" type="number" value="0.08" step="0.01" min="0" max="0.3"></div>
       </div>
       <div class="actions">
-        <button id="go">معالجة ونشر</button>
+        <button id="go">معالجة ومعاينة</button>
         <button class="ghost" id="reset">تفريغ</button>
       </div>
       <progress id="bar" style="display:none"></progress>
