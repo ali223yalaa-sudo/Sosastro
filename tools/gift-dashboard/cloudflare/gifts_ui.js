@@ -33,6 +33,11 @@ sections.gifts = async () => {
       .gift-upload { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
       .gift-upload input { padding: .45rem .6rem; border-radius: .5rem; border: 1px solid var(--line, #333); background: var(--bg2, #1b1b1b); color: inherit; }
       .gift-upload input[type=file] { flex: 1 1 16rem; }
+      .gu-prog { display: none; align-items: center; gap: .6rem; margin-top: .55rem; }
+      .gu-prog.on { display: flex; }
+      .gu-track { flex: 1; height: 10px; border-radius: 6px; background: var(--panel2, #1b2130); overflow: hidden; }
+      .gu-fill { height: 100%; width: 0; border-radius: 6px; background: linear-gradient(90deg, #4b6bfb, #7C4DFF); transition: width .12s linear; }
+      .gu-pct { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--muted, #8b93a7); min-width: 3.5rem; text-align: center; }
     </style>
     <p class="lead">\u0627\u0644\u0647\u062F\u0627\u064A\u0627 \u0627\u0644\u0645\u0646\u0634\u0648\u0631\u0629 \u062A\u0623\u062A\u064A \u0645\u0646 \u0647\u0646\u0627 \u0645\u0628\u0627\u0634\u0631\u0629\u064B. \u0627\u0644\u062A\u0637\u0628\u064A\u0642 \u064A\u0642\u0631\u0623 \u0627\u0644\u0643\u062A\u0627\u0644\u0648\u062C \u0639\u0646\u062F \u0643\u0644 \u062A\u0634\u063A\u064A\u0644.</p>
     <div class="card">
@@ -52,6 +57,10 @@ sections.gifts = async () => {
         <input id="gu-price" type="number" min="1" value="1" style="max-width:6rem" />
         <input id="gu-file" type="file" accept="video/mp4,.mp4,.svga" />
         <button class="act" id="gu-go">\u2b06\ufe0f \u0631\u0641\u0639</button>
+      </div>
+      <div class="gu-prog" id="gu-prog">
+        <div class="gu-track"><div class="gu-fill" id="gu-fill"></div></div>
+        <span class="gu-pct" id="gu-pct">0%</span>
       </div>
       <p class="help" id="gu-msg"></p>
     </div>
@@ -93,6 +102,36 @@ function wireGiftUpload(state) {
   const go = q("gu-go");
   if (!go) return;
   const msg = (t, cls) => { const m = q("gu-msg"); m.textContent = t; m.className = "help " + (cls || ""); };
+  // The bar shows bytes-in-flight; the worker then stores the object, so the
+  // last slice is labelled rather than left stuck just under 100%.
+  const setProg = (pct, label) => {
+    const wrap = q("gu-prog");
+    wrap.classList.add("on");
+    q("gu-fill").style.width = Math.max(0, Math.min(100, pct)) + "%";
+    q("gu-pct").textContent = label || (Math.round(pct) + "%");
+  };
+  const hideProg = () => { q("gu-prog").classList.remove("on"); q("gu-fill").style.width = "0%"; q("gu-pct").textContent = "0%"; };
+
+  // Upload with progress. fetch() cannot report upload progress, so the
+  // multipart POST goes through XHR, which fires upload.onprogress as the
+  // browser sends the body. Resolves to the parsed JSON (or throws).
+  const uploadWithProgress = (form) => new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/gifts/asset");
+    xhr.setRequestHeader("authorization", "Bearer " + TOKEN);
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable) setProg((e.loaded / e.total) * 100); };
+    xhr.upload.onload = () => setProg(100, "\u0627\u0643\u062A\u0645\u0644 \u0627\u0644\u0631\u0641\u0639");
+    xhr.onload = () => {
+      let j = {};
+      try { j = JSON.parse(xhr.responseText); } catch (e) { /* keep {} */ }
+      if (xhr.status >= 200 && xhr.status < 300 && !j.error) resolve(j);
+      else reject(new Error(j.error || ("HTTP " + xhr.status)));
+    };
+    xhr.onerror = () => reject(new Error("\u0627\u0646\u0642\u0637\u0639 \u0627\u0644\u0627\u062A\u0635\u0627\u0644"));
+    xhr.ontimeout = () => reject(new Error("\u0627\u0646\u062A\u0647\u062A \u0627\u0644\u0645\u0647\u0644\u0629"));
+    xhr.timeout = 10 * 60 * 1000;
+    xhr.send(form);
+  });
 
   const videoSize = (file) => new Promise((resolve) => {
     const v = document.createElement("video");
@@ -131,6 +170,7 @@ function wireGiftUpload(state) {
     const kind = isVideo ? "videos" : "clips";
     msg("\u062C\u0627\u0631\u064D \u0627\u0644\u0631\u0641\u0639\u2026");
     go.disabled = true;
+    setProg(0, "0%");
     try {
       const form = new FormData();
       form.append("kind", kind);
@@ -148,13 +188,8 @@ function wireGiftUpload(state) {
         if (w > 0) form.append("width", String(w));
         if (h > 0) form.append("height", String(h));
       }
-      const res = await fetch("/api/gifts/asset", {
-        method: "POST",
-        headers: { authorization: "Bearer " + TOKEN },
-        body: form,
-      });
-      const j = await res.json();
-      if (!res.ok || j.error) throw new Error(j.error || ("HTTP " + res.status));
+      await uploadWithProgress(form);
+      setProg(100, "\u0627\u0643\u062A\u0645\u0644 \u0627\u0644\u0631\u0641\u0639");
 
       // Fill in the operator-facing fields on the same row, then publish.
       await api("/api/gifts/meta", {
@@ -170,9 +205,11 @@ function wireGiftUpload(state) {
       });
       await api("/api/gifts/publish", { method: "POST", body: JSON.stringify({ id }) });
       toast("\u062A\u0645 \u0627\u0644\u0631\u0641\u0639 \u0648\u0627\u0644\u0646\u0634\u0631");
+      hideProg();
       sections.gifts();
     } catch (e) {
       msg("\u0641\u0634\u0644: " + (e.message || e), "bad");
+      hideProg();
       go.disabled = false;
     }
   };

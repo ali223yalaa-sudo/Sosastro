@@ -1154,6 +1154,14 @@ loop, in/out points, scale, position, alpha and a grid. A **حفظ** button writ
 scale/posX/posY back through `POST /api/gifts/gift`, which is how a gift is
 placed without shipping a new APK.
 
+Both upload paths show a progress bar, because a 20–190 MB alpha video over a
+phone connection gives no feedback otherwise. The panel's **رفع** posts the
+multipart body through `XMLHttpRequest` (`uploadWithProgress`) rather than
+`fetch`, which cannot report upload progress, and drives a gradient fill plus a
+percentage; the local dashboard's `#prog` bar fills during upload and then
+switches to an indeterminate sweep while the server transcodes, since that
+phase streams no progress back.
+
 Authoring a matte (video → alpha) with BiRefNet peaks near 7 GiB of RAM, which
 on a shared box is enough to OOM-kill a run and the session with it. Two guards
 keep that from happening: the ONNX session is built with a small thread count,

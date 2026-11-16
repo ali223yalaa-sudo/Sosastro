@@ -815,7 +815,13 @@ INDEX_HTML = r"""<!doctype html>
   .fname { margin:6px 0 4px; font-size:12.5px; color:var(--dim); }
   .fname.has { color:#8fe3a0; font-weight:700; }
   .ok{color:#7ee2a8}.err{color:#ff8a8a}
-  progress { width:100%; height:8px; }
+  .prog { display:none; align-items:center; gap:10px; margin-top:12px; }
+  .prog.on { display:flex; }
+  .ptrack { flex:1; height:10px; border-radius:6px; background:#1b2130; overflow:hidden; }
+  .pfill { height:100%; width:0; border-radius:6px; background:linear-gradient(90deg,#4b6bfb,#7C4DFF); transition:width .12s linear; }
+  .plabel { font-variant-numeric:tabular-nums; font-size:12px; color:var(--dim); min-width:5rem; text-align:center; }
+  .prog.busy .pfill { width:100% !important; background:linear-gradient(90deg,#7C4DFF,#4b6bfb,#7C4DFF); background-size:200% 100%; animation:pslide 1s linear infinite; }
+  @keyframes pslide { to { background-position:-200% 0; } }
 </style>
 </head>
 <body>
@@ -938,7 +944,10 @@ INDEX_HTML = r"""<!doctype html>
         <button id="go">معالجة ومعاينة</button>
         <button class="ghost" id="reset">تفريغ</button>
       </div>
-      <progress id="bar" style="display:none"></progress>
+      <div class="prog" id="prog">
+        <div class="ptrack"><div class="pfill" id="pfill"></div></div>
+        <span class="plabel" id="plabel">0%</span>
+      </div>
       <div class="status" id="status"></div>
       <div class="hint">المعالجة قد تستغرق من 20 ثانية إلى دقيقتين حسب طول المقطع. لا تغلق الصفحة.</div>
     </div>
@@ -1282,16 +1291,32 @@ $('#go').onclick = () => {
     const nc = $('#noCrop');
     fd.append('noCrop', nc && nc.checked ? '1' : '0');
     const xhr = new XMLHttpRequest();
+    // Two phases share one bar: the browser upload fills the first half, then
+    // the server's ffmpeg/rembg pass is an indeterminate sweep, since it
+    // streams no progress back. Both must leave the bar in a sane state.
+    const setProg = (pct, label) => {
+      const p = $('#prog'); p.classList.add('on'); p.classList.remove('busy');
+      $('#pfill').style.width = Math.max(0, Math.min(100, pct)) + '%';
+      $('#plabel').textContent = label || (Math.round(pct) + '%');
+    };
+    const busyProg = (label) => {
+      const p = $('#prog'); p.classList.add('on', 'busy');
+      $('#plabel').textContent = label;
+    };
+    const hideProg = () => { $('#prog').classList.remove('on', 'busy'); $('#pfill').style.width = '0%'; $('#plabel').textContent = '0%'; };
     // Always return the button to a usable state, however the request ends.
     // A dropped connection (server restart, laptop sleep) used to leave the
     // button disabled forever, which looked like the button itself was dead.
-    const done = (msg, ok) => { $('#go').disabled = false; $('#bar').style.display = 'none'; setStatus(msg, ok); };
+    const done = (msg, ok) => { $('#go').disabled = false; hideProg(); setStatus(msg, ok); };
     xhr.open('POST', '/api/upload');
     xhr.timeout = 10 * 60 * 1000;
-    $('#bar').style.display = 'block';
     $('#go').disabled = true;
-    setStatus('جارٍ المعالجة… (إزالة الخلفية، القص، الترميز، الصوت)', true);
-    xhr.upload.onprogress = (e) => { if (e.lengthComputable) $('#bar').value = (e.loaded/e.total)*50; };
+    setProg(0, '0%');
+    setStatus('جارٍ الرفع…', true);
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable) setProg((e.loaded/e.total)*100); };
+    // Upload finished, server now transcodes; switch to the indeterminate
+    // sweep so the operator sees it is still working, not stuck at 100%.
+    xhr.upload.onload = () => { busyProg('جارٍ المعالجة…'); setStatus('اكتمل الرفع — جارٍ إزالة الخلفية والقص والترميز…', true); };
     xhr.onload = () => {
       let res = {}; try { res = JSON.parse(xhr.responseText); } catch(e){}
       if (xhr.status === 200 && res.ok) {
@@ -1307,7 +1332,7 @@ $('#go').onclick = () => {
     xhr.ontimeout = () => done('❌ انتهت المهلة — الملف كبير جدًا أو الخادم مشغول', false);
     xhr.send(fd);
   } catch (err) {
-    $('#go').disabled = false; $('#bar').style.display = 'none';
+    $('#go').disabled = false; hideProg();
     setStatus('❌ خطأ: ' + (err && err.message ? err.message : err) + ' — حدّث الصفحة بـ Ctrl+Shift+R', false);
   }
 };
@@ -1334,7 +1359,7 @@ window.addEventListener('error', (e) => {
 });
 // A restored page (back/forward cache) can come back with the button still
 // disabled from an upload that was in flight, which reads as a dead button.
-window.addEventListener('pageshow', () => { $('#go').disabled = false; $('#bar').style.display = 'none'; });
+window.addEventListener('pageshow', () => { $('#go').disabled = false; $('#prog').classList.remove('on','busy'); });
 refresh();
 </script>
 </body>
