@@ -49,6 +49,7 @@ SOUNDS = ASSETS / "sounds"
 STATE = DATA / "catalog.json"
 TOOLS = Path(os.environ.get("GIFT_TOOLS", "/workspace/svga_tools"))
 PYTHON = os.environ.get("GIFT_PYTHON", "/workspace/venv/bin/python")
+CF_TOKEN_FILE = Path(os.environ.get("CF_TOKEN_FILE", "/workspace/.cf_token"))
 
 MAX_UPLOAD = 512 * 1024 * 1024
 ID_RE = re.compile(r"^[a-z0-9_]{1,32}$")
@@ -62,6 +63,34 @@ ROOM_ASPECT = 252 / 448
 # are serialised across the listeners. Two concurrent uploads would otherwise
 # read-modify-write catalog.json and silently drop one gift.
 STATE_LOCK = threading.RLock()
+
+# A processing run is minutes long, so the dashboard cannot hold one HTTP
+# request open and still show staged progress. Each upload instead starts a
+# job, returns its id at once, and the page polls `/api/job` for the stage
+# the pipeline has reached.
+JOBS: dict[str, dict] = {}
+JOBS_LOCK = threading.Lock()
+
+
+def job_start(gift_id: str) -> str:
+    jid = hashlib.sha1(f"{gift_id}-{time.time()}-{os.getpid()}".encode()).hexdigest()[:16]
+    with JOBS_LOCK:
+        JOBS[jid] = {"id": jid, "gift": gift_id, "stage": "queued", "pct": 0,
+                     "label": "في الانتظار…", "done": False, "error": None, "draft": None}
+    return jid
+
+
+def job_update(jid: str, **kw) -> None:
+    with JOBS_LOCK:
+        job = JOBS.get(jid)
+        if job:
+            job.update(kw)
+
+
+def job_get(jid: str) -> dict | None:
+    with JOBS_LOCK:
+        job = JOBS.get(jid)
+        return dict(job) if job else None
 
 # Built APKs the operator can hand out without a rebuild. The newest
 # universal debug build wins, so `/download/apk` always serves the app
@@ -172,33 +201,86 @@ def read_alpha_meta(video: Path) -> dict:
 
     The packer stacks colour over alpha, so the file is twice as tall as one
     frame; the app needs the single-frame size to split the two halves.
+
+    This reads the size from ffmpeg's own stream banner rather than ffprobe:
+    the bundled imageio-ffmpeg build ships `ffmpeg` only, so a call to
+    `ffprobe` fails with ENOENT and would abort an upload *after* the whole
+    pipeline had already run.
     """
-    proc = subprocess.run(
-        [ffprobe_exe(), "-v", "error", "-select_streams", "v:0",
-         "-show_entries", "stream=width,height", "-of", "json", str(video)],
-        capture_output=True, text=True,
-    )
-    try:
-        stream = json.loads(proc.stdout)["streams"][0]
-        return {"width": int(stream["width"]), "height": int(stream["height"]) // 2}
-    except Exception:
-        return {"width": 0, "height": 0}
-
-
-def ffprobe_exe() -> str:
-    """ffprobe shipped next to imageio's ffmpeg, falling back to the PATH."""
     import imageio_ffmpeg
 
-    ff = Path(imageio_ffmpeg.get_ffmpeg_exe())
-    probe = ff.with_name(ff.name.replace("ffmpeg", "ffprobe"))
-    return str(probe) if probe.exists() else "ffprobe"
+    proc = subprocess.run(
+        [imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-i", str(video)],
+        capture_output=True, text=True,
+    )
+    for line in (proc.stderr or "").splitlines():
+        if "Video:" not in line or "attached pic" in line or "mjpeg" in line.lower():
+            continue
+        for tok in line.replace(",", " ").split():
+            if "x" in tok:
+                w, _, h = tok.partition("x")
+                if w.isdigit() and h.isdigit():
+                    return {"width": int(w), "height": int(h) // 2}
+    return {"width": 0, "height": 0}
 
 
-def run_tool(args: list[str]) -> str:
-    proc = subprocess.run(args, capture_output=True, text=True, timeout=1800)
+def extract_audio(src: Path, out_wav: Path) -> bool:
+    """Replace `out_wav` with the source clip's own audio track, if it has one.
+
+    The app plays a gift's sound through MediaPlayer from a WAV, so the
+    upload's soundtrack is normalised to the bundled format (mono 22.05 kHz
+    16-bit) and used in place of the synthesised chime. Returns False and
+    leaves `out_wav` untouched when the source carries no audio, so the
+    caller keeps the generated sound.
+    """
+    import imageio_ffmpeg
+
+    probe = subprocess.run(
+        [imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-i", str(src)],
+        capture_output=True, text=True,
+    )
+    if "Audio:" not in (probe.stderr or ""):
+        return False
+    tmp = out_wav.with_suffix(".src.wav")
+    proc = subprocess.run(
+        [
+            imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-hide_banner", "-loglevel", "error",
+            "-i", str(src), "-vn", "-ac", "1", "-ar", "22050", "-c:a", "pcm_s16le",
+            str(tmp),
+        ],
+        capture_output=True, text=True,
+    )
+    if proc.returncode != 0 or not tmp.exists() or tmp.stat().st_size <= 44:
+        tmp.unlink(missing_ok=True)
+        return False
+    tmp.replace(out_wav)
+    return True
+
+
+def run_tool(args: list[str], on_line=None) -> str:
+    if on_line is None:
+        proc = subprocess.run(args, capture_output=True, text=True, timeout=1800)
+        if proc.returncode != 0:
+            raise RuntimeError((proc.stderr or proc.stdout or "tool failed").strip()[-2000:])
+        return proc.stdout.strip()
+    # Stream the tool's output line by line so a caller can turn the stage
+    # markers the converter already prints ("decoded", "matte 3/120", "crop:")
+    # into real progress, instead of a bar that only guesses.
+    proc = subprocess.Popen(
+        args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1
+    )
+    lines: list[str] = []
+    for line in proc.stdout:
+        line = line.rstrip("\n")
+        lines.append(line)
+        try:
+            on_line(line)
+        except Exception:
+            pass
+    proc.wait()
     if proc.returncode != 0:
-        raise RuntimeError((proc.stderr or proc.stdout or "tool failed").strip()[-2000:])
-    return proc.stdout.strip()
+        raise RuntimeError("\n".join(lines)[-2000:] or "tool failed")
+    return "\n".join(lines)
 
 
 def shape_args_for(fields: dict) -> list[str]:
@@ -236,8 +318,40 @@ def process_upload(
     matte: str = "auto",
     no_crop: bool = False,
     max_seconds: float = 0.0,
+    on_stage=None,
 ) -> dict:
-    """Run the authoring pipeline and return the published asset paths."""
+    """Run the authoring pipeline and return the published asset paths.
+
+    `on_stage(stage, pct, label)` is called as the run advances, so a caller
+    can surface real progress. The stages follow the pipeline: decode, then
+    background removal, then crop/fit, then packing.
+    """
+
+    def stage(name: str, pct: float, label: str) -> None:
+        if on_stage:
+            try:
+                on_stage(name, pct, label)
+            except Exception:
+                pass
+
+    def convert_line(line: str) -> None:
+        """Translate the converter's own progress lines into bar updates."""
+        s = line.strip()
+        if s.startswith("decoded "):
+            stage("decode", 18, "تم فكّ ترميز الفيديو — جارٍ إزالة الخلفية…")
+        elif s.startswith("matte ") and "/" in s:
+            try:
+                i, n = s.split()[1].split("/")
+                # Background removal is the long pole; give it the widest
+                # slice of the bar (20%..80%).
+                stage("matte", 20 + 60 * (int(i) / max(1, int(n))),
+                      f"إزالة الخلفية… {i}/{n}")
+            except Exception:
+                pass
+        elif s.startswith("crop:"):
+            stage("crop", 84, "القص وضبط الحدود الشفافة…")
+        elif s.startswith(("blend:", "edge:", "fade:")):
+            stage("blend", 88, "دمج الحواف في الغرفة…")
     # Map the dashboard's blend choice onto the converter's flags. An opaque
     # clip (uploaded without background removal) is dissolved into the room
     # with a borderless rounded fade by default, so it never reads as a
@@ -285,8 +399,10 @@ def process_upload(
                 "--preview", str(sheet_tmp),
                 "--preview-video", str(webm_tmp),
                 "--preview-mp4", str(mp4_tmp),
-            ]
+            ],
+            on_line=convert_line,
         )
+        stage("sound", 92, "تجهيز الصوت…")
         run_tool(
             [
                 PYTHON, str(TOOLS / "make_gift_sound.py"),
@@ -294,6 +410,9 @@ def process_upload(
                 "-o", str(sound_tmp),
             ]
         )
+        # The uploaded clip's own soundtrack wins over the synthesised chime:
+        # if the operator added a sound to the video, that is the gift's sound.
+        extract_audio(src, sound_tmp)
 
         # Content-addressed names: a republish produces a new URL, so no
         # client serves a stale clip from its cache.
@@ -310,6 +429,7 @@ def process_upload(
         # starts sooner and costs far less RAM than the software-decoded SVGA.
         # The SVGA is still published as the fallback for older clients.
         video_tmp = td_path / f"{gift_id}.mp4"
+        stage("pack", 95, "ترميز الفيديو الشفاف…")
         run_tool([PYTHON, str(TOOLS / "alpha_pack.py"), str(svga_tmp), "-o", str(video_tmp), "--crf", "26"])
         video_name = f"{content_hash(video_tmp)}.mp4"
         shutil.copy2(video_tmp, VIDEOS / video_name)
@@ -331,6 +451,84 @@ def process_upload(
         "icon": f"icons/{icon_name}",
         "sound": f"sounds/{sound_name}",
     }
+
+
+def push_catalog_to_cloud() -> tuple[bool, str]:
+    """Mirror the local catalog and its assets into Cloudflare R2.
+
+    The app reads its gift catalog from the Cloudflare worker, not from this
+    dashboard, so a gift published only locally is invisible on the phone.
+    Publishing therefore pushes the assets and catalog up as well; without a
+    token the local publish still succeeds and the operator is told the cloud
+    mirror was skipped.
+    """
+    if not (os.environ.get("CLOUDFLARE_API_TOKEN") or CF_TOKEN_FILE.exists()):
+        return False, "لا يوجد توكن Cloudflare — لم تتم المزامنة مع السحابة"
+    try:
+        out = run_tool([PYTHON, str(ROOT / "publish.py"), "push-all"])
+        return True, (out.splitlines()[-1] if out else "تمت المزامنة مع السحابة")
+    except Exception as exc:  # noqa: BLE001 - surfaced to the operator
+        return False, f"تعذّرت المزامنة مع السحابة: {exc}"
+
+
+def _run_upload_job(
+    jid: str,
+    src: Path,
+    work: Path,
+    gift_id: str,
+    tier: int,
+    bg: str,
+    size: int,
+    pad: float,
+    blend: str,
+    fit: str,
+    matte: str,
+    no_crop: bool,
+    max_seconds: float,
+    meta: dict,
+) -> None:
+    """Run the authoring pipeline for one upload, reporting progress to JOBS."""
+    def on_stage(stage: str, pct: float, label: str) -> None:
+        job_update(jid, stage=stage, pct=round(pct, 1), label=label)
+
+    try:
+        job_update(jid, stage="decode", pct=5, label="فكّ ترميز الفيديو…")
+        assets = process_upload(
+            src, gift_id, tier, bg, size, pad, blend,
+            fit=fit, matte=matte, no_crop=no_crop, max_seconds=max_seconds,
+            on_stage=on_stage,
+        )
+        job_update(jid, stage="save", pct=97, label="حفظ الهدية…")
+        with STATE_LOCK:
+            state = load_state()
+            draft = next((d for d in state["drafts"] if d["id"] == gift_id), None)
+            if draft is None:
+                draft = {"id": gift_id}
+                state["drafts"].append(draft)
+            draft.update(
+                {
+                    "emoji": meta.get("emoji") or draft.get("emoji") or "🎁",
+                    "labelAr": meta.get("labelAr") or draft.get("labelAr") or gift_id,
+                    "labelEn": meta.get("labelEn") or draft.get("labelEn") or gift_id,
+                    "tier": tier,
+                    "price": int(meta.get("price") or draft.get("price") or 1),
+                    "scale": float(draft.get("scale") or 1.0),
+                    "posX": float(draft.get("posX") or 0.0),
+                    "posY": float(draft.get("posY") or 0.0),
+                    "bg": bg, "blend": blend, "fit": fit, "matte": matte,
+                    "noCrop": no_crop, "maxSeconds": max_seconds,
+                    "size": size, "pad": pad,
+                    **assets,
+                }
+            )
+            draft.update(clip_preview(draft))
+            save_state(state)
+        job_update(jid, stage="done", pct=100, label="اكتملت المعالجة", done=True, draft=draft)
+    except Exception as exc:  # noqa: BLE001 - the message is shown to the operator
+        traceback.print_exc()
+        job_update(jid, stage="error", done=True, error=(str(exc) or "فشل غير معروف"))
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
 
 
 def build_preview_from_clip(gift: dict) -> None:
@@ -489,6 +687,8 @@ class Handler(BaseHTTPRequestHandler):
                     if g.get("svga"):
                         g.update(clip_preview(g))
                 return self.send_json(state)
+            if p == "/api/job":
+                return self.api_job()
             if p == "/gifts/catalog.json":
                 return self.send_file(DATA / "published.json", "application/json; charset=utf-8", cache=False)
             if p.startswith("/gifts/"):
@@ -535,7 +735,13 @@ class Handler(BaseHTTPRequestHandler):
     # -- endpoints
 
     def api_upload(self):
-        """Multipart upload → process → create or replace a gift."""
+        """Multipart upload → start a background job → return its id at once.
+
+        The pipeline takes minutes, so holding the request open would leave
+        the page with nothing to show but a fake sweep. The bytes are saved
+        here, then a worker thread runs the run and reports each stage into
+        JOBS, which `/api/job` exposes for the progress bar.
+        """
         body = self.read_body()
         fields, files = parse_multipart(self.headers.get("Content-Type", ""), body)
         if "file" not in files:
@@ -554,48 +760,37 @@ class Handler(BaseHTTPRequestHandler):
         pad = float(fields.get("pad") or 0.08)
 
         filename, payload = files["file"]
-        suffix = Path(filename).suffix or ".mp4"
-        with tempfile.TemporaryDirectory() as td:
-            src = Path(td) / f"upload{suffix}"
-            src.write_bytes(payload)
-            assets = process_upload(
-                src, gift_id, tier, bg, size, pad, blend,
-                fit=fit, matte=matte, no_crop=no_crop, max_seconds=max_seconds,
-            )
+        # The upload's temp dir must outlive this request, so the thread owns
+        # a private copy rather than the request-scoped temporary file.
+        work = Path(tempfile.mkdtemp(prefix="gift-upload-"))
+        src = work / f"upload{Path(filename).suffix or '.mp4'}"
+        src.write_bytes(payload)
+        meta = {
+            "emoji": fields.get("emoji"),
+            "labelAr": fields.get("labelAr"),
+            "labelEn": fields.get("labelEn"),
+            "price": fields.get("price"),
+        }
 
-        state = load_state()
-        draft = next((d for d in state["drafts"] if d["id"] == gift_id), None)
-        if draft is None:
-            draft = {"id": gift_id}
-            state["drafts"].append(draft)
-        draft.update(
-            {
-                "emoji": fields.get("emoji") or draft.get("emoji") or "🎁",
-                "labelAr": fields.get("labelAr") or draft.get("labelAr") or gift_id,
-                "labelEn": fields.get("labelEn") or draft.get("labelEn") or gift_id,
-                "tier": tier,
-                "price": int(fields.get("price") or draft.get("price") or 1),
-                "scale": float(fields.get("scale") or draft.get("scale") or 1.0),
-                "posX": float(fields.get("posX") or draft.get("posX") or 0.0),
-                "posY": float(fields.get("posY") or draft.get("posY") or 0.0),
-                "bg": bg,
-                "blend": blend,
-                "fit": fit,
-                "matte": matte,
-                "noCrop": no_crop,
-                "maxSeconds": max_seconds,
-                "size": size,
-                "pad": pad,
-                **assets,
-            }
-        )
-        save_state(state)
-        # Previews are built during upload, so attach their URLs to the draft
-        # for the response that opens the player.
-        draft.update(clip_preview(draft))
-        save_state(state)
-        # Nothing is live yet: the draft must be reviewed and published.
-        return self.send_json({"ok": True, "draft": draft})
+        jid = job_start(gift_id)
+        threading.Thread(
+            target=_run_upload_job,
+            args=(jid, src, work, gift_id, tier, bg, size, pad, blend, fit, matte, no_crop, max_seconds, meta),
+            daemon=True,
+        ).start()
+        return self.send_json({"ok": True, "job": jid})
+
+    def api_job(self):
+        """Progress of a background upload job, plus its draft when finished."""
+        q = urlparse(self.path).query
+        jid = ""
+        for part in q.split("&"):
+            if part.startswith("id="):
+                jid = part[3:]
+        job = job_get(jid)
+        if job is None:
+            return self.send_json({"error": "unknown job"}, 404)
+        return self.send_json(job)
 
     def api_publish(self):
         """Promote a draft into the live catalog."""
@@ -608,7 +803,8 @@ class Handler(BaseHTTPRequestHandler):
         # "already published", not an error.
         if draft is None:
             if live is not None:
-                return self.send_json({"ok": True, "gift": live})
+                synced, note = push_catalog_to_cloud()
+                return self.send_json({"ok": True, "gift": live, "synced": synced, "note": note})
             return self.send_json({"error": "unknown draft"}, 404)
         if not draft.get("svga") and not draft.get("video"):
             return self.send_json({"error": "draft has no clip"}, 400)
@@ -622,7 +818,11 @@ class Handler(BaseHTTPRequestHandler):
         gift.update({k: v for k, v in draft.items() if k != "preview"})
         state["drafts"] = [d for d in state["drafts"] if d["id"] != draft["id"]]
         save_state(state)
-        return self.send_json({"ok": True, "gift": gift})
+        # The app reads its catalog from Cloudflare, so publishing locally is
+        # not enough: mirror the gift and catalog up or it never reaches the
+        # phone. A missing token degrades to a local-only publish with a note.
+        synced, note = push_catalog_to_cloud()
+        return self.send_json({"ok": True, "gift": gift, "synced": synced, "note": note})
 
     def api_discard(self):
         payload = json.loads(self.read_body())
@@ -921,9 +1121,9 @@ INDEX_HTML = r"""<!doctype html>
         <div>
           <label>طريقة فصل الهدف</label>
           <select id="matte">
-            <option value="auto" selected>تلقائي (دلالي إن توفر، وإلا المفتاح اللوني)</option>
-            <option value="birefnet">دلالي BiRefNet (الأفضل لهدف غامق)</option>
-            <option value="key">مفتاح لوني/سطوع فقط</option>
+            <option value="key" selected>مفتاح لوني/سطوع فقط — سريع جدًا (الأفضل لخلفية سادة)</option>
+            <option value="auto">تلقائي (دلالي إن توفر، وإلا المفتاح اللوني)</option>
+            <option value="birefnet">دلالي BiRefNet (الأفضل لهدف غامق أو خلفية معقّدة، أبطأ)</option>
           </select>
         </div>
         <div>
@@ -1231,7 +1431,13 @@ async function refresh(){
     if (t) t.onclick = () => openPreview(g);
     d.querySelector('[data-act=pub]').onclick = async () => {
       const res = await (await fetch('/api/publish', {method:'POST', body: JSON.stringify({id})})).json();
-      if (!res.ok) alert('فشل النشر: ' + (res.error||''));
+      if (!res.ok) { alert('فشل النشر: ' + (res.error||'')); return; }
+      // Say plainly whether the gift actually reached the app. The app reads
+      // the catalog from Cloudflare, so a local-only publish would look
+      // successful here yet never show up on the phone.
+      setStatus(res.synced
+        ? '✅ نُشر وتمت المزامنة مع السحابة — يظهر في التطبيق عند التشغيل التالي.'
+        : '⚠️ نُشر محليًا فقط — ' + (res.note||''), res.synced);
       refresh();
     };
     d.querySelector('[data-act=dis]').onclick = async () => {
@@ -1294,42 +1500,64 @@ $('#go').onclick = () => {
     const nc = $('#noCrop');
     fd.append('noCrop', nc && nc.checked ? '1' : '0');
     const xhr = new XMLHttpRequest();
-    // Two phases share one bar: the browser upload fills the first half, then
-    // the server's ffmpeg/rembg pass is an indeterminate sweep, since it
-    // streams no progress back. Both must leave the bar in a sane state.
+    // One bar, two honest phases. The byte transfer fills 0..100 on its own;
+    // once the server has the file it runs minutes of work, so the page polls
+    // /api/job and drives the same bar from the *real* stage the pipeline is
+    // in (decode → background removal → crop → encode), not a fake sweep.
     const setProg = (pct, label) => {
       const p = $('#prog'); p.classList.add('on'); p.classList.remove('busy');
       $('#pfill').style.width = Math.max(0, Math.min(100, pct)) + '%';
       $('#plabel').textContent = label || (Math.round(pct) + '%');
-    };
-    const busyProg = (label) => {
-      const p = $('#prog'); p.classList.add('on', 'busy');
-      $('#plabel').textContent = label;
     };
     const hideProg = () => { $('#prog').classList.remove('on', 'busy'); $('#pfill').style.width = '0%'; $('#plabel').textContent = '0%'; };
     // Always return the button to a usable state, however the request ends.
     // A dropped connection (server restart, laptop sleep) used to leave the
     // button disabled forever, which looked like the button itself was dead.
     const done = (msg, ok) => { $('#go').disabled = false; hideProg(); setStatus(msg, ok); };
+    const pollJob = (jid) => new Promise((resolve, reject) => {
+      const tick = () => {
+        const j = new XMLHttpRequest();
+        j.open('GET', '/api/job?id=' + encodeURIComponent(jid));
+        j.onload = () => {
+          let s = {}; try { s = JSON.parse(j.responseText); } catch(e){}
+          if (j.status !== 200) return reject(new Error(s.error || ('HTTP ' + j.status)));
+          if (s.error) return reject(new Error(s.error));
+          // Upload owns 0..50 of the bar; the pipeline owns 50..100, so the
+          // operator sees one continuous fill across the whole operation.
+          const pct = 50 + (Number(s.pct || 0) / 2);
+          setProg(pct, s.label || 'جارٍ المعالجة…');
+          setStatus((s.label || 'جارٍ المعالجة…'), true);
+          if (s.done) return s.error ? reject(new Error(s.error)) : resolve(s);
+          setTimeout(tick, 700);
+        };
+        j.onerror = () => reject(new Error('انقطع الاتصال أثناء المعالجة'));
+        j.send();
+      };
+      tick();
+    });
     xhr.open('POST', '/api/upload');
     xhr.timeout = 10 * 60 * 1000;
     $('#go').disabled = true;
     setProg(0, '0%');
     setStatus('جارٍ الرفع…', true);
-    xhr.upload.onprogress = (e) => { if (e.lengthComputable) setProg((e.loaded/e.total)*100); };
-    // Upload finished, server now transcodes; switch to the indeterminate
-    // sweep so the operator sees it is still working, not stuck at 100%.
-    xhr.upload.onload = () => { busyProg('اكتمل الرفع — جارٍ إزالة الخلفية والقص والترميز…'); setStatus('اكتمل الرفع — جارٍ إزالة الخلفية والقص والترميز…', true); };
-    xhr.onload = () => {
+    // Bytes fill the first half, leaving the second half for the pipeline.
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable) setProg((e.loaded/e.total)*50, 'رفع ' + Math.round((e.loaded/e.total)*100) + '%'); };
+    xhr.upload.onload = () => { setProg(50, 'اكتمل الرفع — جارٍ إزالة الخلفية والقص والترميز…'); };
+    xhr.onload = async () => {
       let res = {}; try { res = JSON.parse(xhr.responseText); } catch(e){}
-      if (xhr.status === 200 && res.ok) {
+      if (xhr.status !== 200 || !res.ok || !res.job) {
+        return done('❌ فشل: ' + (res.error || ('HTTP ' + xhr.status)), false);
+      }
+      try {
+        const job = await pollJob(res.job);
         done('✅ جاهزة للمعاينة — راجعها بالأعلى ثم اضغط «نشر للتطبيق».', true);
         refresh();
         // Show the result immediately: the operator's whole reason for
         // uploading is to see whether the background came out clean.
-        try { openPreview(Object.assign({}, res.draft, {status:'مسودّة'})); } catch(e) {}
+        try { openPreview(Object.assign({}, job.draft, {status:'مسودّة'})); } catch(e) {}
+      } catch (err) {
+        done('❌ فشل: ' + (err && err.message ? err.message : err), false);
       }
-      else done('❌ فشل: ' + (res.error || ('HTTP ' + xhr.status)), false);
     };
     xhr.onerror = () => done('❌ انقطع الاتصال — أعد تحميل الصفحة ثم حاول مرة أخرى', false);
     xhr.ontimeout = () => done('❌ انتهت المهلة — الملف كبير جدًا أو الخادم مشغول', false);

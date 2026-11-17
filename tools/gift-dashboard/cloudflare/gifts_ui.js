@@ -51,6 +51,7 @@ sections.gifts = async () => {
     <div class="card">
       <h3>\u0631\u0641\u0639 \u0645\u0634\u0647\u062F \u0647\u062F\u064A\u0629 (\u0641\u064A\u062F\u064A\u0648 \u0623\u0644\u0641\u0627)</h3>
       <p class="help">\u064A\u064F\u0631\u0641\u0639 \u0627\u0644\u0645\u0644\u0641 \u0627\u0644\u0645\u0636\u063A\u0648\u0637 (\u0645\u0646 <span dir="ltr">alpha_pack</span>) \u0645\u0628\u0627\u0634\u0631\u0629\u064B. \u062A\u064F\u0642\u0631\u0623 \u0623\u0628\u0639\u0627\u062F \u0627\u0644\u0625\u0637\u0627\u0631 \u0647\u0646\u0627 \u062A\u0644\u0642\u0627\u0626\u064A\u0627\u064B.</p>
+      <p class="help" style="color:#e5a03c">\u26a0\ufe0f \u0647\u0630\u0647 \u0627\u0644\u0644\u0648\u062D\u0629 \u062A\u062E\u0632\u0651\u0646 \u0627\u0644\u0645\u0644\u0641 \u0643\u0645\u0627 \u0647\u0648 \u0628\u0644\u0627 \u0645\u0639\u0627\u0644\u062C\u0629 (\u0644\u0627 \u062A\u064F\u0632\u064A\u0644 \u0627\u0644\u062E\u0644\u0641\u064A\u0629 \u0648\u0644\u0627 \u062A\u064F\u0642\u0635\u0651 \u0648\u0644\u0627 \u062A\u064F\u0631\u0645\u0651\u0632). \u0623\u0631\u0641\u0639 \u0645\u0644\u0641\u0627\u064B \u0645\u064F\u0639\u0627\u0644\u062C\u0627\u064B \u0628\u0627\u0644\u0641\u0639\u0644\u060C \u0623\u0648 \u0627\u0633\u062A\u062E\u062F\u0645 \u0627\u0644\u0644\u0648\u062D\u0629 \u0627\u0644\u0645\u062D\u0644\u064A\u0629 \u0644\u0625\u0632\u0627\u0644\u0629 \u0627\u0644\u062E\u0644\u0641\u064A\u0629 \u0648\u0627\u0644\u0642\u0635 \u0648\u0627\u0644\u062A\u0631\u0645\u064A\u0632.</p>
       <div class="gift-upload">
         <input id="gu-id" placeholder="id (\u0645\u062B\u0627\u0644: rose)" />
         <input id="gu-ar" placeholder="\u0627\u0644\u0627\u0633\u0645 \u0628\u0627\u0644\u0639\u0631\u0628\u064A\u0629" />
@@ -115,12 +116,6 @@ function wireGiftUpload(state) {
     q("gu-fill").style.width = Math.max(0, Math.min(100, pct)) + "%";
     q("gu-pct").textContent = label || (Math.round(pct) + "%");
   };
-  const busyProg = (label) => {
-    const wrap = q("gu-prog");
-    wrap.classList.add("on", "busy");
-    q("gu-pct").classList.add("wide");
-    q("gu-pct").textContent = label;
-  };
   const hideProg = () => {
     const wrap = q("gu-prog");
     wrap.classList.remove("on", "busy");
@@ -136,8 +131,11 @@ function wireGiftUpload(state) {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/gifts/asset");
     xhr.setRequestHeader("authorization", "Bearer " + TOKEN);
-    xhr.upload.onprogress = (e) => { if (e.lengthComputable) setProg((e.loaded / e.total) * 100); };
-    xhr.upload.onload = () => busyProg("\u0627\u0643\u062A\u0645\u0644 \u0627\u0644\u0631\u0641\u0639 \u2014 \u062C\u0627\u0631\u064D \u0625\u0632\u0627\u0644\u0629 \u0627\u0644\u062E\u0644\u0641\u064A\u0629 \u0648\u0627\u0644\u0642\u0635 \u0648\u0627\u0644\u062A\u0631\u0645\u064A\u0632\u2026");
+    // Bytes fill the first half of the bar; the second half is the worker's
+    // store-and-publish tail. Unlike the local dashboard, the worker does no
+    // background removal or transcoding, so the bar must not claim it does.
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable) setProg((e.loaded / e.total) * 50, "\u0631\u0641\u0639 " + Math.round((e.loaded / e.total) * 100) + "%"); };
+    xhr.upload.onload = () => setProg(50, "\u0627\u0643\u062A\u0645\u0644 \u0627\u0644\u0631\u0641\u0639 \u2014 \u062C\u0627\u0631\u064D \u0627\u0644\u062D\u0641\u0638 \u0641\u064A R2\u2026");
     xhr.onload = () => {
       let j = {};
       try { j = JSON.parse(xhr.responseText); } catch (e) { /* keep {} */ }
@@ -155,6 +153,47 @@ function wireGiftUpload(state) {
     v.preload = "metadata";
     v.onloadedmetadata = () => { URL.revokeObjectURL(v.src); resolve([v.videoWidth, v.videoHeight]); };
     v.onerror = () => { URL.revokeObjectURL(v.src); resolve([0, 0]); };
+    v.src = URL.createObjectURL(file);
+  });
+
+  // The app's renderer always treats a gift video as *alpha-packed*: it draws
+  // the top half as colour and the bottom half's green channel as the alpha
+  // matte (see AlphaVideoRenderer.kt). A plain video has no matte strip, so
+  // the app reads real picture content as alpha, draws the whole quad opaque
+  // and the gift covers the room as a black box. This checks a real decoded
+  // frame: a packed file's bottom half is a grayscale matte, a raw video's is
+  // ordinary colour. Returns true when the file is safe to publish.
+  const looksAlphaPacked = (file) => new Promise((resolve) => {
+    const v = document.createElement("video");
+    v.preload = "metadata";
+    v.muted = true;
+    const finish = (ok) => { URL.revokeObjectURL(v.src); resolve(ok); };
+    v.onerror = () => finish(false);
+    v.onloadeddata = () => {
+      try {
+        v.currentTime = Math.min(0.2, (v.duration || 1) / 2);
+      } catch (e) { finish(false); }
+    };
+    v.onseeked = () => {
+      try {
+        const w = v.videoWidth, h = v.videoHeight;
+        if (!w || !h || h % 2) return finish(false);
+        const c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        const ctx = c.getContext("2d");
+        ctx.drawImage(v, 0, 0, w, h);
+        const half = h >> 1;
+        const d = ctx.getImageData(0, half, w, half).data;
+        let spread = 0, n = 0;
+        for (let i = 0; i < d.length; i += 4) {
+          const r = d[i], g = d[i + 1], b = d[i + 2];
+          spread += Math.max(r, g, b) - Math.min(r, g, b);
+          n++;
+        }
+        // A grayscale matte has near-zero channel spread; real footage does not.
+        finish(n > 0 && spread / n < 8);
+      } catch (e) { finish(false); }
+    };
     v.src = URL.createObjectURL(file);
   });
 
@@ -185,6 +224,17 @@ function wireGiftUpload(state) {
 
     const isVideo = /\.mp4$/i.test(file.name) || file.type === "video/mp4";
     const kind = isVideo ? "videos" : "clips";
+    // Refuse a raw video here rather than publishing a gift that shows as a
+    // black box over the room. The worker cannot transcode, so the file must
+    // already be alpha-packed (from the local dashboard / alpha_pack).
+    if (isVideo) {
+      msg("\u062C\u0627\u0631\u064D \u0627\u0644\u062A\u062D\u0642\u0642 \u0645\u0646 \u0627\u0644\u0645\u0644\u0641\u2026");
+      const packed = await looksAlphaPacked(file);
+      if (!packed) {
+        msg("\u274C \u0647\u0630\u0627 \u0641\u064A\u062F\u064A\u0648 \u062E\u0627\u0645 \u0628\u0644\u0627 \u0642\u0646\u0627\u0629 \u0634\u0641\u0627\u0641\u064A\u0629 \u2014 \u0633\u064A\u0637\u0647\u0631 \u0628\u062E\u0644\u0641\u064A\u0629 \u0633\u0648\u062F\u0627\u0621 \u0641\u064A \u0627\u0644\u062A\u0637\u0628\u064A\u0642. \u0623\u0631\u0641\u0639\u0647 \u0645\u0646 \u0627\u0644\u0644\u0648\u062D\u0629 \u0627\u0644\u0645\u062D\u0644\u064A\u0629 \u0644\u0625\u0632\u0627\u0644\u0629 \u0627\u0644\u062E\u0644\u0641\u064A\u0629 \u0648\u0627\u0644\u062A\u063A\u0644\u064A\u0641\u060C \u0623\u0648 \u0627\u0631\u0641\u0639 \u0645\u0644\u0641 \u0645\u064F\u063A\u0644\u0651\u064E\u0641 \u0645\u0646 alpha_pack.", "bad");
+        return;
+      }
+    }
     msg("\u062C\u0627\u0631\u064D \u0627\u0644\u0631\u0641\u0639\u2026");
     go.disabled = true;
     setProg(0, "0%");
@@ -206,9 +256,10 @@ function wireGiftUpload(state) {
         if (h > 0) form.append("height", String(h));
       }
       await uploadWithProgress(form);
-      // The asset is stored; the meta write and publish are the tail of the
-      // same operation, so the bar keeps sweeping until they are done.
-      busyProg("\u0627\u0643\u062A\u0645\u0644 \u0627\u0644\u0631\u0641\u0639 \u2014 \u062C\u0627\u0631\u064D \u0625\u0632\u0627\u0644\u0629 \u0627\u0644\u062E\u0644\u0641\u064A\u0629 \u0648\u0627\u0644\u0642\u0635 \u0648\u0627\u0644\u062A\u0631\u0645\u064A\u0632\u2026");
+      // The bytes are in R2; the meta write and publish are the tail of the
+      // same operation, so the bar shows those steps by name instead of an
+      // indeterminate sweep that implies transcoding the worker never does.
+      setProg(75, "\u062C\u0627\u0631\u064D \u0643\u062A\u0627\u0628\u0629 \u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0647\u062F\u064A\u0629\u2026");
 
       // Fill in the operator-facing fields on the same row, then publish.
       await api("/api/gifts/meta", {
@@ -222,7 +273,9 @@ function wireGiftUpload(state) {
           price: Number(q("gu-price").value) || 1,
         }),
       });
+      setProg(90, "\u062C\u0627\u0631\u064D \u0627\u0644\u0646\u0634\u0631\u2026");
       await api("/api/gifts/publish", { method: "POST", body: JSON.stringify({ id }) });
+      setProg(100, "100%");
       toast("\u062A\u0645 \u0627\u0644\u0631\u0641\u0639 \u0648\u0627\u0644\u0646\u0634\u0631");
       hideProg();
       sections.gifts();

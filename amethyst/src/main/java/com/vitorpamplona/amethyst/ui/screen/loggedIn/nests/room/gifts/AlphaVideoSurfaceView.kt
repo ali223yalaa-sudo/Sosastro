@@ -30,9 +30,14 @@ import android.view.Surface
  * [AlphaVideoRenderer] and exposes the decoder's input surface once the GL
  * thread has created it.
  *
- * It is deliberately transparent ([PixelFormat.TRANSLUCENT] plus
- * `setZOrderOnTop(false)`): the gift must sit over the room, so the view's
- * own pixels have to blend with what is behind it rather than replace it.
+ * It must be composited *with* its own per-pixel alpha: the gift's transparent
+ * regions have to reveal the room behind it, not a black rectangle. On Android
+ * a [GLSurfaceView] only blends with the window's content when its surface is
+ * placed on top of the window and marked translucent — `setZOrderOnTop(false)`
+ * (the default) parks the surface *behind* the window, where the transparent
+ * pixels composite against nothing and the gift shows as a black box. So the
+ * surface is translucent and z-ordered on top; its clear colour is fully
+ * transparent, so the room shows through everywhere the clip is see-through.
  */
 internal class AlphaVideoSurfaceView(
     context: Context,
@@ -45,7 +50,10 @@ internal class AlphaVideoSurfaceView(
         setEGLContextClientVersion(2)
         setEGLConfigChooser(8, 8, 8, 8, 16, 0)
         holder.setFormat(PixelFormat.TRANSLUCENT)
-        setZOrderOnTop(false)
+        // Must be set before the surface is created (before setRenderer):
+        // a z-order-on-top surface is the only way a SurfaceView blends its
+        // alpha with the window content instead of replacing it with black.
+        setZOrderOnTop(true)
         setRenderer(renderer)
         renderMode = RENDERMODE_CONTINUOUSLY
         renderer.onSurfaceReady = { surface -> onSurfaceReady?.invoke(surface) }

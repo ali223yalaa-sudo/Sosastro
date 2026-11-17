@@ -177,8 +177,8 @@ class GiftSounds(
                 // that gift for good.
                 val p = prepared[asset.url] ?: prepareRemote(asset.url) ?: return
                 player?.takeIf { it !== p }?.runCatching {
-                    if (it.isPlaying) it.pause()
-                    it.seekTo(0)
+                    if (isPlaying) pause()
+                    seekTo(0)
                 }
                 runCatching {
                     p.seekTo(0)
