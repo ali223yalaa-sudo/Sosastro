@@ -1155,22 +1155,20 @@ strictly better at every tested brightness (255/200/128/90). `--key-hi`
 is still honoured verbatim when the operator passes `--key-hi-explicit`.
 `BlackKeyRamp` in `test_video_to_svga.py` pins all of this.
 
-## Room web UI + native audio (architecture decision)
+## Room UI stays native (decision reversed)
 
-The room UI is moving to web content inside the app's existing sandboxed web
-host, with audio kept on the current **MoQ-over-WebTransport** plane and
-decoded/encoded in-page with WebCodecs. Do **not** add a WebRTC SFU (LiveKit
-et al.): the room's voice is not WebRTC today, and the browser side of the MoQ
-plane is already proven by `nestsClient/tests/browser-interop`. Full reasoning,
-phases and risks: `docs/plans/2026-11-17-feat-room-web-ui-native-audio-decision.md`.
+The room UI, the cinematic gift presentation and gift rendering are **native
+(Compose)**, over `AlphaVideoGiftPlayer` / `SvgaGiftPlayer` / `RoomGiftOverlay`.
+A web-room direction was considered and withdrawn — see the "Update" section of
+`docs/plans/2026-11-17-feat-room-web-ui-native-audio-decision.md`.
 
 Two facts worth remembering, because they explain more than one bug:
 
 - The sandboxed web host sets up **no `WebChromeClient`** (no
   `onShowFileChooser`). That is why "choose file" does nothing in the in-app
   WebView (the standalone gift uploader implements the callback itself, so it
-  works). Phase 0 of the plan adds it. The page does **not** need
-  `onPermissionRequest`: microphone capture stays native.
+  works). Fixing that is a plain WebView capability gap in the app, unrelated to
+  any web room.
 - The room's audio is MoQ/WebTransport, **not** the WebRTC stack under
   `service/call/` (that serves DMs and calls). Grep `nestsClient/.../transport/`
   before assuming a WebRTC API applies to rooms.

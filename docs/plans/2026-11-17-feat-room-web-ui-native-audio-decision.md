@@ -1,10 +1,28 @@
 # Room web UI + native audio: architecture decision
 
-Status: decided (2026-11-17)
-Scope: the Nest room surface (`nests` / NIP-53 meeting spaces) — stage, chat,
-gifts, and the voice plane.
+Status: reversed (2026-11-17) — the room UI stays native. See "Update" below.
 
-## Decision
+## Update (2026-11-17): the room UI stays native
+
+The web-UI direction below is **withdrawn**. Native is the better fit here, and
+the room UI, the cinematic gift presentation and the gift rendering stay in
+Compose, in the app.
+
+What this means concretely:
+
+- No web page for the room. No sandboxed-host work for it.
+- The cinematic gift presentation is built natively, over the existing
+  `AlphaVideoGiftPlayer` / `SvgaGiftPlayer` / `RoomGiftOverlay` path.
+- The gallery bug is still real and still worth fixing, but as a plain
+  WebView capability gap in the app (add `onShowFileChooser` to the embedded
+  host) — not as a step toward a web room.
+- The MoQ/WebTransport facts below remain true and useful; only the conclusion
+  drawn from them is reversed.
+
+Everything under "Decision (superseded)" is kept as the record of the
+alternative that was considered and dropped.
+
+## Decision (superseded)
 
 Build the **room UI as web content** that runs inside the app's existing
 sandboxed web host, and keep **audio on the existing MoQ-over-WebTransport
