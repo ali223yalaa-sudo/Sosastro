@@ -1167,10 +1167,10 @@ phases and risks: `docs/plans/2026-11-17-feat-room-web-ui-native-audio-decision.
 Two facts worth remembering, because they explain more than one bug:
 
 - The sandboxed web host sets up **no `WebChromeClient`** (no
-  `onPermissionRequest`, no `onShowFileChooser`). That is why a page in the
-  in-app WebView cannot get the mic, and why "choose file" does nothing there
-  (the standalone gift uploader implements the callback itself, so it works).
-  Phase 0 of the plan adds the chrome client and fixes both.
+  `onShowFileChooser`). That is why "choose file" does nothing in the in-app
+  WebView (the standalone gift uploader implements the callback itself, so it
+  works). Phase 0 of the plan adds it. The page does **not** need
+  `onPermissionRequest`: microphone capture stays native.
 - The room's audio is MoQ/WebTransport, **not** the WebRTC stack under
   `service/call/` (that serves DMs and calls). Grep `nestsClient/.../transport/`
   before assuming a WebRTC API applies to rooms.

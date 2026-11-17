@@ -63,60 +63,61 @@ own.
 ## The blocker to fix first
 
 The embedded host sets up **no `WebChromeClient` at all** (grep for
-`onPermissionRequest` / `onShowFileChooser` under `ui/screen/loggedIn/` finds
-none in the host path). That single gap explains two separate symptoms:
+`onShowFileChooser` under `ui/screen/loggedIn/` finds none in the host path).
+That is why tapping "choose file" in the in-app WebView does nothing: the
+callback is unimplemented. The standalone gift uploader app is fine — it
+implements the callback itself.
 
-1. **Microphone**: a page cannot get mic access without
-   `WebChromeClient.onPermissionRequest`, so the web room could not publish
-   audio.
-2. **The reported gallery bug**: tapping "choose file" in the in-app WebView
-   does nothing, because `onShowFileChooser` is unimplemented. The standalone
-   gift uploader app is fine — it implements the callback itself.
+This is the only host capability the web room needs. Because **microphone
+capture stays native** (see below), the page never asks for mic permission, so
+`onPermissionRequest` is not required.
 
-Both are fixed by the same work item.
+## The microphone stays native
+
+Capture, the foreground service, and the mic indicator stay in Kotlin exactly
+as today: the native side encodes Opus and publishes it on the `audio/data`
+track over the existing MoQ session. The web layer only **subscribes and
+plays**.
+
+This removes the whole question of whether a page can hold the mic, and it
+removes the need for `AudioEncoder` in the browser. The page is a listener, and
+a listener needs nothing but WebTransport and `AudioDecoder` — both of which
+the interop harness already exercises.
 
 ## Phases
 
-**Phase 0 — capability unblock (also fixes the gallery bug).**
-Add a `WebChromeClient` to the sandbox host: `onShowFileChooser` (restores the
-file picker in embedded pages) and `onPermissionRequest` (grant the mic only
-for the room origin, behind a user-visible prompt). Verify that a
-privacy-sandbox process can hold the mic; if it cannot, fall back to capturing
-on the native side and feeding the page over the existing bridge.
+**Phase 0 — file chooser.** Add a `WebChromeClient` to the sandbox host with
+`onShowFileChooser`, restoring the file picker in embedded pages. This also
+fixes the reported gallery bug.
 
 **Phase 1 — read-only web room.** Render stage, chat and gifts in the page.
 Subscribe to `audio/data` with `@moq/lite` + `@moq/hang` and play through
-WebAudio, reusing the decoder path the interop harness already exercises. No
-publishing yet.
+WebAudio, reusing the decoder path the interop harness already exercises. The
+mic is published by the native side, unchanged.
 
-**Phase 2 — publish.** Encode the mic with WebCodecs `AudioEncoder('opus')`
-and publish over the same session, reusing the harness `publish.ts` path.
-
-**Phase 3 — gifts in the web layer.** Render gifts with SVGAPlayer-Web and the
+**Phase 2 — gifts in the web layer.** Render gifts with SVGAPlayer-Web and the
 alpha-packed MP4. The packer now tags the video full-range BT.709, so a web
 renderer and the native renderer decode the same colours — which also closes
 the long-standing "preview looks right, the room looks washed out" gap by
 making preview and room the *same* renderer.
 
-**Phase 4 — native fallback.** Keep the Compose room for WebViews without
+**Phase 3 — native fallback.** Keep the Compose room for WebViews without
 WebTransport or WebCodecs, selected by capability probe rather than a version
 check.
 
 ## Risks
 
-- **Privacy-sandbox mic access** is the main unknown; Phase 0 settles it, and
-  the native-capture fallback covers a negative answer.
-- **WebCodecs Opus encode** must be confirmed on the Android WebView build we
-  ship; the interop harness already covers decode.
-- **Battery**: a page plus native capture is more moving parts than the
-  current native-only listener. Measure before Phase 3.
+- **WebTransport + WebCodecs decode** must be present in the Android WebView
+  build we ship; the interop harness covers Chromium, so verify the WebView
+  version floor.
+- **Battery**: a page listening while native captures is more moving parts than
+  the current native-only listener. Measure before Phase 2.
 
 ## Verification
 
 - Extend `nestsClient/tests/browser-interop` with a room-shaped case: a
   headless Chromium subscribes to the room's audio track and receives
   continuous PCM, asserted by Playwright.
-- Add a case that a page requesting the mic receives a grant through the host
-  chrome client (Phase 0).
+- Add a case that `onShowFileChooser` is reached from an embedded page.
 - Keep the existing relay wire tests green; they pin the protocol the web
   client must match.
