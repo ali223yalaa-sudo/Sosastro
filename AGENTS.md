@@ -1101,6 +1101,48 @@ and keeps SVGA as the fallback for gifts authored before the packer existed.
   route with the page's `authorization: Bearer` header — no `content-type`
   on the multipart body, so the browser sets the boundary itself.
 
+## Gift video processing: fast and colour-faithful (do not regress)
+
+Two rules keep the authoring pipeline both fast and faithful. Both were
+learned from a crash and a colour mismatch, so they are load-bearing.
+
+- **`--matte auto` must never reach for BiRefNet on a flat backdrop.**
+  BiRefNet is semantic (the only mode that survives a dark subject on a
+  dark backdrop), but it costs ~20 s a frame and peaks near 6.8 GiB RSS on
+  this box — measured, and enough to OOM-kill the whole session when run
+  without the gate. A green/blue/black/white screen keys exactly and
+  instantly with the colour key (`detect_bg` already classifies it), so
+  `auto` uses the key for any `mode != "color"` and reserves the model for
+  a busy scene. `--matte birefnet` is still explicit for that case, and
+  `matte_birefnet` runs the model on a keyframe and interpolates the
+  masks in between (`keyframe_budget`, default 16) so a long clip cannot
+  scale its cost with the frame count. Never call `matte_birefnet` without
+  the `birefnet_affordable` gate in a shared box: a direct call is what
+  took the machine down.
+
+- **The packed MP4 must be tagged full-range BT.709.** `alpha_pack.py`
+  stacks RGB over an alpha strip and encodes `yuv420p`; without an
+  explicit tag the phone's hardware decoder and the browser preview
+  disagree on the YUV->RGB matrix and range, so the clip looks washed out
+  in the room while the dashboard preview (VP9 `yuva420p`, full range)
+  looks right. `encode()` therefore writes `-color_range pc -colorspace
+  bt709 -color_primaries bt709 -color_trc bt709`. Measured on a real clip:
+  alpha mean error drops from 0.20 to 0.06 and opaque pixels land on
+  exactly 255 instead of 253. The GL shader samples the alpha strip's
+  **green** channel (3 identical channels, so 4:2:0 chroma cannot bleed
+  into the matte); keep that channel exact when touching the packer.
+
+Preview fidelity also depends on the *authoring* stage, which lives in
+`video_to_svga.py`: `--bg` accepts `auto`/`green`/`blue`/`white`/`black`/
+`#rrggbb`, `key_chroma` keys by colour distance from the sampled backdrop
+(so any studio colour works, not just green), and `key_black` derives alpha
+from brightness with un-premultiplied colour so glows keep their value.
+`key_chroma` de-spills the dominant channel in the semi-transparent band,
+which is what stops a green fringe riding into the room. The room stage is
+252/448 (`ROOM_ASPECT`), matching the app renderer's `VERTICAL_FILL = 0.95`
+(95% height, ~112% width, centred), so a `fit=cover` clip lands the same in
+both.
+
 ## Room gifts served from Cloudflare (permanent hosting)
 
 The local dashboard (`gift_dashboard/server.py`) is the *authoring* tool: it

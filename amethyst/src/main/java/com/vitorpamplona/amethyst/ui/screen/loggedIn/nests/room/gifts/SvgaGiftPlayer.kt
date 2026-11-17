@@ -57,12 +57,15 @@ fun SvgaGiftPlayer(
     modifier: Modifier = Modifier,
     clientBuilder: IRoleBasedHttpClientBuilder? = null,
     onReady: () -> Unit = {},
+    onError: () -> Unit = {},
 ) {
     // Keep the latest callbacks without re-creating the view.
     val finished = remember { Ref(onFinished) }
     finished.value = onFinished
     val readyCb = remember { Ref(onReady) }
     readyCb.value = onReady
+    val errorCb = remember { Ref(onError) }
+    errorCb.value = onError
 
     val context = LocalContext.current
     val source = giftAssetOf(asset)
@@ -80,9 +83,9 @@ fun SvgaGiftPlayer(
                     null -> null
                 }
             // A remote clip that could not be fetched has nothing to play.
-            // Report ready so the overlay's queue is not stalled waiting
-            // for a burst that will never start.
-            if (value == null) readyCb.value()
+            // Signal the failure so the queue advances instead of stalling
+            // on a burst that will never start.
+            if (value == null) errorCb.value()
         }
 
     val ready = resolved ?: return
@@ -117,7 +120,7 @@ fun SvgaGiftPlayer(
         update = { view ->
             if (view.tag != asset) {
                 view.tag = asset
-                decodeInto(view, view.context, ready, finished, readyCb)
+                decodeInto(view, view.context, ready, readyCb, errorCb)
             }
         },
     )
@@ -127,17 +130,20 @@ private fun decodeInto(
     view: SVGAImageView,
     context: Context,
     source: GiftSource,
-    finished: Ref<() -> Unit>,
     onReady: Ref<() -> Unit>,
+    onError: Ref<() -> Unit>,
 ) {
     // A decoded entity is reused across sends. The SVGA parser only
     // caches the *file*, not the decoded entity, so without this every
     // send re-parsed a multi-megabyte clip and the scene appeared late.
     val key = source.cacheKey()
     SvgaEntityCache.get(key)?.let { cached ->
-        runCatching {
-            view.setVideoItem(cached)
-            view.startAnimation()
+        val shown =
+            runCatching {
+                view.setVideoItem(cached)
+                view.startAnimation()
+            }.isSuccess
+        if (shown) {
             onReady.value()
             return
         }
@@ -157,8 +163,10 @@ private fun decodeInto(
 
             override fun onError() {
                 Log.w("SvgaGiftPlayer", "failed to decode $source")
-                onReady.value()
-                finished.value()
+                // Report the failure rather than "ready": the queue then
+                // treats this burst as unplayable and moves on instead of
+                // holding an empty screen for the full timeout.
+                onError.value()
             }
         }
     when (source) {

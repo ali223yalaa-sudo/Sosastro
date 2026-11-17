@@ -270,9 +270,10 @@ def extract_audio(src: Path, out_wav: Path) -> bool:
     return True
 
 
-def run_tool(args: list[str], on_line=None) -> str:
+def run_tool(args: list[str], on_line=None, env: dict | None = None) -> str:
+    run_env = {**os.environ, **env} if env else None
     if on_line is None:
-        proc = subprocess.run(args, capture_output=True, text=True, timeout=1800)
+        proc = subprocess.run(args, capture_output=True, text=True, timeout=1800, env=run_env)
         if proc.returncode != 0:
             raise RuntimeError((proc.stderr or proc.stdout or "tool failed").strip()[-2000:])
         return proc.stdout.strip()
@@ -280,7 +281,7 @@ def run_tool(args: list[str], on_line=None) -> str:
     # markers the converter already prints ("decoded", "matte 3/120", "crop:")
     # into real progress, instead of a bar that only guesses.
     proc = subprocess.Popen(
-        args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1
+        args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, env=run_env
     )
     lines: list[str] = []
     for line in proc.stdout:
@@ -491,7 +492,10 @@ def push_catalog_to_cloud(gift_id: str | None = None, delete: bool = False) -> t
             cmd = ["edit", gift_id]
         else:
             cmd = ["push-all"]
-        out = run_tool([PYTHON, str(ROOT / "publish.py"), *cmd])
+        out = run_tool(
+            [PYTHON, str(ROOT / "publish.py"), *cmd],
+            env={"GIFT_DASHBOARD": str(ROOT)},
+        )
         return True, (out.splitlines()[-1] if out else "تمت المزامنة مع السحابة")
     except Exception as exc:  # noqa: BLE001 - surfaced to the operator
         return False, f"تعذّرت المزامنة مع السحابة: {exc}"
@@ -1172,8 +1176,8 @@ INDEX_HTML = r"""<!doctype html>
         <div>
           <label>طريقة فصل الهدف</label>
           <select id="matte">
-            <option value="key" selected>مفتاح لوني/سطوع فقط — سريع جدًا (الأفضل لخلفية سادة)</option>
-            <option value="auto">تلقائي (دلالي إن توفر، وإلا المفتاح اللوني)</option>
+            <option value="auto" selected>تلقائي (دلالي إن توفر، وإلا المفتاح اللوني)</option>
+            <option value="key">مفتاح لوني/سطوع فقط — سريع جدًا (الأفضل لخلفية سادة)</option>
             <option value="birefnet">دلالي BiRefNet (الأفضل لهدف غامق أو خلفية معقّدة، أبطأ)</option>
           </select>
         </div>

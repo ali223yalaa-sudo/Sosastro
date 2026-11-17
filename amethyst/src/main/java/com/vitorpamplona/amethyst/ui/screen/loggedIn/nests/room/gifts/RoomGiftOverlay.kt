@@ -20,6 +20,7 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.nests.room.gifts
 
+import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -82,6 +83,15 @@ import kotlin.math.sin
  */
 private const val MIN_GIFT_HOLD_MS = 4_600L
 
+private const val TAG = "RoomGiftOverlay"
+
+/**
+ * How often the overlay re-fetches the gift catalog so a gift uploaded from
+ * the dashboard shows up in a running app. A minute is short enough that a
+ * fresh gift feels live and long enough that the request is negligible.
+ */
+private const val CATALOG_REFRESH_MS = 60_000L
+
 /**
  * How long to wait for a clip to reach the screen before giving up and
  * starting the burst anyway. Covers a cold-cache download (a dashboard
@@ -94,11 +104,11 @@ private const val READY_TIMEOUT_MS = 8_000L
 /**
  * Safety ceiling on how long a burst may stay on screen. The clip's own
  * `onFinished` ends it at its real length, so this only covers a player
- * that stalls and never reports back. It is deliberately far above any
- * real clip: a shorter ceiling silently cut an operator's scene off
- * partway through, which read as a broken, half-length animation.
+ * that stalls and never reports back. It must stay tight: the queue is
+ * serial, so a wedged burst holds every later gift behind it. A real
+ * clip ends itself well before this.
  */
-private const val MAX_GIFT_HOLD_MS = 120_000L
+private const val MAX_GIFT_HOLD_MS = 20_000L
 
 /**
  * Full-screen gift playback overlay — the Compose analogue of
@@ -146,22 +156,30 @@ fun RoomGiftOverlay(
 
     // Completed by the player once the clip is actually on screen, so
     // the burst's hold clock starts then rather than at enqueue time.
-    var svgaStarted by remember { mutableStateOf<CompletableDeferred<Unit>?>(null) }
+    // `true` means the scene is on screen; `false` means it could not be
+    // played, so the queue can try the gift's other asset.
+    var svgaStarted by remember { mutableStateOf<CompletableDeferred<Boolean>?>(null) }
 
     // Per-gift sound effect, decoded once up front so the very first
     // gift is not silent.
     val sounds = rememberGiftSounds(clientBuilder)
     LaunchedEffect(Unit) { RoomGiftCatalog.effective.forEach { sounds.preload(it.sound) } }
 
-    // Pull the operator-editable catalog once per process. The store
-    // applies the on-disk copy first and then refreshes over the
-    // network, so a cold start is never blocked on a request and a
-    // failed fetch leaves the last good catalog in place.
+    // Pull the operator-editable catalog once per process, then keep it
+    // fresh on a slow poll so a gift uploaded from the dashboard appears
+    // without the user restarting the app. The store applies the on-disk
+    // copy first and then refreshes over the network, so a cold start is
+    // never blocked on a request and a failed fetch leaves the last good
+    // catalog in place.
     val context = LocalContext.current
     LaunchedEffect(Unit) {
         val builder = clientBuilder ?: return@LaunchedEffect
         RemoteGiftStore.catalogUrl = BuildConfig.GIFT_CATALOG_URL
         RemoteGiftStore.load(context, builder)
+        while (true) {
+            delay(CATALOG_REFRESH_MS)
+            RemoteGiftStore.load(context, builder)
+        }
     }
 
     // Warm every remote clip as soon as the catalog is known. A
@@ -177,16 +195,20 @@ fun RoomGiftOverlay(
             // that will actually play, and it is small enough that this
             // lands well before the first send.
             sku.video?.let { v ->
-                val remote = giftAssetOf(v) as? GiftAsset.Remote ?: return@let
-                GiftAssetDownloader.localFileOrNull(context, remote.url, builder, ".mp4")
-                return@forEach
+                (giftAssetOf(v) as? GiftAsset.Remote)?.let { remote ->
+                    GiftAssetDownloader.localFileOrNull(context, remote.url, builder, ".mp4")
+                }
             }
-            val remote = sku.svga?.let { giftAssetOf(it) as? GiftAsset.Remote } ?: return@forEach
-            val file = GiftAssetDownloader.localFileOrNull(context, remote.url, builder, ".svga") ?: return@forEach
-            // Decode the clip too: the parser caches only the file, so a
-            // send would otherwise re-parse a multi-megabyte asset while
-            // the burst is already on screen.
-            warmSvgaEntity(context, file)
+            // Warm the SVGA copy too, not just the video: it is the fallback
+            // played when the video fails to decode, and it must be ready the
+            // instant that happens rather than downloading mid-burst. Decode
+            // it as well, so the parser does not re-parse a multi-megabyte
+            // asset while the burst is already on screen.
+            sku.svga?.let { s ->
+                val remote = giftAssetOf(s) as? GiftAsset.Remote ?: return@let
+                val file = GiftAssetDownloader.localFileOrNull(context, remote.url, builder, ".svga") ?: return@let
+                warmSvgaEntity(context, file)
+            }
         }
     }
 
@@ -206,43 +228,49 @@ fun RoomGiftOverlay(
     }
     LaunchedEffect(Unit) {
         for (gift in pending) {
-            val sku = RoomGiftCatalog.byId(gift.skuId)
-            current = gift
-            sounds.play(sku?.sound)
-            // A gift has a real cinematic if it carries either an alpha
-            // video or an SVGA clip; both signal ready/finished through
-            // the same deferreds, so the hold clock is identical.
-            if (sku?.video != null || sku?.svga != null) {
-                val done = CompletableDeferred<Unit>()
-                val started = CompletableDeferred<Unit>()
-                svgaDone = done
-                svgaStarted = started
-                // Hold the burst for the clip's real runtime, with a
-                // floor so the shortest (3 s `gen_*`) clips still get a
-                // full-screen beat instead of a blink. The clip's own
-                // `onFinished` ends the burst at its true length; the
-                // ceiling below is only a guard against a stalled player.
-                val holdMs = maxOf(giftBurstMillis(gift.tier), MIN_GIFT_HOLD_MS)
-                // Wait for the clip to be on screen before starting the
-                // clock: on a cold cache the download can outlast the
-                // hold window, and timing from enqueue would show the
-                // message with no scene at all. The ceiling covers a
-                // clip that never becomes ready (no network).
-                withTimeoutOrNull(READY_TIMEOUT_MS) { started.await() }
-                val startedAt = System.currentTimeMillis()
-                withTimeoutOrNull(MAX_GIFT_HOLD_MS) { done.await() }
+            // Every burst is isolated: a failure anywhere below must not
+            // throw out of this loop (which would kill the consumer and
+            // silence every later gift) and must not leave `current` set
+            // (which would freeze the overlay on a stuck burst).
+            try {
+                val sku = RoomGiftCatalog.byId(gift.skuId)
+                current = gift
+                sounds.play(sku?.sound)
+                // A gift has a real cinematic if it carries either an alpha
+                // video or an SVGA clip; both signal ready/finished through
+                // the same deferreds, so the hold clock is identical.
+                if (sku?.video != null || sku?.svga != null) {
+                    val holdMs = maxOf(giftBurstMillis(gift.tier), MIN_GIFT_HOLD_MS)
+                    val done = CompletableDeferred<Unit>()
+                    val started = CompletableDeferred<Boolean>()
+                    svgaDone = done
+                    svgaStarted = started
+                    // `started` resolves `true` the moment a scene is on
+                    // screen, or `false` when every asset for this gift failed
+                    // to play. Waiting on it (rather than sleeping a fixed
+                    // time) means a cold-cache download cannot make the scene
+                    // miss its window, and a broken clip cannot hold an empty
+                    // screen — the queue advances either way.
+                    val shown = withTimeoutOrNull(READY_TIMEOUT_MS) { started.await() }
+                    if (shown == true) {
+                        val startedAt = System.currentTimeMillis()
+                        withTimeoutOrNull(MAX_GIFT_HOLD_MS) { done.await() }
+                        // If the clip finished before the floor (a short 3 s
+                        // asset), keep it on screen for the remainder so the
+                        // gift reads as a moment, not an emoji flash.
+                        val remaining = holdMs - (System.currentTimeMillis() - startedAt)
+                        if (remaining > 0) delay(remaining)
+                    }
+                } else {
+                    delay(giftBurstMillis(gift.tier))
+                }
+            } catch (t: Throwable) {
+                Log.w(TAG, "gift burst failed; continuing with the queue", t)
+            } finally {
                 svgaDone = null
                 svgaStarted = null
-                // If the clip finished before the floor (a short 3 s
-                // asset), keep it on screen for the remainder so the gift
-                // reads as a moment, not an emoji flash. SVGAImageView
-                // holds its final frame, so we only wait out the rest.
-                val remaining = holdMs - (System.currentTimeMillis() - startedAt)
-                if (remaining > 0) delay(remaining)
-            } else {
-                delay(giftBurstMillis(gift.tier))
+                current = null
             }
-            current = null
         }
     }
 
@@ -253,7 +281,10 @@ fun RoomGiftOverlay(
                 senderName = nameFor(gift.sourcePubkey),
                 receiverName = gift.targetPubkey?.let(nameFor),
                 onSvgaFinished = { svgaDone?.complete(Unit) },
-                onSvgaReady = { svgaStarted?.complete(Unit) },
+                onSvgaReady = { svgaStarted?.complete(true) },
+                // Reported only when no asset for this gift could play, so
+                // the queue moves on instead of freezing on an unplayable gift.
+                onClipFailed = { svgaStarted?.complete(false) },
                 modifier = modifier,
                 clientBuilder = clientBuilder,
             )
@@ -268,19 +299,32 @@ private fun GiftBurst(
     receiverName: String?,
     onSvgaFinished: () -> Unit,
     onSvgaReady: () -> Unit,
+    onClipFailed: () -> Unit,
     modifier: Modifier = Modifier,
     clientBuilder: IRoleBasedHttpClientBuilder? = null,
 ) {
     val sku = RoomGiftCatalog.byId(gift.skuId)
     // Prefer the alpha-packed video: it is a fraction of the SVGA's size
     // and decodes in hardware, so the burst starts sooner and costs less
-    // RAM. SVGA stays as the fallback for gifts authored before the
-    // packer existed and for any clip the operator has not re-published.
-    val videoAsset = sku?.video
+    // RAM. SVGA stays as the fallback for gifts authored before the packer
+    // existed and for any clip the operator has not re-published.
     val videoWidth = sku?.videoWidth ?: 0
     val videoHeight = sku?.videoHeight ?: 0
+    val videoClip = sku?.video?.takeIf { videoWidth > 0 && videoHeight > 0 }
     val svgaAsset = sku?.svga
-    val videoClip = videoAsset?.takeIf { videoWidth > 0 && videoHeight > 0 }
+
+    // If the video asset fails to decode, switch to the SVGA copy rather than
+    // leaving the burst blank. When the SVGA is the active player it is either
+    // the gift's only asset or the fallback after the video already failed, so
+    // its failure means nothing else can play and the queue must move on.
+    var useSvga by remember(gift.eventId) { mutableStateOf(false) }
+    val videoFailed = {
+        if (svgaAsset != null) useSvga = true else onClipFailed()
+    }
+    val svgaFailed = { onClipFailed() }
+    val activeVideo = videoClip?.takeUnless { useSvga }
+    val activeSvga = svgaAsset?.takeIf { useSvga || videoClip == null }
+
     val theme = giftThemeFor(gift.skuId)
     val epic = gift.tier >= 3
     // The operator can size a takeover from the dashboard; the bundled
@@ -323,18 +367,19 @@ private fun GiftBurst(
                 },
         contentAlignment = Alignment.Center,
     ) {
-        if (videoClip != null) {
+        if (activeVideo != null) {
             // The clip IS the gift's cinematic. It is authored full-frame
             // and transparent, so it is drawn at full size with nothing
             // behind it; the operator may still size it down and move it
             // from the dashboard (clipScale / clipOffset*) to place it
             // over the room.
             AlphaVideoGiftPlayer(
-                asset = videoClip,
+                asset = activeVideo,
                 width = videoWidth,
                 height = videoHeight,
                 onFinished = onSvgaFinished,
                 onReady = onSvgaReady,
+                onError = videoFailed,
                 clientBuilder = clientBuilder,
                 // Placement rides the GL quad, not a Compose transform: a
                 // GLSurfaceView's surface is composited outside the view
@@ -353,16 +398,17 @@ private fun GiftBurst(
                 theme = theme,
                 progress = p,
             )
-        } else if (svgaAsset != null) {
+        } else if (activeSvga != null) {
             // The clip IS the gift's cinematic. It is authored
             // full-frame and transparent, so it is drawn at full size
             // with nothing behind it; the operator may still size it
             // down and move it from the dashboard (clipScale /
             // clipOffset*) to place it over the room.
             SvgaGiftPlayer(
-                asset = svgaAsset,
+                asset = activeSvga,
                 onFinished = onSvgaFinished,
                 onReady = onSvgaReady,
+                onError = svgaFailed,
                 clientBuilder = clientBuilder,
                 modifier =
                     Modifier

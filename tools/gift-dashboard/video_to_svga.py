@@ -365,29 +365,59 @@ def _birefnet_session(name: str):
 def matte_birefnet(
     frames: list[np.ndarray],
     model: str = "birefnet-general-lite",
+    stride: int = 0,
+    keyframe_budget: int = 16,
 ) -> list[np.ndarray]:
     """Alpha for every frame from BiRefNet semantic segmentation.
 
-    One inference per frame on the CPU, reusing a single session so the
-    weights load once. The mask is resized back to the decoded frame, so the
-    output keeps the source size and the later crop/fit stages are unchanged.
+    BiRefNet costs ~20 s a frame on CPU, so running it on every frame made a
+    multi-second clip take tens of minutes. A subject's silhouette changes
+    little between adjacent frames, so the model runs on a *keyframe* and the
+    masks in between are interpolated — the standard video-matte trick.
+
+    `stride` sets the keyframe spacing explicitly; `stride=0` (the default)
+    derives it from `keyframe_budget` so the model runs at most that many
+    times however long the clip is. That bounds the cost of a busy scene to a
+    predictable few minutes instead of scaling with the frame count. The mask
+    is resized back to the decoded frame, so the output keeps the source size
+    and the later crop/fit stages are unchanged.
     """
     from rembg import remove
 
     session = _birefnet_session(model)
-    out: list[np.ndarray] = []
     total = len(frames)
-    for i, fr in enumerate(frames):
+    if total <= 2:
+        keys = list(range(total))
+    else:
+        step = stride if stride > 1 else max(1, -(-total // max(1, keyframe_budget)))
+        keys = list(range(0, total, step))
+        if keys[-1] != total - 1:
+            keys.append(total - 1)
+
+    masks: dict[int, np.ndarray] = {}
+    for n, k in enumerate(keys):
+        fr = frames[k]
         rgb = Image.fromarray(fr[..., :3], "RGB")
-        mask = remove(rgb, session=session, only_mask=True)
-        m = np.asarray(mask, dtype=np.uint8)
+        m = np.asarray(remove(rgb, session=session, only_mask=True), dtype=np.uint8)
         if m.shape[:2] != fr.shape[:2]:
             m = np.asarray(
                 Image.fromarray(m).resize((fr.shape[1], fr.shape[0]), Image.LANCZOS),
                 dtype=np.uint8,
             )
-        out.append(np.dstack([fr[..., :3], m]))
-        print(f"  matte {i + 1}/{total}", flush=True)
+        masks[k] = m
+        print(f"  matte keyframe {n + 1}/{len(keys)} (frame {k + 1}/{total})", flush=True)
+
+    out: list[np.ndarray] = []
+    for i in range(total):
+        m = masks.get(i)
+        if m is None:
+            lo = max(k for k in keys if k < i)
+            hi = min(k for k in keys if k > i)
+            t = (i - lo) / float(hi - lo)
+            m = (
+                (1.0 - t) * masks[lo].astype(np.float32) + t * masks[hi].astype(np.float32)
+            ).astype(np.uint8)
+        out.append(np.dstack([frames[i][..., :3], m]))
     return out
 
 
@@ -1257,11 +1287,27 @@ def main() -> int:
     mode, bg_color = parse_bg(args.bg, frames)
     if args.bg == "auto" and has_real_alpha(frames):
         mode = "none"
+    elif args.bg == "none" and not has_real_alpha(frames):
+        # "No removal" was requested, but the clip carries no transparency of
+        # its own. Keeping it as-is would paint an opaque rectangle over the
+        # room, so fall back to real background removal rather than failing the
+        # upload or shipping a black box.
+        print(
+            "background: 'none' requested but the source has no alpha — "
+            "removing the background instead"
+        )
+        mode, bg_color = detect_bg(frames)
 
     # Resolve the matte. BiRefNet is semantic: it finds the subject as an
     # object, so it is the only mode that survives a dark subject on a dark
-    # backdrop. `auto` prefers it when the free weights are on disk and falls
-    # back to the colour/luma key, which is all a flat green screen needs.
+    # backdrop. It is also slow — ~20 s a frame on this box — so `auto`
+    # only reaches for it when the cheap colour key cannot do the job:
+    #   * a clean chroma backdrop (green/blue/black/white screen) is keyed
+    #     exactly and instantly, so it never needs the model;
+    #   * a busy scene (detected as "color") is where the key fails, and
+    #     that is the case the model exists for.
+    # `auto` still falls back to the key when the weights are absent or the
+    # box cannot hold the model's peak.
     use_birefnet = False
     if args.matte == "birefnet":
         if not birefnet_available(args.matte_model):
@@ -1277,6 +1323,10 @@ def main() -> int:
             )
             return 2
         use_birefnet = True
+    elif args.matte == "auto" and mode != "none" and mode != "color" and birefnet_available(args.matte_model):
+        # A flat chroma backdrop: the colour key is exact and instantaneous,
+        # so use it. BiRefNet here would cost ~20 s a frame for no gain.
+        print(f"matte: flat {mode} backdrop — using the colour key (fast)")
     elif args.matte == "auto" and mode != "none" and birefnet_available(args.matte_model):
         if birefnet_affordable(args.matte_model):
             use_birefnet = True

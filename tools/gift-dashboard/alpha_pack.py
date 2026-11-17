@@ -129,6 +129,15 @@ def encode(frames_dir: str, out_mp4: str, fps: float, crf: int, preset: str) -> 
         # Profile high / level 4.0 is decodable by every phone from ~2012 on,
         # which is the compatibility floor a gift must clear.
         "-profile:v", "high", "-level", "4.0",
+        # Tag the stream full-range BT.709. Without an explicit tag the phone's
+        # hardware decoder and the browser preview can disagree on the YUV->RGB
+        # matrix and range, so the same clip looks washed out (or too dark) in
+        # the room while the dashboard preview looks right. Pinning the tags
+        # makes both ends decode to the same pixels the authoring step produced.
+        "-color_range", "pc",
+        "-colorspace", "bt709",
+        "-color_primaries", "bt709",
+        "-color_trc", "bt709",
         "-movflags", "+faststart",
         out_mp4,
     ]

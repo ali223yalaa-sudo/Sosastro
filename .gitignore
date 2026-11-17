@@ -207,3 +207,6 @@ __pycache__/
 # Astro: local APK download page (large binaries, not for VCS)
 dist/
 !keystore/debug.keystore
+
+# BiRefNet matting weights (214 MB, re-fetched on demand)
+tools/.rembg/

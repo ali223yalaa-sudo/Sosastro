@@ -27,7 +27,7 @@ from pathlib import Path
 
 ACCOUNT_ID = "906ff45b1e21cc77acea88c7780c262c"
 BUCKET = "astro-gifts"
-DASH = Path(os.environ.get("GIFT_DASHBOARD", "/workspace/gift_dashboard"))
+DASH = Path(os.environ.get("GIFT_DASHBOARD") or Path(__file__).resolve().parent)
 DATA = DASH / "data"
 ASSETS = DATA / "assets"
 TOKEN_FILE = Path(os.environ.get("CF_TOKEN_FILE", "/workspace/.cf_token"))
