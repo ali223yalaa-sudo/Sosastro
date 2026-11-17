@@ -92,10 +92,10 @@ def job_get(jid: str) -> dict | None:
         job = JOBS.get(jid)
         return dict(job) if job else None
 
-# Built APKs the operator can hand out without a rebuild. The newest
-# universal debug build wins, so `/download/apk` always serves the app
-# that carries the latest dashboard changes.
-APK_GLOB = "**/build/outputs/apk/**/*universal*.apk"
+# Built APKs the operator can hand out without a rebuild. Preference order:
+# the arm64-v8a split covers every modern phone and is ~1/3 smaller than the
+# universal build, which is kept only as a fallback for older 32-bit devices.
+APK_PREFERENCE = ("arm64-v8a", "universal")
 APK_ROOTS = (
     Path("/workspace/astro-backup"),
     Path("/workspace"),
@@ -103,14 +103,17 @@ APK_ROOTS = (
 
 
 def newest_apk() -> Path | None:
-    best: Path | None = None
+    candidates: list[Path] = []
     for root in APK_ROOTS:
-        if not root.is_dir():
-            continue
-        for apk in root.glob(APK_GLOB):
-            if best is None or apk.stat().st_mtime > best.stat().st_mtime:
-                best = apk
-    return best
+        if root.is_dir():
+            candidates += root.glob("**/build/outputs/apk/**/*.apk")
+    if not candidates:
+        return None
+    for tag in APK_PREFERENCE:
+        matches = [p for p in candidates if tag in p.name]
+        if matches:
+            return max(matches, key=lambda p: p.stat().st_mtime)
+    return max(candidates, key=lambda p: p.stat().st_mtime)
 
 
 # The standalone gift-uploader app: a separate, isolated APK that starts this
@@ -1073,9 +1076,9 @@ INDEX_HTML = r"""<!doctype html>
   <div class="sub">ارفع فيديو أو صورة متحركة، وسيُعالَج تلقائيًا (إزالة الخلفية، القص، هوامش شفافة، صوت حسب الفئة)، ثم عايِن قبل النشر. التعديل يظهر في التطبيق عند التشغيل التالي دون تحديثه.</div>
   <div style="margin:10px 0 18px">
     <a href="/download/apk" style="display:inline-block;background:#2f6fed;color:#fff;padding:10px 18px;border-radius:10px;text-decoration:none;font-weight:700">
-      ⬇️ تنزيل أحدث تطبيق (APK)
+      ⬇️ تنزيل تطبيق Astro (APK)
     </a>
-    <span class="sub" style="margin-inline-start:10px">أحدث نسخة مبنية تتضمّن كل تعديلات اللوحة</span>
+    <span class="sub" style="margin-inline-start:10px">أحدث نسخة مبنية من تطبيق أسترو (تشمل الهدايا وكل التعديلات)</span>
   </div>
 
   <div style="margin:10px 0 18px">
