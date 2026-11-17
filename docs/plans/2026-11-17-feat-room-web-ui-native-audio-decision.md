@@ -1,0 +1,122 @@
+# Room web UI + native audio: architecture decision
+
+Status: decided (2026-11-17)
+Scope: the Nest room surface (`nests` / NIP-53 meeting spaces) — stage, chat,
+gifts, and the voice plane.
+
+## Decision
+
+Build the **room UI as web content** that runs inside the app's existing
+sandboxed web host, and keep **audio on the existing MoQ-over-WebTransport
+plane**, decoded and encoded in-page with WebCodecs. Native code keeps what
+only native can do well: microphone capture, the foreground service, the relay
+connection, and lifecycle.
+
+**Do not adopt LiveKit, and do not add a second media plane (WebRTC/SFU).**
+
+## Why this, and not LiveKit
+
+The room's voice plane is already MoQ over WebTransport — not WebRTC. See
+`nestsClient/src/commonMain/kotlin/com/vitorpamplona/nestsclient/transport/WebTransportSession.kt`
+and `NestsConnect.kt` (the connection path is `/<moqNamespace>?jwt=<token>`,
+handshaked as a moq-lite session; audio rides an `audio/data` track of Opus
+packets). The app's WebRTC stack
+(`amethyst/src/main/java/com/vitorpamplona/amethyst/service/call/`) serves
+DMs and calls; the room deliberately does not use it.
+
+LiveKit would mean running a WebRTC SFU **next to** the MoQ relay: two media
+planes, two scaling stories, two sets of auth. The room's chat, presence and
+stage already ride the Nostr relay, so the SFU would carry only voice — the
+smallest part of the room — at the cost of a whole new server to operate.
+
+The decisive fact: **the web side of the MoQ plane already works.** The
+browser interop harness
+(`nestsClient/tests/browser-interop/src/listen.ts`) runs headless Chromium
+with `@moq/lite` + `@moq/hang` against the *same* relay subprocess the Kotlin
+speaker uses (`NativeMoqRelayHarness`), subscribes to `<broadcast>/audio/data`,
+and decodes each Opus packet through the WebCodecs `AudioDecoder`. It is
+driven by Playwright and gates on `-DnestsBrowserInterop=true`. So "web client
+that hears the room" is proven, not hypothetical.
+
+WebTransport is first-class in Chromium and Android WebView, so the page gets
+the same low-latency transport the native client uses, with no plugin and no
+second protocol. Audio stays Opus end to end, in both directions.
+
+## Where the web content runs
+
+The app already has a sandboxed web host:
+
+- `commons/src/commonMain/composeResources/files/napplet/shell.html` — the
+  trusted shell page; it hosts the app in an iframe on the app's own origin
+  and relays capability messages between the page and the native bridge
+  (`__nappletBridge`).
+- `amethyst/.../ui/screen/loggedIn/embed/EmbeddedSurfaceController.kt` — keeps
+  each session's `SandboxedSdkView` attached (privacy-sandbox process) so a
+  warm room survives being hidden.
+- `EmbeddedNostrAppController.kt` / `EmbeddedWebAppController.kt` — the two
+  controllers over that host.
+
+The room UI ships as one more app in that host. The web layer owns layout and
+gift rendering; the bridge carries the capabilities the page cannot get on its
+own.
+
+## The blocker to fix first
+
+The embedded host sets up **no `WebChromeClient` at all** (grep for
+`onPermissionRequest` / `onShowFileChooser` under `ui/screen/loggedIn/` finds
+none in the host path). That single gap explains two separate symptoms:
+
+1. **Microphone**: a page cannot get mic access without
+   `WebChromeClient.onPermissionRequest`, so the web room could not publish
+   audio.
+2. **The reported gallery bug**: tapping "choose file" in the in-app WebView
+   does nothing, because `onShowFileChooser` is unimplemented. The standalone
+   gift uploader app is fine — it implements the callback itself.
+
+Both are fixed by the same work item.
+
+## Phases
+
+**Phase 0 — capability unblock (also fixes the gallery bug).**
+Add a `WebChromeClient` to the sandbox host: `onShowFileChooser` (restores the
+file picker in embedded pages) and `onPermissionRequest` (grant the mic only
+for the room origin, behind a user-visible prompt). Verify that a
+privacy-sandbox process can hold the mic; if it cannot, fall back to capturing
+on the native side and feeding the page over the existing bridge.
+
+**Phase 1 — read-only web room.** Render stage, chat and gifts in the page.
+Subscribe to `audio/data` with `@moq/lite` + `@moq/hang` and play through
+WebAudio, reusing the decoder path the interop harness already exercises. No
+publishing yet.
+
+**Phase 2 — publish.** Encode the mic with WebCodecs `AudioEncoder('opus')`
+and publish over the same session, reusing the harness `publish.ts` path.
+
+**Phase 3 — gifts in the web layer.** Render gifts with SVGAPlayer-Web and the
+alpha-packed MP4. The packer now tags the video full-range BT.709, so a web
+renderer and the native renderer decode the same colours — which also closes
+the long-standing "preview looks right, the room looks washed out" gap by
+making preview and room the *same* renderer.
+
+**Phase 4 — native fallback.** Keep the Compose room for WebViews without
+WebTransport or WebCodecs, selected by capability probe rather than a version
+check.
+
+## Risks
+
+- **Privacy-sandbox mic access** is the main unknown; Phase 0 settles it, and
+  the native-capture fallback covers a negative answer.
+- **WebCodecs Opus encode** must be confirmed on the Android WebView build we
+  ship; the interop harness already covers decode.
+- **Battery**: a page plus native capture is more moving parts than the
+  current native-only listener. Measure before Phase 3.
+
+## Verification
+
+- Extend `nestsClient/tests/browser-interop` with a room-shaped case: a
+  headless Chromium subscribes to the room's audio track and receives
+  continuous PCM, asserted by Playwright.
+- Add a case that a page requesting the mic receives a grant through the host
+  chrome client (Phase 0).
+- Keep the existing relay wire tests green; they pin the protocol the web
+  client must match.
