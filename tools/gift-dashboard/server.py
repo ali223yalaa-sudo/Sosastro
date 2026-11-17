@@ -453,19 +453,32 @@ def process_upload(
     }
 
 
-def push_catalog_to_cloud() -> tuple[bool, str]:
-    """Mirror the local catalog and its assets into Cloudflare R2.
+def push_catalog_to_cloud(gift_id: str | None = None, delete: bool = False) -> tuple[bool, str]:
+    """Mirror local state into Cloudflare R2.
 
     The app reads its gift catalog from the Cloudflare worker, not from this
     dashboard, so a gift published only locally is invisible on the phone.
     Publishing therefore pushes the assets and catalog up as well; without a
     token the local publish still succeeds and the operator is told the cloud
     mirror was skipped.
+
+    Three modes, so a cheap edit never re-uploads the whole library:
+    - default: every asset plus the catalog, for a publish.
+    - `gift_id`: merge one row into the cloud's own catalog, for an edit.
+    - `delete=True`: drop one row from the cloud's catalog.
+    The Cloudflare panel can author gifts this dashboard never saw, so an edit
+    merges into the cloud state instead of overwriting it with ours.
     """
     if not (os.environ.get("CLOUDFLARE_API_TOKEN") or CF_TOKEN_FILE.exists()):
         return False, "لا يوجد توكن Cloudflare — لم تتم المزامنة مع السحابة"
     try:
-        out = run_tool([PYTHON, str(ROOT / "publish.py"), "push-all"])
+        if delete:
+            cmd = ["delete", gift_id]
+        elif gift_id:
+            cmd = ["edit", gift_id]
+        else:
+            cmd = ["push-all"]
+        out = run_tool([PYTHON, str(ROOT / "publish.py"), *cmd])
         return True, (out.splitlines()[-1] if out else "تمت المزامنة مع السحابة")
     except Exception as exc:  # noqa: BLE001 - surfaced to the operator
         return False, f"تعذّرت المزامنة مع السحابة: {exc}"
@@ -848,7 +861,13 @@ class Handler(BaseHTTPRequestHandler):
             if payload.get(key) is not None:
                 gift[key] = cast(payload[key])
         save_state(state)
-        return self.send_json({"ok": True, "gift": gift})
+        # The app reads its catalog from Cloudflare, so a local-only edit is
+        # invisible on the phone — the operator would save, see the row change
+        # here, and still get the old placement in the room. Mirror the edit up
+        # exactly as publishing does, and report whether it actually reached
+        # the app instead of claiming a success the phone never sees.
+        synced, note = push_catalog_to_cloud(gift_id=gift["id"])
+        return self.send_json({"ok": True, "gift": gift, "synced": synced, "note": note})
 
     def api_delete(self):
         payload = json.loads(self.read_body())
@@ -858,7 +877,9 @@ class Handler(BaseHTTPRequestHandler):
         if len(state["gifts"]) == before:
             return self.send_json({"error": "unknown gift"}, 404)
         save_state(state)
-        return self.send_json({"ok": True})
+        # A delete that stays local leaves the gift live in the app's catalog.
+        synced, note = push_catalog_to_cloud(gift_id=payload.get("id"), delete=True)
+        return self.send_json({"ok": True, "synced": synced, "note": note})
 
 
 def parse_multipart(content_type: str, body: bytes) -> tuple[dict, dict]:
@@ -1395,7 +1416,9 @@ $('#vSave').onclick = async () => {
   const res = await (await fetch('/api/gift', {method:'POST', body: JSON.stringify(body)})).json();
   if (!res.ok) { alert('فشل الحفظ: ' + (res.error||'')); return; }
   previewGift.scale = body.scale; previewGift.posX = body.posX; previewGift.posY = body.posY;
-  setStatus('✅ حُفظ الحجم والموضع.', true);
+  setStatus(res.synced
+    ? '✅ حُفظ الحجم والموضع — يظهر في التطبيق عند التشغيل التالي.'
+    : '⚠️ حُفظ محليًا فقط — ' + (res.note||'لم تصل السحابة'), res.synced);
   refresh();
 };
 function closePreview(){ $('#viewer').classList.remove('open'); const v=$('#vVid'); v.pause(); v.innerHTML=''; }
@@ -1471,7 +1494,11 @@ async function refresh(){
     tr.querySelector('[data-act=save]').onclick = async () => {
       const body = { id };
       tr.querySelectorAll('input[data-k]').forEach(i => body[i.dataset.k] = Number(i.value));
-      await fetch('/api/gift', {method:'POST', body: JSON.stringify(body)});
+      const res = await (await fetch('/api/gift', {method:'POST', body: JSON.stringify(body)})).json();
+      if (!res.ok) { alert('فشل الحفظ: ' + (res.error||'')); return; }
+      setStatus(res.synced
+        ? '✅ حُفظت التعديلات — تظهر في التطبيق عند التشغيل التالي.'
+        : '⚠️ حُفظت محليًا فقط — ' + (res.note||'لم تصل السحابة'), res.synced);
       refresh();
     };
     tr.querySelector('[data-act=del]').onclick = async () => {

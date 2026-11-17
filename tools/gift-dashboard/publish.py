@@ -62,6 +62,21 @@ def r2_put(key: str, body: bytes, ctype: str) -> None:
         sys.exit(f"R2 put failed for {key}: {out.stdout[:300]}")
 
 
+def r2_get(key: str) -> bytes | None:
+    """Read an object from R2, or None when it does not exist yet."""
+    url = f"https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/r2/buckets/{BUCKET}/objects/{key}"
+    out = subprocess.run(
+        ["curl", "-s", "-m", "120", "-H", f"Authorization: Bearer {token()}", url],
+        capture_output=True,
+    )
+    if out.returncode != 0 or not out.stdout:
+        return None
+    # A missing object answers with a JSON error body, not a file.
+    if out.stdout.lstrip().startswith(b'{"success":false') or out.stdout.lstrip().startswith(b'{"errors"'):
+        return None
+    return out.stdout
+
+
 def published_row(g: dict) -> dict:
     return {
         "id": g["id"],
@@ -113,11 +128,82 @@ def sync_catalog(state: dict) -> None:
     print(f"  catalog.json -> version {catalog['version']}, {len(rows)} gifts")
 
 
+def _cloud_state() -> dict:
+    cloud = {}
+    raw = r2_get("state.json")
+    if raw:
+        try:
+            cloud = json.loads(raw)
+        except Exception:  # noqa: BLE001 - a corrupt cloud state must not block a save
+            cloud = {}
+    cloud.setdefault("gifts", [])
+    cloud.setdefault("drafts", [])
+    return cloud
+
+
+def _cloud_put(cloud: dict) -> int:
+    cloud["version"] = int(cloud.get("version", 0)) + 1
+    rows = [published_row(g) for g in cloud["gifts"] if g.get("svga") or g.get("video")]
+    r2_put(
+        "catalog.json",
+        json.dumps({"version": cloud["version"], "gifts": rows}, ensure_ascii=False).encode(),
+        "application/json",
+    )
+    r2_put("state.json", json.dumps(cloud, ensure_ascii=False).encode(), "application/json")
+    return len(rows)
+
+
+def sync_gift(gift_id: str) -> None:
+    """Mirror one gift's published fields into the live cloud catalog.
+
+    A whole-state push from this dashboard would clobber gifts authored on the
+    Cloudflare panel (the two catalogs are not kept in lockstep), so a metadata
+    edit merges *one* row into the cloud's own state and republishes from that.
+    Only the fields the app reads are written; the assets are already in R2.
+    """
+    state = load_state()
+    gift = next((g for g in state.get("gifts", []) + state.get("drafts", []) if g.get("id") == gift_id), None)
+    if not gift:
+        sys.exit(f"no local gift/draft with id {gift_id}")
+    row = published_row(gift)
+    cloud = _cloud_state()
+    target = next((g for g in cloud["gifts"] if g.get("id") == gift_id), None)
+    if target is None:
+        cloud["gifts"].append(row)
+    else:
+        target.update(row)
+    cloud["drafts"] = [d for d in cloud["drafts"] if d.get("id") != gift_id]
+    n = _cloud_put(cloud)
+    print(f"  gift {gift_id} -> cloud version {cloud['version']}, {n} gifts")
+
+
+def sync_delete(gift_id: str) -> None:
+    """Remove a gift from the live cloud catalog and its draft list."""
+    cloud = _cloud_state()
+    before = len(cloud["gifts"]) + len(cloud["drafts"])
+    cloud["gifts"] = [g for g in cloud["gifts"] if g.get("id") != gift_id]
+    cloud["drafts"] = [d for d in cloud["drafts"] if d.get("id") != gift_id]
+    if len(cloud["gifts"]) + len(cloud["drafts"]) == before:
+        print(f"  gift {gift_id} was not in the cloud catalog")
+        return
+    n = _cloud_put(cloud)
+    print(f"  gift {gift_id} deleted -> cloud version {cloud['version']}, {n} gifts")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["push", "push-all", "catalog"])
+    ap.add_argument("cmd", choices=["push", "push-all", "catalog", "edit", "delete"])
     ap.add_argument("gift_id", nargs="?")
     args = ap.parse_args()
+
+    if args.cmd in ("edit", "delete"):
+        if not args.gift_id:
+            sys.exit(f"{args.cmd} needs a gift id")
+        if args.cmd == "edit":
+            sync_gift(args.gift_id)
+        else:
+            sync_delete(args.gift_id)
+        return
 
     state = load_state()
 
@@ -131,7 +217,7 @@ def main() -> None:
             sys.exit(f"no local gift/draft with id {args.gift_id}")
         print(f"gift {gift['id']}:")
         print(f"  uploaded {push_assets(gift)} assets")
-        sync_catalog(state)
+        sync_gift(gift["id"])
         print("published. the app picks it up on next launch.")
         return
 
