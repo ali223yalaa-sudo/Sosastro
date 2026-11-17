@@ -604,6 +604,29 @@ authored by `/workspace/svga_tools/generate.py` and the sounds by
 with `/workspace/verify_gifts.py` (mirrors the canvas math to a PNG contact
 sheet; asserts no two gifts render identically).
 
+## Nests (voice rooms): gift placement must ride the GL quad, not a Compose transform
+
+A gift's `scale`/`posX`/`posY` (set from the gift dashboard) is applied in the
+playback overlay. For a *video* gift — every dashboard-published clip, since
+`video` wins over `svga` — the clip is drawn by `AlphaVideoGiftPlayer` inside a
+`GLSurfaceView`. A `GLSurfaceView`'s surface is composited by the system in its
+own window layer, **outside** the Compose view tree, so `Modifier.graphicsLayer`
+on the hosting view is ignored: `scaleX`/`translationX` change nothing and the
+clip stays full-screen no matter what the dashboard saved. The symptom is a
+placement edit that saves and syncs correctly (the cloud catalog carries the new
+`scale`/`posX`/`posY`) yet never moves the gift in the room.
+
+Fix: the transform is folded into the GL geometry, where the surface actually
+listens. `AlphaVideoRenderer` keeps the letterbox scale (`baseSx`/`baseSy`, set
+in `onSurfaceChanged`) and multiplies in `clipScale`, then offsets the quad by
+`clipOffsetX/Y * 2` in clip space (NDC is -1..1, so a fraction of the screen is
+`* 2`; Y is negated because NDC Y grows upward). `AlphaVideoSurfaceView.setPlacement`
+hands the values to the renderer via `queueEvent` (GL-thread safety), and
+`AlphaVideoGiftPlayer` passes `scale`/`offsetX`/`offsetY` through to the view in
+its `AndroidView` `update` block. The SVGA fallback plays in a normal
+`SVGAImageView`, where `graphicsLayer` does work, so it keeps the old path.
+
+
 ## Nests (voice rooms): back must dismiss the keyboard first
 
 The room minimizes to PIP on back while connected. Two separate enabled

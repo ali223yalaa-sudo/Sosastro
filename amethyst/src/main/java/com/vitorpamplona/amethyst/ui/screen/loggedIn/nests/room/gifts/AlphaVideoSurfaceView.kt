@@ -46,6 +46,20 @@ internal class AlphaVideoSurfaceView(
     /** Invoked on the GL thread with the surface the video decoder renders into. */
     var onSurfaceReady: ((Surface) -> Unit)? = null
 
+    /**
+     * Hand the operator's placement to the renderer. The quad is rebuilt on
+     * the GL thread, so the clip is scaled and moved inside the GL scene —
+     * a Compose transform on this view would be ignored by the surface
+     * compositor and the gift would stay full-screen.
+     */
+    fun setPlacement(
+        scale: Float,
+        offsetX: Float,
+        offsetY: Float,
+    ) {
+        queueEvent { renderer.setPlacement(scale, offsetX, offsetY) }
+    }
+
     init {
         setEGLContextClientVersion(2)
         setEGLConfigChooser(8, 8, 8, 8, 16, 0)

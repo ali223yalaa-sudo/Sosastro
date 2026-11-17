@@ -307,8 +307,9 @@ private fun GiftBurst(
     }
     val p = progress.value
 
-    // The clip is scaled/translated in a graphicsLayer, so it needs the
-    // real pixel size to turn the fractional offsets into translations.
+    // The SVGA fallback scales/translates in a graphicsLayer, so it needs the
+    // real pixel size to turn the fractional offsets into translations. The
+    // video path does not: its placement is folded into the GL quad instead.
     var boxW by remember { mutableStateOf(0) }
     var boxH by remember { mutableStateOf(0) }
 
@@ -335,15 +336,14 @@ private fun GiftBurst(
                 onFinished = onSvgaFinished,
                 onReady = onSvgaReady,
                 clientBuilder = clientBuilder,
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            scaleX = clipScale
-                            scaleY = clipScale
-                            translationX = clipOffsetX * boxW
-                            translationY = clipOffsetY * boxH
-                        },
+                // Placement rides the GL quad, not a Compose transform: a
+                // GLSurfaceView's surface is composited outside the view
+                // tree, so `graphicsLayer` on the hosting view is ignored and
+                // the clip would stay full-screen whatever the dashboard saved.
+                scale = clipScale,
+                offsetX = clipOffsetX,
+                offsetY = clipOffsetY,
+                modifier = Modifier.fillMaxSize(),
             )
             GiftBurstCaption(
                 epic = epic,

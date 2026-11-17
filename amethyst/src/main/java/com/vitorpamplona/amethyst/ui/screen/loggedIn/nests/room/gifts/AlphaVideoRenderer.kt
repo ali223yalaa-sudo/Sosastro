@@ -116,6 +116,16 @@ internal class AlphaVideoRenderer(
     private var vertexBuffer: FloatBuffer = createFloatBuffer(VERTICES)
     private val texCoordBuffer: FloatBuffer = createFloatBuffer(TEX_COORDS)
 
+    // The operator's placement, applied to the quad rather than to the view:
+    // a GLSurfaceView's surface is composited by the system in its own layer,
+    // so a Compose `graphicsLayer` on the hosting view is ignored and the
+    // clip would stay full-screen no matter what the dashboard saved.
+    private var baseSx = 1f
+    private var baseSy = 1f
+    private var clipScale = 1f
+    private var clipOffsetX = 0f
+    private var clipOffsetY = 0f
+
     private var surfaceTexture: SurfaceTexture? = null
     private var outputSurface: Surface? = null
 
@@ -178,7 +188,38 @@ internal class AlphaVideoRenderer(
             sx = clipAspect / viewAspect
             sy = 1f
         }
-        vertexBuffer = createFloatBuffer(floatArrayOf(-sx, -sy, sx, -sy, -sx, sy, sx, sy))
+        baseSx = sx
+        baseSy = sy
+        rebuildQuad()
+    }
+
+    /**
+     * Apply the operator's saved placement. Called from the GL thread (via
+     * [GLSurfaceView.queueEvent]) so the quad is rebuilt without tearing.
+     */
+    fun setPlacement(
+        scale: Float,
+        offsetX: Float,
+        offsetY: Float,
+    ) {
+        clipScale = scale
+        clipOffsetX = offsetX
+        clipOffsetY = offsetY
+        rebuildQuad()
+    }
+
+    /**
+     * Fold the letterbox, the operator's scale and the fractional offset into
+     * one quad. The offset is a fraction of the screen, matching the
+     * dashboard's preview (and the app's old graphicsLayer maths), so a value
+     * of 0.2 moves the clip a fifth of the screen to the right.
+     */
+    private fun rebuildQuad() {
+        val sx = baseSx * clipScale
+        val sy = baseSy * clipScale
+        val dx = clipOffsetX * 2f
+        val dy = -clipOffsetY * 2f
+        vertexBuffer = createFloatBuffer(floatArrayOf(-sx + dx, -sy + dy, sx + dx, -sy + dy, -sx + dx, sy + dy, sx + dx, sy + dy))
     }
 
     override fun onDrawFrame(gl: GL10?) {

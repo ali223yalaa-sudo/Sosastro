@@ -58,6 +58,9 @@ fun AlphaVideoGiftPlayer(
     modifier: Modifier = Modifier,
     clientBuilder: IRoleBasedHttpClientBuilder? = null,
     onReady: () -> Unit = {},
+    scale: Float = 1f,
+    offsetX: Float = 0f,
+    offsetY: Float = 0f,
 ) {
     val context = LocalContext.current
     val source = giftAssetOf(asset)
@@ -115,6 +118,7 @@ fun AlphaVideoGiftPlayer(
                 }
             }
         },
+        update = { view -> view.setPlacement(scale, offsetX, offsetY) },
     )
 
     DisposableEffect(renderer) {
