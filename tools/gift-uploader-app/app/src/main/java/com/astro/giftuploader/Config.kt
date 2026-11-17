@@ -22,12 +22,14 @@ object Config {
     const val DEFAULT_DASHBOARD_URL = "https://work-1-zhsyxfiuhcicjfrr.prod-runtime.all-hands.dev/"
     const val DEFAULT_PORT = 12000
 
-    // The exact command the dashboard's own docs use to serve it.
+    // The exact command the dashboard's own docs use to serve it. The port
+    // probe makes the button idempotent: a running server is left alone, and
+    // `setsid` detaches the new one so it outlives the API call that started it.
     const val START_COMMAND =
-        "cd /workspace/astro-backup/tools/gift-dashboard && " +
-            "(pgrep -f 'server.py --port 12000' >/dev/null 2>&1 || " +
-            "nohup /workspace/venv/bin/python server.py --port 12000 --also-port 12001 " +
-            "> /workspace/giftdash.log 2>&1 &) ; sleep 1 ; echo started"
+        "if curl -s -m 2 -o /dev/null http://127.0.0.1:12000/; then echo already-up; else " +
+            "cd /workspace/astro-backup/tools/gift-dashboard && " +
+            "setsid nohup /workspace/venv/bin/python server.py --port 12000 --also-port 12001 " +
+            "> /workspace/giftdash.log 2>&1 < /dev/null & echo started; fi"
 
     fun prefs(ctx: Context): SharedPreferences = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
