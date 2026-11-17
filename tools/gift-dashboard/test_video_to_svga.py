@@ -269,6 +269,61 @@ class VerticalClipFill(unittest.TestCase):
         self.assertTrue((np.array(out)[..., 3] == 255).all())
 
 
+class BlackKeyRamp(unittest.TestCase):
+    """A bright subject on black must key to its real silhouette, not a blob.
+
+    The old fixed `hi` of 0.20 saturated everything above a fifth of the range,
+    so a glow or a soft edge read as fully opaque and the cutout grew well past
+    the subject. The ramp is now scaled to the clip's own peak brightness.
+    """
+
+    @staticmethod
+    def _subject(peak: int) -> tuple[np.ndarray, np.ndarray]:
+        h, w = 240, 180
+        yy, xx = np.mgrid[0:h, 0:w]
+        d = np.sqrt((xx - w / 2) ** 2 + (yy - h / 2) ** 2)
+        r = min(h, w) * 0.30
+        soft = np.clip((r - d) / 6.0, 0, 1)
+        glow = np.clip(1.0 - (d / (r * 2.4)), 0, 1) ** 2 * 0.55
+        gt = np.clip(soft + glow, 0, 1)
+        fg = np.zeros((h, w, 3), np.float32)
+        fg[..., 0], fg[..., 1], fg[..., 2] = peak, peak * 0.51, peak * 0.26
+        frame = np.dstack([(fg * gt[..., None]).astype(np.uint8), (gt * 255)]).astype(np.uint8)
+        return frame, gt
+
+    @staticmethod
+    def _iou(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> float:
+        A, B = a > t, b > t
+        return (A & B).sum() / max(1, (A | B).sum())
+
+    def test_bright_subject_is_no_longer_over_masked(self):
+        frame, gt = self._subject(255)
+        hi = V.black_ramp_hi([frame])
+        got = V.key_black(frame, 0.05, hi)[..., 3] / 255.0
+        self.assertGreater(self._iou(got, gt), 0.95)
+        # The old fixed ramp is what this replaces; it must stay clearly worse.
+        old = V.key_black(frame, 0.05, 0.20)[..., 3] / 255.0
+        self.assertGreater(self._iou(got, gt), self._iou(old, gt) + 0.2)
+
+    def test_never_improves_worse_than_the_fixed_ramp(self):
+        for peak in (255, 200, 128, 90):
+            frame, gt = self._subject(peak)
+            hi = V.black_ramp_hi([frame])
+            new = self._iou(V.key_black(frame, 0.05, hi)[..., 3] / 255.0, gt)
+            old = self._iou(V.key_black(frame, 0.05, 0.20)[..., 3] / 255.0, gt)
+            self.assertGreaterEqual(new + 1e-3, old, f"peak={peak}")
+
+    def test_ramp_stays_within_safe_bounds(self):
+        # A dark clip must not scale `hi` below the default, and a hot speck
+        # must not push it to 1.0 (which would make a mid-grey subject vanish).
+        dark, _ = self._subject(40)
+        self.assertEqual(V.black_ramp_hi([dark]), 0.20)
+        hot = np.zeros((240, 180, 4), np.uint8)
+        hot[..., :3] = 10
+        hot[0, 0, :3] = 255
+        self.assertLessEqual(V.black_ramp_hi([hot]), 0.97)
+
+
 class BirefnetMemoryGate(unittest.TestCase):
     """BiRefNet peaks near 7 GiB, which is enough to OOM-kill a shared box and
     take a whole conversion (and the session running it) down with it. The

@@ -474,6 +474,23 @@ def key_black(arr: np.ndarray, lo: float, hi: float) -> np.ndarray:
     return out
 
 
+def black_ramp_hi(frames: list[np.ndarray], default: float = 0.20) -> float:
+    """Pick the bright end of the black-key ramp from the subject itself.
+
+    key_black assumes the brightest subject pixel is alpha 1. A fixed `hi`
+    of 0.20 instead saturates every pixel brighter than a fifth of the range,
+    so a soft glow or a partially transparent edge reads as fully opaque and
+    the silhouette grows. Scaling `hi` to the clip's own peak brightness
+    (99th percentile of the max channel, so one hot speck cannot skew it)
+    makes the key faithful across the whole brightness range while still
+    keeping a subject that only reaches mid-grey from becoming transparent.
+    """
+    peak = 0.0
+    for fr in frames:
+        peak = max(peak, float(np.percentile(fr[..., :3].max(axis=2), 99.0)))
+    return max(default, min(0.97, peak / 255.0))
+
+
 def key_chroma(
     arr: np.ndarray,
     bg: np.ndarray,
@@ -1136,6 +1153,8 @@ def main() -> int:
     )
     ap.add_argument("--key-lo", type=float, default=0.05)
     ap.add_argument("--key-hi", type=float, default=0.20)
+    ap.add_argument("--key-hi-explicit", action="store_true",
+                    help="use --key-hi as given instead of scaling it to the clip's peak brightness")
     ap.add_argument("--chroma-lo", type=float, default=0.12)
     ap.add_argument("--chroma-hi", type=float, default=0.45)
     ap.add_argument("--no-quantize", action="store_true")
@@ -1392,8 +1411,11 @@ def main() -> int:
             print(f"matte: BiRefNet semantic segmentation ({args.matte_model})")
             keyed = matte_birefnet(frames, args.matte_model)
         elif mode == "black":
-            print("background key: black (luma)")
-            keyed = [key_black(f, args.key_lo, args.key_hi) for f in frames]
+            black_hi = args.key_hi
+            if not args.key_hi_explicit:
+                black_hi = black_ramp_hi(frames)
+            print(f"background key: black (luma, hi={black_hi:.2f})")
+            keyed = [key_black(f, args.key_lo, black_hi) for f in frames]
         else:
             if bg_color is None:
                 _, sampled = detect_bg(frames)

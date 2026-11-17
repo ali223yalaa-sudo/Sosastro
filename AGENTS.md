@@ -1143,6 +1143,18 @@ which is what stops a green fringe riding into the room. The room stage is
 (95% height, ~112% width, centred), so a `fit=cover` clip lands the same in
 both.
 
+**The black key scales its ramp to the subject (`black_ramp_hi`).** A
+fixed `--key-hi 0.20` saturated every pixel brighter than a fifth of the
+range, so a glow or a soft edge on black read as fully opaque and the
+silhouette grew well past the subject — measured IoU 0.59 against ground
+truth for a bright subject, versus ~0.95 for the same subject on green,
+white or blue. The dispatch now computes `hi` from the clip's own peak
+brightness (99th percentile of the max channel, clamped to `[0.20, 0.97]`),
+so a bright subject keys to its real shape (IoU 0.997) and the fix is
+strictly better at every tested brightness (255/200/128/90). `--key-hi`
+is still honoured verbatim when the operator passes `--key-hi-explicit`.
+`BlackKeyRamp` in `test_video_to_svga.py` pins all of this.
+
 ## Room gifts served from Cloudflare (permanent hosting)
 
 The local dashboard (`gift_dashboard/server.py`) is the *authoring* tool: it
