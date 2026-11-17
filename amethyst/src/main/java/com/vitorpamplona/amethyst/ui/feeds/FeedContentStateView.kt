@@ -96,7 +96,7 @@ fun RenderFeedContentState(
     onLoaded: @Composable (FeedState.Loaded) -> Unit = { FeedLoaded(it, listState, routeForLastRead, accountViewModel, nav) },
     onEmpty: @Composable () -> Unit = { FeedEmpty(feedContentState::invalidateData) },
     onError: @Composable (String) -> Unit = { FeedError(it, feedContentState::invalidateData) },
-    onLoading: @Composable () -> Unit = { LoadingFeed() },
+    onLoading: @Composable () -> Unit = { LoadingFeedSkeleton() },
 ) {
     val feedState by feedContentState.feedContent.collectAsStateWithLifecycle()
 

@@ -113,6 +113,16 @@ def newest_apk() -> Path | None:
     return best
 
 
+# The standalone gift-uploader app: a separate, isolated APK that starts this
+# dashboard in the cloud and renders it. Kept out of APK_ROOTS so it never
+# becomes the "latest app" the main download button serves.
+UPLOADER_APK = Path("/workspace/gift-app/app/build/outputs/apk/release/GiftUploader.apk")
+
+
+def uploader_apk() -> Path | None:
+    return UPLOADER_APK if UPLOADER_APK.is_file() else None
+
+
 def ensure_dirs() -> None:
     for d in (DATA, ASSETS, CLIPS, VIDEOS, ICONS, SOUNDS):
         d.mkdir(parents=True, exist_ok=True)
@@ -722,6 +732,16 @@ class Handler(BaseHTTPRequestHandler):
                     cache=False,
                     download_name="amethyst-gifts.apk",
                 )
+            if p in ("/download/uploader", "/uploader.apk"):
+                apk = uploader_apk()
+                if apk is None:
+                    return self.send_error(404, "no uploader apk built")
+                return self.send_file(
+                    apk,
+                    "application/vnd.android.package-archive",
+                    cache=False,
+                    download_name="GiftUploader.apk",
+                )
             return self.send_error(404, "not found")
         except Exception as exc:
             traceback.print_exc()
@@ -1056,6 +1076,13 @@ INDEX_HTML = r"""<!doctype html>
       ⬇️ تنزيل أحدث تطبيق (APK)
     </a>
     <span class="sub" style="margin-inline-start:10px">أحدث نسخة مبنية تتضمّن كل تعديلات اللوحة</span>
+  </div>
+
+  <div style="margin:10px 0 18px">
+    <a href="/download/uploader" style="display:inline-block;background:#7C4DFF;color:#fff;padding:10px 18px;border-radius:10px;text-decoration:none;font-weight:700">
+      📱 تنزيل تطبيق رافع الهدايا (مستقل)
+    </a>
+    <span class="sub" style="margin-inline-start:10px">تطبيق منفصل يفتح اللوحة ويشغّل الخادم بزر واحد — لا علاقة له بتطبيق أسترو</span>
   </div>
 
   <div class="grid">

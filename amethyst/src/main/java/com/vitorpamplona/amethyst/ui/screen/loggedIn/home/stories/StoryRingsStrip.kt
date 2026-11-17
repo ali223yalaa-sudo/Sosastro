@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -67,6 +68,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vitorpamplona.amethyst.R
 import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
 import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
+import com.vitorpamplona.amethyst.commons.ui.components.ShimmerPlaceholder
 import com.vitorpamplona.amethyst.commons.ui.feeds.FeedContentState
 import com.vitorpamplona.amethyst.commons.ui.feeds.FeedState
 import com.vitorpamplona.amethyst.model.Note
@@ -157,14 +159,62 @@ fun DisplayEphemeralStoryRings(
 
     when (val state = feedContent) {
         is FeedState.Loaded -> DisplayEphemeralStoryRingsLoaded(state, accountViewModel, nav)
+        is FeedState.Loading -> {
+            // Shimmer rings while the first story page lands, so the strip
+            // reads as "loading" rather than "you have no stories".
+            StoryRingsLoadingRow(accountViewModel, nav)
+        }
         else -> {
-            // Always show "Your story" even while loading / empty.
+            // Always show "Your story" even when empty.
             StoryRingsRow(
                 rings = persistentListOf(),
                 accountViewModel = accountViewModel,
                 nav = nav,
             )
         }
+    }
+}
+
+@Composable
+private fun StoryRingsLoadingRow(
+    accountViewModel: AccountViewModel,
+    nav: INav,
+) {
+    // "Your story" stays real and tappable; only the unknown other-author
+    // rings are replaced by placeholders.
+    val myUser = accountViewModel.account.userProfile()
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = Size10dp, vertical = StoryStripBottomPad),
+        horizontalArrangement = Arrangement.spacedBy(StoryRingGap),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        item(key = "my-story") {
+            MyStoryRing(
+                ring = null,
+                myUser = myUser,
+                nowSec = 0L,
+                treatAsHavingStories = false,
+                accountViewModel = accountViewModel,
+                onOpenStories = {},
+                onAddStory = {},
+            )
+        }
+        items(4) {
+            StoryRingSkeleton()
+        }
+    }
+}
+
+@Composable
+private fun StoryRingSkeleton() {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        ShimmerPlaceholder(
+            Modifier
+                .size(StoryRingOuterSize)
+                .clip(CircleShape),
+        )
+        Spacer(Modifier.height(4.dp))
+        ShimmerPlaceholder(Modifier.width(48.dp).height(10.dp))
     }
 }
 

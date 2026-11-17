@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.GiftUploader" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#4b6bfb</item>
+        <item name="colorPrimaryDark">#0b0d12</item>
+        <item name="colorAccent">#4b6bfb</item>
+        <item name="android:statusBarColor">#0b0d12</item>
+    </style>
+</resources>

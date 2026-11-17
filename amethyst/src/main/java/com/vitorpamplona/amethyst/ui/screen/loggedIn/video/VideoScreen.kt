@@ -24,8 +24,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
@@ -36,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.vitorpamplona.amethyst.commons.ui.components.NoteCardSkeleton
 import com.vitorpamplona.amethyst.commons.ui.feeds.FeedContentState
 import com.vitorpamplona.amethyst.commons.ui.feeds.FeedState
 import com.vitorpamplona.amethyst.commons.ui.layouts.rememberFeedContentPadding
@@ -43,6 +46,7 @@ import com.vitorpamplona.amethyst.model.Note
 import com.vitorpamplona.amethyst.service.tts.TextToSpeechHelper
 import com.vitorpamplona.amethyst.ui.dal.usesAstroInterestOrder
 import com.vitorpamplona.amethyst.ui.feeds.FeedEmpty
+import com.vitorpamplona.amethyst.ui.feeds.LoadingFeedSkeleton
 import com.vitorpamplona.amethyst.ui.feeds.RefresheableBox
 import com.vitorpamplona.amethyst.ui.feeds.RenderFeedContentState
 import com.vitorpamplona.amethyst.ui.feeds.SaveableFeedContentState
@@ -190,6 +194,18 @@ fun VideoFeedBody(
                         FeedEmpty(onRefresh)
                     }
                 },
+                onLoading = {
+                    // Keep the header (top bar + stories) visible while the first
+                    // page loads, so a cold start is never a blank screen.
+                    if (feedHeader != null) {
+                        VideoFeedLoadingHeader(
+                            listState = listState,
+                            feedHeader = feedHeader,
+                        )
+                    } else {
+                        LoadingFeedSkeleton()
+                    }
+                },
             )
         }
     }
@@ -312,6 +328,24 @@ private fun VideoFeedLoadedHeader(
     ) {
         item(key = "feed_header", contentType = "feed_header") {
             feedHeader()
+        }
+    }
+}
+
+@Composable
+private fun VideoFeedLoadingHeader(
+    listState: LazyListState,
+    feedHeader: @Composable () -> Unit,
+) {
+    LazyColumn(
+        contentPadding = rememberFeedContentPadding(PaddingValues(top = 0.dp, bottom = 10.dp)),
+        state = listState,
+    ) {
+        item(key = "feed_header", contentType = "feed_header") {
+            feedHeader()
+        }
+        items(3, key = { "skeleton_$it" }, contentType = { "skeleton" }) {
+            NoteCardSkeleton(modifier = Modifier.padding(FeedPadding))
         }
     }
 }

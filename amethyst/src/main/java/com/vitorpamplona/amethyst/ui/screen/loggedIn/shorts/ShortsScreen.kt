@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vitorpamplona.amethyst.commons.ui.feeds.FeedContentState
 import com.vitorpamplona.amethyst.service.playback.composable.DEFAULT_MUTED_SETTING
+import com.vitorpamplona.amethyst.ui.feeds.LoadingReelsSkeleton
 import com.vitorpamplona.amethyst.ui.feeds.RefresheableBox
 import com.vitorpamplona.amethyst.ui.feeds.RenderFeedContentState
 import com.vitorpamplona.amethyst.ui.feeds.SaveableFeedContentState
@@ -130,6 +131,7 @@ fun ShortsFeedBody(
                         isTabActive = isTabActive,
                     )
                 },
+                onLoading = { LoadingReelsSkeleton() },
             )
         }
     }
