@@ -33,6 +33,7 @@ import com.vitorpamplona.amethyst.ui.feeds.FeedEmpty
 import com.vitorpamplona.amethyst.ui.feeds.FeedError
 import com.vitorpamplona.amethyst.ui.feeds.FeedLoaded
 import com.vitorpamplona.amethyst.ui.feeds.LoadingFeed
+import com.vitorpamplona.amethyst.ui.feeds.PrefetchLoadedFeedInteractions
 import com.vitorpamplona.amethyst.ui.feeds.PrefetchLoadedFeedMedia
 import com.vitorpamplona.amethyst.ui.feeds.RefresheableBox
 import com.vitorpamplona.amethyst.ui.feeds.StickToTopOnPrepend
@@ -132,6 +133,7 @@ fun RenderFeedState(
         is FeedState.FeedError -> onError(state.errorMessage)
         is FeedState.Loaded -> {
             PrefetchLoadedFeedMedia(state, listState, accountViewModel)
+            PrefetchLoadedFeedInteractions(state, listState, accountViewModel)
             onLoaded(state)
         }
         is FeedState.Loading -> onLoading()

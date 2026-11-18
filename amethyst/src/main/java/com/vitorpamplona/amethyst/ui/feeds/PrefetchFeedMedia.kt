@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
@@ -35,6 +36,7 @@ import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import com.vitorpamplona.amethyst.commons.model.toImmutableListOfLists
+import com.vitorpamplona.amethyst.commons.relayClient.subscriptions.LifecycleAwareKeyDataSourceSubscription
 import com.vitorpamplona.amethyst.commons.richtext.MediaUrlImage
 import com.vitorpamplona.amethyst.commons.richtext.MediaUrlVideo
 import com.vitorpamplona.amethyst.commons.richtext.RichTextParser
@@ -45,6 +47,7 @@ import com.vitorpamplona.amethyst.model.MediaAspectRatioCache
 import com.vitorpamplona.amethyst.model.Note
 import com.vitorpamplona.amethyst.model.UrlCachedPreviewer
 import com.vitorpamplona.amethyst.service.CachedRichTextParser
+import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.EventFinderQueryState
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.quartz.nip01Core.core.Event
 import com.vitorpamplona.quartz.nip10Notes.TextNoteEvent
@@ -60,6 +63,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
 
@@ -147,6 +151,64 @@ private fun PrefetchVisibleMedia(
 }
 
 /**
+ * Subscribes the notes around the visible range to the shared event finder, so their reply,
+ * reaction, repost and zap counters load before the row's own observers mount. The subscribed
+ * set is recomputed per visible-range change and released when the range moves on; the manager
+ * ref-counts by state identity, so re-subscribing the same note is cheap.
+ */
+@Composable
+private fun PrefetchVisibleInteractions(
+    listState: LazyListState,
+    notes: ImmutableList<Note>,
+    accountViewModel: AccountViewModel,
+) {
+    val visibleEnds = remember(listState) { listState.visibleEnds() }
+    PrefetchVisibleInteractions(listState, visibleEnds, notes, accountViewModel)
+}
+
+@Composable
+private fun PrefetchVisibleInteractions(
+    gridState: LazyGridState,
+    notes: ImmutableList<Note>,
+    accountViewModel: AccountViewModel,
+) {
+    val visibleEnds = remember(gridState) { gridState.visibleEnds() }
+    PrefetchVisibleInteractions(gridState, visibleEnds, notes, accountViewModel)
+}
+
+@Composable
+private fun PrefetchVisibleInteractions(
+    stateKey: Any,
+    visibleEnds: Flow<VisibleEnds>,
+    notes: ImmutableList<Note>,
+    accountViewModel: AccountViewModel,
+) {
+    val account = accountViewModel.account
+    val currentNotes by rememberUpdatedState(notes)
+
+    // One query-state per note, reused across visible-range changes so the manager's
+    // identity-keyed ref count sees a stable set: notes still on screen keep their
+    // subscription, and only the ones that scrolled out are released.
+    val queryStates = remember(stateKey, account) { mutableMapOf<String, EventFinderQueryState>() }
+
+    val states by
+        produceState<List<EventFinderQueryState>>(emptyList(), stateKey, account) {
+            visibleEnds
+                .map { ends -> currentNotes.notesAround(ends, PREFETCH_RADIUS) }
+                .collect { around ->
+                    val ids = around.mapTo(HashSet()) { it.idHex }
+                    queryStates.keys.retainAll(ids)
+                    value =
+                        around.map { note ->
+                            queryStates.getOrPut(note.idHex) { EventFinderQueryState(note, account) }
+                        }
+                }
+        }
+
+    LifecycleAwareKeyDataSourceSubscription(states, accountViewModel.dataSources().eventFinder)
+}
+
+/**
  * Prefetches media for a loaded feed. The shared entry point used by the feed
  * dispatchers (`RenderFeedContentState` and `RenderFeedState`), so every list feed
  * that routes through them gets prefetching without per-screen wiring.
@@ -170,6 +232,38 @@ fun PrefetchLoadedFeedMedia(
 ) {
     val items by loaded.feed.collectAsStateWithLifecycle()
     PrefetchFeedMedia(gridState, items.list, accountViewModel)
+}
+
+/**
+ * Pre-subscribes the notes near the viewport to the shared
+ * [EventFinder][com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.EventFinderFilterAssembler]
+ * — the same lifecycle-aware loader the reply/reaction/repost/zap counters use — so their
+ * interactions are already in flight while the row is on screen.
+ *
+ * Without this the counters start loading only when the row's own observers mount, and every
+ * request passes through the subscription manager's 500ms bundler, so the numbers fill in one
+ * bundled pass after scrolling stops. Same reasoning as [PrefetchFeedMedia], for interactions
+ * instead of media. A note already loaded is skipped by the loader because its note has an event.
+ */
+@Composable
+fun PrefetchLoadedFeedInteractions(
+    loaded: FeedState.Loaded,
+    listState: LazyListState,
+    accountViewModel: AccountViewModel,
+) {
+    val items by loaded.feed.collectAsStateWithLifecycle()
+    PrefetchVisibleInteractions(listState, items.list, accountViewModel)
+}
+
+/** Grid variant of [PrefetchLoadedFeedInteractions] for [LazyGridState]-backed feeds. */
+@Composable
+fun PrefetchLoadedFeedInteractions(
+    loaded: FeedState.Loaded,
+    gridState: LazyGridState,
+    accountViewModel: AccountViewModel,
+) {
+    val items by loaded.feed.collectAsStateWithLifecycle()
+    PrefetchVisibleInteractions(gridState, items.list, accountViewModel)
 }
 
 /** The keys (note `idHex`) of the first and last visible feed items. */
