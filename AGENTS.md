@@ -1312,3 +1312,31 @@ an 84dp row with a 68dp thumbnail) and the "my room" hero is now a slim row
 (`NestsLobbyChrome.kt`). The room chrome gained a gradient header/footer and
 gradient mic rings (`MicSeatsGrid.kt`: `micSeatRing`).
 
+## Chat backgrounds and the reply quote
+
+Chat wallpapers are animated GPU shaders, not video or GIF: `AnimatedChatBackground.kt`
+builds a HypnoticCanvas `MeshGradient` from the active `MessengerChatPalette`, so each
+theme animates in its own colours at no asset cost. The library is pinned to
+**0.4.1** — the last release whose Compose requirement (1.8.1) sits below this project's
+CMP 1.11.1, so it resolves with no version bump; 0.6.0 needs Compose 1.12.0 and would
+fail. Shaders need API 33; `shaderBackground(..., fallback = ...)` paints a static
+gradient below that. The theme picker previews the same gradient statically rather than
+running fifteen live shaders in a grid.
+
+The reply quote is not a separate widget — `ChatroomMessageCompose(..., innerQuote = true)`
+re-enters the normal bubble layout. Sizing it down therefore means overriding that layout
+in `ChatBubbleLayout.kt` for the `innerQuote` case only (`InnerQuoteMaxSizeModifier`,
+`innerQuoteBubbleLimits`, and a 14sp `LocalTextStyle`); without those it inherits the full
+`ChatBubbleMaxSizeModifier` (85% width) and `messageBubbleLimits` and balloons.
+
+## Toolchain survives only under /workspace
+
+The container recycles wipe `/usr/lib/jvm`, `/tmp` and `$HOME`, so every build tool must
+live under `/workspace`: JDK at `/workspace/jdk` (a symlink to
+`/usr/lib/jvm/java-21-openjdk-amd64`), the SDK at `/workspace/android-sdk`, Gradle home at
+`/workspace/gradle-home`. `source /workspace/env.sh` restores all four. After a restart
+the symlink dangles — reinstall with `sudo apt-get install -y openjdk-21-jdk-headless`
+before any Gradle call, or the build fails with "JAVA_HOME is not set". Long Gradle runs
+should go to a background log and be polled; the terminal is capped below the runtime's
+idle window.
+

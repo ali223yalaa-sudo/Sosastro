@@ -42,11 +42,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -78,13 +80,16 @@ import com.vitorpamplona.amethyst.ui.theme.ChatBubbleMaxSizeModifier
 import com.vitorpamplona.amethyst.ui.theme.ChatPaddingGroupedModifier
 import com.vitorpamplona.amethyst.ui.theme.ChatPaddingInnerQuoteModifier
 import com.vitorpamplona.amethyst.ui.theme.ChatPaddingModifier
+import com.vitorpamplona.amethyst.ui.theme.Font14SP
 import com.vitorpamplona.amethyst.ui.theme.HalfHalfVertPadding
+import com.vitorpamplona.amethyst.ui.theme.InnerQuoteMaxSizeModifier
 import com.vitorpamplona.amethyst.ui.theme.RowColSpacing5dp
 import com.vitorpamplona.amethyst.ui.theme.Size20Modifier
 import com.vitorpamplona.amethyst.ui.theme.Size20dp
 import com.vitorpamplona.amethyst.ui.theme.chatBubbleMe
 import com.vitorpamplona.amethyst.ui.theme.chatBubbleThem
 import com.vitorpamplona.amethyst.ui.theme.chatDraftBackground
+import com.vitorpamplona.amethyst.ui.theme.innerQuoteBubbleLimits
 import com.vitorpamplona.amethyst.ui.theme.messageBubbleLimits
 import com.vitorpamplona.amethyst.ui.theme.messengerBubbleMe
 import com.vitorpamplona.amethyst.ui.theme.messengerBubbleMeText
@@ -388,7 +393,7 @@ private fun InnerChatBubble(
         // Negative spacing pulls the reaction chips up so their vertical center
         // rides the bubble's bottom border instead of floating detached below it.
         verticalArrangement = if (reactionsRow != null) ChatChipOverlapArrangement else Arrangement.Top,
-        modifier = if (innerQuote) Modifier else ChatBubbleMaxSizeModifier,
+        modifier = if (innerQuote) InnerQuoteMaxSizeModifier else ChatBubbleMaxSizeModifier,
     ) {
         val bubbleShape = chatBubbleShapeFor(isLoggedInUser, if (innerQuote) ChatGroupPosition.SINGLE else groupPosition)
         val useBrush = bubbleBrush != null && !highlightActive && !transparentBubble
@@ -419,7 +424,7 @@ private fun InnerChatBubble(
                         scaleY = pressScale
                     },
         ) {
-            Column(modifier = messageBubbleLimits, verticalArrangement = RowColSpacing5dp) {
+            Column(modifier = if (innerQuote) innerQuoteBubbleLimits else messageBubbleLimits, verticalArrangement = RowColSpacing5dp) {
                 if (drawAuthorInfo) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -430,7 +435,20 @@ private fun InnerChatBubble(
                     }
                 }
 
-                inner(bgColor)
+                if (innerQuote) {
+                    // Quoted text renders one step smaller than a normal message so the
+                    // quote reads as a reference and the bubble it lives in stays compact.
+                    // RichTextViewer resolves its size from LocalTextStyle, so providing a
+                    // smaller style here scales the whole quoted body without touching the
+                    // parser or the per-segment renderers.
+                    CompositionLocalProvider(
+                        LocalTextStyle provides LocalTextStyle.current.copy(fontSize = Font14SP),
+                    ) {
+                        inner(bgColor)
+                    }
+                } else {
+                    inner(bgColor)
+                }
 
                 if (footerRow != null) {
                     // Mirror the footer with the bubble so it sits on the same

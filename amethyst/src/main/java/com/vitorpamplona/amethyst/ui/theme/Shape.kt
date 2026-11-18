@@ -319,6 +319,12 @@ val AuthorInfoVideoFeed = Modifier.width(75.dp).padding(end = 15.dp)
 val messageDetailsModifier = Modifier.height(Size25dp)
 val messageBubbleLimits = Modifier.padding(start = 13.dp, end = 13.dp, top = 9.dp, bottom = 8.dp)
 
+// A reply quote sits inside the bubble it is quoted by, so it must read as a
+// secondary reference, not as a second full-size message. Tighter padding and a
+// narrower width cap keep it compact and elegant instead of ballooning the bubble.
+val innerQuoteBubbleLimits = Modifier.padding(start = 9.dp, end = 9.dp, top = 6.dp, bottom = 6.dp)
+val InnerQuoteMaxSizeModifier = Modifier.fillMaxWidth(0.92f)
+
 val inlinePlaceholder =
     Placeholder(
         width = Font17SP,

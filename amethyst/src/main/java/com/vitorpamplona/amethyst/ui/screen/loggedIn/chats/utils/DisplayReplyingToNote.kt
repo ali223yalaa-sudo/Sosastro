@@ -51,7 +51,10 @@ fun DisplayReplyingToNote(
     Row(
         Modifier
             .padding(horizontal = 10.dp)
-            .heightIn(max = 100.dp)
+            // The quote above the composer is a glance-able reference, not a message to
+            // read in full. A tighter cap keeps it from eating the message list; the
+            // scroll still reaches the rest.
+            .heightIn(max = 72.dp)
             .verticalScroll(rememberScrollState())
             .animateContentSize(),
     ) {

@@ -450,6 +450,9 @@ dependencies {
 
     // Load images from the web.
     implementation(libs.coil.compose)
+    // Animated shader backgrounds for chat themes (Apache-2.0; core shaders MIT).
+    // Renders on API 33+ and falls back to a Brush below it.
+    implementation(libs.hypnoticcanvas)
     // view gifs
     implementation(libs.coil.gif)
     // view svgs

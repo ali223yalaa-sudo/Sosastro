@@ -20,12 +20,10 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.MaterialTheme
@@ -80,6 +78,7 @@ import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.dal.Chatroo
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.datasource.ChatroomFilterAssemblerSubscription
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.send.ChatNewMessageViewModel
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.send.PrivateMessageEditFieldRow
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.theme.AnimatedChatBackground
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.theme.LocalMessengerChatPalette
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.theme.resolveMessengerChatPalette
 import com.vitorpamplona.amethyst.ui.theme.DoubleVertSpacer
@@ -334,10 +333,11 @@ fun ChatroomViewUI(
         LocalMessengerChatPalette provides palette,
     ) {
         Box(Modifier.fillMaxHeight()) {
-            // Reference template (JetMessenger) paints the conversation on a single flat
-            // background colour — no photographic wallpaper and no scrim. Match it exactly.
+            // Messenger-style animated wallpaper: a GPU shader built from the theme's
+            // own colours, painted behind the feed. Devices below API 33 get a static
+            // gradient of the same colours (see AnimatedChatBackground).
             if (palette != null) {
-                Box(Modifier.fillMaxSize().background(palette.background))
+                AnimatedChatBackground(palette)
             }
             Column(
                 Modifier.fillMaxHeight(),

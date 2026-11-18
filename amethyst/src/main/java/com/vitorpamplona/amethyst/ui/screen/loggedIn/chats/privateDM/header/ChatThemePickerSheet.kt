@@ -20,7 +20,6 @@
  */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.header
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,10 +45,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.vitorpamplona.amethyst.R
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.theme.fallbackBrushFor
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.theme.messengerThemeIds
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.chats.privateDM.theme.resolveMessengerChatPalette
 import com.vitorpamplona.amethyst.ui.stringRes
@@ -98,14 +96,12 @@ fun ChatThemePickerSheet(
                             Modifier
                                 .fillMaxWidth()
                                 .height(72.dp)
-                                .clip(RoundedCornerShape(8.dp)),
+                                .clip(RoundedCornerShape(8.dp))
+                                // Static stand-in for the animated shader: 15 live shaders in
+                                // one grid would be wasteful, and the gradient is the same
+                                // colour set the room animates.
+                                .background(fallbackBrushFor(palette)),
                     ) {
-                        Image(
-                            painter = painterResource(palette.wallpaper),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxWidth().height(72.dp),
-                            contentScale = ContentScale.Crop,
-                        )
                         Box(
                             Modifier
                                 .align(Alignment.BottomEnd)

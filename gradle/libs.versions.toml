@@ -78,6 +78,7 @@ zelory = "3.0.1"
 zoomable = "2.12.0"
 composemediaplayer = "0.10.0"
 jcodec = "0.2.5"
+hypnoticcanvas = "0.4.1"
 commonsImaging = "1.0.0-alpha6"
 thumbnailator = "0.4.21"
 zxing = "3.5.4"
@@ -227,6 +228,7 @@ androidx-privacysandbox-ui-core = { group = "androidx.privacysandbox.ui", name =
 androidx-privacysandbox-ui-client = { group = "androidx.privacysandbox.ui", name = "ui-client", version.ref = "privacysandboxUi" }
 androidx-privacysandbox-ui-provider = { group = "androidx.privacysandbox.ui", name = "ui-provider", version.ref = "privacysandboxUi" }
 vico-charts-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico-charts-compose" }
+hypnoticcanvas = { group = "com.mikepenz.hypnoticcanvas", name = "hypnoticcanvas", version.ref = "hypnoticcanvas" }
 zelory-image-compressor = { group = "id.zelory", name = "compressor", version.ref = "zelory" }
 zoomable = { group = "net.engawapg.lib", name = "zoomable", version.ref = "zoomable" }
 zxing = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
