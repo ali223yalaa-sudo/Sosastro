@@ -323,6 +323,26 @@ to be explicit. The rule is the **user's choice at publish time**, not the clip'
   Reels, landscape/square → Home. `ShortsFeedFilter` keeps reels, `VideoFeedFilter` drops
   them (`isReelOnly`). Pictures, file headers and ephemeral stories stay Home-only.
 
+## Tapping a feed video opens the Reels-style post viewer
+
+Tapping a video card in the Home/Videos feed opens it full-screen and keeps swiping through
+the other feed videos, like Reels. The list is the **Home video feed**, not the portrait-only
+Reels stream, so it carries the same posts and follow-list filter as the feed the tap came
+from.
+
+- Route `Route.PostReels(startId)` (`Routes.kt`), registered in `AppNavigation.kt` via
+  `composableFromEndArgs` and rendered by `PostReelsScreen` (`video/PostReelsScreen.kt`).
+- `VideoCardCompose(..., onTapAction = { nav.nav(Route.PostReels(item.idHex)) })` is wired at
+  every feed video branch in `VideoScreen.kt` (`VideoEvent`, video `EphemeralStoryEvent`,
+  video `TextNoteEvent`). The callback threads through `VideoCardImage` → `ZoomableContentView`
+  → `VideoView(Inner)` → `RenderVideoPlayer`, where the non-reels `detectTapGestures` branch
+  fires it. Reels pages keep their own tap (play/pause), so `onTapAction` is passed only on the
+  feed branch of `VideoCardCompose`.
+- `ShortsFeedLoaded` gained `initialNoteId`: it scrolls the pager to that note once per
+  (feed, target) pair, so opening from a tap lands on the tapped post without overriding later
+  user scrolling. `rememberReelsSnapFlingBehavior` is `internal` so the new screen reuses the
+  same one-reel snap.
+
 ## Media uploads: the server enforces an allowlist
 
 `astro-media` (blossomflare) defaults to `upload_policy = allowlist`; with an empty
@@ -860,6 +880,25 @@ PY
 - `./gradlew --no-daemon :amethyst:compileFdroidDebugKotlin` to type-check fast.
 - `./gradlew --no-daemon :amethyst:assembleFdroidDebug` for the APK
   (`amethyst/build/outputs/apk/fdroid/debug/`).
+
+### A build that suddenly can't find Java or AGP means the env was not sourced
+
+After a recycle, a Gradle call fails before compiling with either
+`JAVA_HOME is not set and no 'java' command could be found` or
+`could not resolve plugin artifact 'com.android.application:...'`. Both are the
+same root cause: the shell did not export `JAVA_HOME`/`GRADLE_USER_HOME`, so
+Gradle used the empty `~/.gradle` and found no cached AGP. `apt install
+openjdk-21-jdk-headless` recreates `/usr/lib/jvm/java-21-openjdk-amd64` (the
+`/workspace/jdk` symlink target), then `source /workspace/env.sh` points Gradle at
+the cached toolchain. If `/workspace/env.sh` is missing (it is not in git), recreate it:
+
+```bash
+export JAVA_HOME=/workspace/jdk
+export ANDROID_HOME=/workspace/android-sdk
+export ANDROID_SDK_ROOT=/workspace/android-sdk
+export GRADLE_USER_HOME=/workspace/gradle-home
+export PATH="$JAVA_HOME/bin:$PATH"
+```
 
 ## Remote-editable gift catalog
 

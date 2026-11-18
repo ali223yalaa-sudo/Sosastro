@@ -68,6 +68,7 @@ fun VideoViewInner(
     startUnmuted: Boolean = false,
     onDoubleTapAction: (() -> Unit)? = null,
     onPlaybackReady: (() -> Unit)? = null,
+    onTapAction: (() -> Unit)? = null,
 ) {
     // Global mute: the shared setting drives every player, so unmuting one video unmutes
     // them all and muting one keeps the rest silent. Read reactively (not remembered) so a
@@ -166,6 +167,7 @@ fun VideoViewInner(
                     accountViewModel = accountViewModel,
                     reelsGestures = reelsGestures,
                     onDoubleTapAction = onDoubleTapAction,
+                    onTapAction = onTapAction,
                 )
             }
         }

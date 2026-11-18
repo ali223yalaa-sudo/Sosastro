@@ -147,6 +147,7 @@ fun ZoomableContentView(
     reelsGestures: Boolean = false,
     startUnmuted: Boolean = false,
     onDoubleTapAction: (() -> Unit)? = null,
+    onTapAction: (() -> Unit)? = null,
 ) {
     var dialogOpen by remember(content) { mutableStateOf(false) }
     var sourceBounds by remember(content) { mutableStateOf<Rect?>(null) }
@@ -236,6 +237,7 @@ fun ZoomableContentView(
                         reelsGestures = reelsGestures,
                         startUnmuted = startUnmuted,
                         onDoubleTapAction = onDoubleTapAction,
+                        onTapAction = onTapAction,
                     )
                 }
             }
@@ -291,6 +293,7 @@ fun ZoomableContentView(
                         reelsGestures = reelsGestures,
                         startUnmuted = startUnmuted,
                         onDoubleTapAction = onDoubleTapAction,
+                        onTapAction = onTapAction,
                     )
                 }
             }

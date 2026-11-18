@@ -277,7 +277,12 @@ fun VideoFeedLoaded(
                 }
 
                 item.event is VideoEvent -> {
-                    VideoCardCompose(item, accountViewModel, nav)
+                    VideoCardCompose(
+                        baseNote = item,
+                        accountViewModel = accountViewModel,
+                        nav = nav,
+                        onTapAction = { nav.nav(Route.PostReels(item.idHex)) },
+                    )
                     VideoFeedCardFooter()
                 }
 
@@ -288,7 +293,12 @@ fun VideoFeedLoaded(
 
                 item.event is EphemeralStoryEvent -> {
                     if ((item.event as EphemeralStoryEvent).isVideo()) {
-                        VideoCardCompose(item, accountViewModel, nav)
+                        VideoCardCompose(
+                            baseNote = item,
+                            accountViewModel = accountViewModel,
+                            nav = nav,
+                            onTapAction = { nav.nav(Route.PostReels(item.idHex)) },
+                        )
                     } else {
                         PictureCardCompose(
                             baseNote = item,
@@ -300,7 +310,12 @@ fun VideoFeedLoaded(
                 }
 
                 event is TextNoteEvent && event.isReelPlayableVideo() -> {
-                    VideoCardCompose(item, accountViewModel, nav)
+                    VideoCardCompose(
+                        baseNote = item,
+                        accountViewModel = accountViewModel,
+                        nav = nav,
+                        onTapAction = { nav.nav(Route.PostReels(item.idHex)) },
+                    )
                     VideoFeedCardFooter()
                 }
 

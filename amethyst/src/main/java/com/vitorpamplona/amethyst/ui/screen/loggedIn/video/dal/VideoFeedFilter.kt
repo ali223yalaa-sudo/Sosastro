@@ -90,9 +90,6 @@ class VideoFeedFilter(
                 } +
                 LocalCache.addressables.filterIntoSet(VideoVerticalEvent.KIND) { _, it ->
                     acceptableEvent(it, params)
-                } +
-                LocalCache.addressables.filterIntoSet(EphemeralStoryEvent.KIND) { _, it ->
-                    acceptableEvent(it, params)
                 }
         return sort(notes)
     }
@@ -167,7 +164,6 @@ class VideoFeedFilter(
                             (noteEvent is VideoNormalEvent && acceptanceEvent(noteEvent)) ||
                             (noteEvent is VideoShortEvent && acceptanceEvent(noteEvent)) ||
                             (noteEvent is PictureEvent && acceptanceEvent(noteEvent)) ||
-                            (noteEvent is EphemeralStoryEvent && acceptableEphemeralStory(noteEvent)) ||
                             (noteEvent is VoiceEvent && note.isNewThread()) ||
                             (noteEvent is AudioHeaderEvent && note.isNewThread()) ||
                             (noteEvent is TextNoteEvent && noteEvent.isNewThread() && noteEvent.hasImageOrVideoMedia())

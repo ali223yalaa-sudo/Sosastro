@@ -242,6 +242,7 @@ import com.vitorpamplona.amethyst.ui.screen.loggedIn.stars.StarsStoreScreen
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.threadview.ThreadScreen
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.url.UrlPostScreen
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.url.UrlScreen
+import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.PostReelsScreen
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.VideoScreen
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.hls.NewHlsVideoScreen
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.wallet.AddClinkDebitWalletScreen
@@ -376,6 +377,7 @@ fun BuildNavigation(
         composableFromBottomArgs<Route.NewCalendarCollection> { NewCalendarCollectionScreen(nav, accountViewModel, it.dTag) }
         composableFromEnd<Route.Products> { ProductsScreen(accountViewModel, nav) }
         composableFromEnd<Route.Shorts> { ShortsScreen(accountViewModel, nav) }
+        composableFromEndArgs<Route.PostReels> { PostReelsScreen(it.startId, accountViewModel, nav) }
         composableFromEnd<Route.PublicChats> { PublicChatsScreen(accountViewModel, nav) }
         composableFromEnd<Route.RelayGroups> { RelayGroupDiscoveryScreen(accountViewModel, nav) }
         composableFromEnd<Route.FollowPacks> { FollowPacksScreen(accountViewModel, nav) }

@@ -100,6 +100,7 @@ fun VideoCardCompose(
     modifier: Modifier = Modifier,
     reelsLayout: Boolean = false,
     isActivePage: Boolean = true,
+    onTapAction: (() -> Unit)? = null,
 ) {
     val event = baseNote.event ?: return
     val reelMeta = remember(baseNote.idHex, event.id) { event.firstReelVideoMeta() } ?: return
@@ -214,7 +215,7 @@ fun VideoCardCompose(
                 UserCardHeader(baseNote, accountViewModel, nav)
             }
             Box {
-                VideoCardImage(baseNote, event, reelMeta, backgroundColor, accountViewModel)
+                VideoCardImage(baseNote, event, reelMeta, backgroundColor, accountViewModel, onTapAction = onTapAction)
                 if (overlayAuthorOnVideo) {
                     Box(
                         modifier =
@@ -325,6 +326,7 @@ private fun VideoCardImage(
     reelsGestures: Boolean = false,
     startUnmuted: Boolean = false,
     onDoubleTapAction: (() -> Unit)? = null,
+    onTapAction: (() -> Unit)? = null,
 ) {
     val isSensitive = remember(note) { event.isSensitiveOrNSFW() }
     val reasons = remember(note) { collectContentWarningReasons(event) }
@@ -367,6 +369,7 @@ private fun VideoCardImage(
             reelsGestures = reelsGestures,
             startUnmuted = startUnmuted,
             onDoubleTapAction = onDoubleTapAction,
+            onTapAction = onTapAction,
         )
     }
 }

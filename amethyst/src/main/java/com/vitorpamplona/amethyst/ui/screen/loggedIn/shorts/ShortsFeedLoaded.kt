@@ -33,7 +33,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,12 +56,26 @@ fun ShortsFeedLoaded(
     accountViewModel: AccountViewModel,
     nav: INav,
     isTabActive: Boolean = true,
+    initialNoteId: String? = null,
 ) {
     val items by loaded.feed.collectAsStateWithLifecycle()
     val videoItems =
         remember(items) {
             items.list.filter { it.event?.isReelPlayableVideo() == true }
         }
+
+    // Opened from a tapped feed video: land on that post instead of the top of the pager.
+    // Runs once per (feed, target) pair so later scrolling by the user is never overridden.
+    var scrolledToInitial by remember(items) { mutableStateOf(false) }
+    LaunchedEffect(videoItems, initialNoteId) {
+        if (scrolledToInitial || initialNoteId == null) return@LaunchedEffect
+        val index = videoItems.indexOfFirst { it.idHex == initialNoteId }
+        if (index >= 0) {
+            listState.scrollToItem(index)
+        }
+        scrolledToInitial = true
+    }
+
     val flingBehavior = rememberReelsSnapFlingBehavior(listState)
     val focusedIndex by remember {
         derivedStateOf {
@@ -109,7 +125,7 @@ fun ShortsFeedLoaded(
  * a single bounded animation instead of a long free decay.
  */
 @Composable
-private fun rememberReelsSnapFlingBehavior(listState: LazyListState): FlingBehavior {
+internal fun rememberReelsSnapFlingBehavior(listState: LazyListState): FlingBehavior {
     val viewConfiguration = LocalViewConfiguration.current
     return remember(listState, viewConfiguration) {
         object : FlingBehavior {

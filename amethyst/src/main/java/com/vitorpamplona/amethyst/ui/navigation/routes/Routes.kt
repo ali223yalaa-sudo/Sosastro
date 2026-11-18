@@ -168,6 +168,16 @@ sealed class Route {
 
     @Serializable object Shorts : Route()
 
+    /**
+     * Reels-style viewer for feed video posts (kind 21 / kind:1 with video). Same pager layout
+     * as [Shorts], but fed from the Home video feed instead of the portrait-only reels feed, so
+     * tapping a video post opens it full-screen and browsing continues across the other posts.
+     * [startId] is the tapped note, used to scroll the pager to that item on open.
+     */
+    @Serializable data class PostReels(
+        val startId: String? = null,
+    ) : Route()
+
     @Serializable object PublicChats : Route()
 
     @Serializable object FollowPacks : Route()

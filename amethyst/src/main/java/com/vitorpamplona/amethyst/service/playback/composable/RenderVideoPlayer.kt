@@ -117,6 +117,7 @@ fun RenderVideoPlayer(
     accountViewModel: AccountViewModel,
     reelsGestures: Boolean = false,
     onDoubleTapAction: (() -> Unit)? = null,
+    onTapAction: (() -> Unit)? = null,
 ) {
     // Hold the container size in a non-state holder so layout passes don't trigger an
     // unnecessary recomposition of the whole player tree just to update a value that is only
@@ -175,7 +176,7 @@ fun RenderVideoPlayer(
         modifier =
             playerModifier
                 .onSizeChanged { containerWidth[0] = it.width }
-                .pointerInput(isLive, controllerState, reelsGestures, onDoubleTapAction) {
+                .pointerInput(isLive, controllerState, reelsGestures, onDoubleTapAction, onTapAction) {
                     detectTapGestures(
                         onTap = {
                             if (reelsGestures) {
@@ -187,6 +188,10 @@ fun RenderVideoPlayer(
                                     player.play()
                                     playPauseHintIsPlay = true
                                 }
+                            } else if (onTapAction != null) {
+                                // Feed video: hand the tap to the host (opens the reels-style
+                                // viewer) instead of only toggling the control overlay.
+                                onTapAction()
                             } else {
                                 controllerVisible.value = !controllerVisible.value
                             }
