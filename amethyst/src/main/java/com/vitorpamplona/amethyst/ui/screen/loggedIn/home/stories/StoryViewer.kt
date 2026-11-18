@@ -88,12 +88,12 @@ import com.vitorpamplona.amethyst.model.Note
 import com.vitorpamplona.amethyst.service.playback.composable.VideoView
 import com.vitorpamplona.amethyst.service.relayClient.reqCommand.event.observeNoteReactions
 import com.vitorpamplona.amethyst.ui.navigation.navs.INav
+import com.vitorpamplona.amethyst.ui.navigation.routes.routeCommentOnNote
 import com.vitorpamplona.amethyst.ui.navigation.routes.routeFor
 import com.vitorpamplona.amethyst.ui.note.ClickableUserPicture
 import com.vitorpamplona.amethyst.ui.note.LikeReaction
 import com.vitorpamplona.amethyst.ui.note.ReplyReaction
 import com.vitorpamplona.amethyst.ui.note.UsernameDisplay
-import com.vitorpamplona.amethyst.ui.note.comments.CommentsBottomSheet
 import com.vitorpamplona.amethyst.ui.note.timeAgoNoDot
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.amethyst.ui.stringRes
@@ -137,7 +137,6 @@ fun EphemeralStoryViewer(
     var storySlideForward by remember { mutableStateOf(true) }
     var authorSlideForward by remember { mutableStateOf(true) }
     var showViewers by remember { mutableStateOf(false) }
-    var showReply by remember { mutableStateOf(false) }
     var draggingDown by remember { mutableStateOf(false) }
     val dismissY = remember { Animatable(0f) }
 
@@ -148,7 +147,7 @@ fun EphemeralStoryViewer(
     val myHex = accountViewModel.userProfile().pubkeyHex
     val isMine = ring.isMine || ring.authorHex == myHex
     val context = LocalContext.current
-    val paused = holding || showViewers || showReply || draggingDown
+    val paused = holding || showViewers || draggingDown
 
     fun markAuthorSeen() {
         val latest = ring.latestCreatedAt
@@ -515,7 +514,7 @@ fun EphemeralStoryViewer(
                     note = currentNote,
                     accountViewModel = accountViewModel,
                     nav = nav,
-                    onReply = { showReply = true },
+                    onReply = { nav.nav { routeCommentOnNote(currentNote, accountViewModel.account) } },
                     modifier =
                         Modifier
                             .align(Alignment.BottomCenter)
@@ -531,15 +530,6 @@ fun EphemeralStoryViewer(
                 accountViewModel = accountViewModel,
                 nav = nav,
                 onDismiss = { showViewers = false },
-            )
-        }
-
-        if (showReply && currentNote != null) {
-            CommentsBottomSheet(
-                note = currentNote,
-                accountViewModel = accountViewModel,
-                nav = nav,
-                onDismiss = { showReply = false },
             )
         }
     }

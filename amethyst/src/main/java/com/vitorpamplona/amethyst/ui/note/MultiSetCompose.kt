@@ -83,7 +83,6 @@ import com.vitorpamplona.amethyst.ui.navigation.navs.INav
 import com.vitorpamplona.amethyst.ui.navigation.routes.Route
 import com.vitorpamplona.amethyst.ui.navigation.routes.authorRouteFor
 import com.vitorpamplona.amethyst.ui.navigation.routes.routeFor
-import com.vitorpamplona.amethyst.ui.note.comments.CommentsBottomSheet
 import com.vitorpamplona.amethyst.ui.note.elements.NoteDropDownMenu
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.notifications.CombinedZap
@@ -123,7 +122,6 @@ fun MultiSetCompose(
     val baseNote = remember { multiSetCard.note }
     val popupExpanded = remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    var commentsTarget by remember { mutableStateOf<Pair<Note, String?>?>(null) }
 
     val stars by accountViewModel.account.starsWallet.snapshot
         .collectAsStateWithLifecycle()
@@ -168,7 +166,7 @@ fun MultiSetCompose(
                 isUnread = isUnread,
                 accountViewModel = accountViewModel,
                 nav = nav,
-                onClick = { commentsTarget = baseNote to comment.idHex },
+                onClick = { nav.nav(Route.Note(baseNote.idHex)) },
                 onLongClick = { popupExpanded.value = true },
             )
         }
@@ -271,16 +269,6 @@ fun MultiSetCompose(
         if (popupExpanded.value) {
             NoteDropDownMenu(baseNote, { popupExpanded.value = false }, null, accountViewModel, nav)
         }
-    }
-
-    commentsTarget?.let { (post, commentId) ->
-        CommentsBottomSheet(
-            note = post,
-            accountViewModel = accountViewModel,
-            nav = nav,
-            scrollToCommentId = commentId,
-            onDismiss = { commentsTarget = null },
-        )
     }
 }
 

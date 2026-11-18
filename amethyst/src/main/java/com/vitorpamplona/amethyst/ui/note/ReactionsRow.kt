@@ -146,7 +146,6 @@ import com.vitorpamplona.amethyst.ui.components.toasts.multiline.UserBasedErrorM
 import com.vitorpamplona.amethyst.ui.navigation.navs.INav
 import com.vitorpamplona.amethyst.ui.navigation.routes.Route
 import com.vitorpamplona.amethyst.ui.navigation.routes.routeCommentOnNote
-import com.vitorpamplona.amethyst.ui.note.comments.CommentsBottomSheet
 import com.vitorpamplona.amethyst.ui.note.effects.FloatingDismissible
 import com.vitorpamplona.amethyst.ui.note.effects.FriendReactionChip
 import com.vitorpamplona.amethyst.ui.note.effects.FriendReactionFacepile
@@ -976,24 +975,8 @@ private fun ReplyReactionWithDialog(
             voiceRecordingState = voiceRecordingState,
         )
     } else {
-        var showCommentsSheet by remember(baseNote.idHex) { mutableStateOf(false) }
-
         ReplyReaction(baseNote, grayTint, accountViewModel, showCounter = showCounter, iconSizeModifier = iconSizeModifier) {
-            val route = routeCommentOnNote(baseNote, accountViewModel.account)
-            if (route is Route.Note) {
-                showCommentsSheet = true
-            } else if (route != null) {
-                nav.nav { route }
-            }
-        }
-
-        if (showCommentsSheet) {
-            CommentsBottomSheet(
-                note = baseNote,
-                accountViewModel = accountViewModel,
-                nav = nav,
-                onDismiss = { showCommentsSheet = false },
-            )
+            nav.nav { routeCommentOnNote(baseNote, accountViewModel.account) }
         }
     }
 }
