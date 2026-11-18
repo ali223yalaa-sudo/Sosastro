@@ -27,6 +27,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
@@ -54,9 +55,11 @@ import androidx.media3.ui.compose.ContentFrame
 import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
 import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
 import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
+import com.vitorpamplona.amethyst.commons.ui.layouts.LocalDisappearingScaffoldPadding
 import com.vitorpamplona.amethyst.service.playback.composable.controls.BottomGradientOverlay
 import com.vitorpamplona.amethyst.service.playback.composable.controls.FullscreenSwipeControlsState
 import com.vitorpamplona.amethyst.service.playback.composable.controls.FullscreenSwipeLevelIndicator
+import com.vitorpamplona.amethyst.service.playback.composable.controls.PersistentMuteButton
 import com.vitorpamplona.amethyst.service.playback.composable.controls.RenderAnimatedBottomInfo
 import com.vitorpamplona.amethyst.service.playback.composable.controls.RenderCenterButtons
 import com.vitorpamplona.amethyst.service.playback.composable.controls.RenderTopButtons
@@ -68,6 +71,7 @@ import com.vitorpamplona.amethyst.service.playback.composable.wavefront.remember
 import com.vitorpamplona.amethyst.service.playback.diskCache.isLiveStreaming
 import com.vitorpamplona.amethyst.ui.components.getDialogWindow
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
+import com.vitorpamplona.amethyst.ui.theme.VolumeBottomIconSize
 import kotlinx.coroutines.delay
 
 internal const val SKIP_SECONDS = 10
@@ -280,6 +284,20 @@ fun RenderVideoPlayer(
             ReelsPlayPauseHint(
                 showPlayIcon = hint,
                 modifier = Modifier.align(Alignment.Center),
+            )
+        }
+
+        // Always-visible mute toggle, pinned bottom-right. Kept out of the fading control
+        // overlay so it can be tapped at any time. Skipped in fullscreen (the top-bar button
+        // covers it) and in reels (VideoCardCompose pins it to the screen corner there).
+        if (!isFullscreen && !reelsGestures) {
+            val scaffoldPadding = LocalDisappearingScaffoldPadding.current
+            PersistentMuteButton(
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 8.dp, bottom = scaffoldPadding.calculateBottomPadding() + 8.dp)
+                        .then(VolumeBottomIconSize),
             )
         }
 

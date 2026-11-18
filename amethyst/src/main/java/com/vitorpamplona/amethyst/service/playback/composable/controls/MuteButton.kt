@@ -41,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.vitorpamplona.amethyst.R
 import com.vitorpamplona.amethyst.commons.icons.symbols.Icon
 import com.vitorpamplona.amethyst.commons.icons.symbols.MaterialSymbols
+import com.vitorpamplona.amethyst.service.playback.composable.DEFAULT_MUTED_SETTING
 import com.vitorpamplona.amethyst.ui.stringRes
 import com.vitorpamplona.amethyst.ui.theme.BitcoinOrange
 import com.vitorpamplona.amethyst.ui.theme.Size30Modifier
@@ -127,6 +128,40 @@ fun MutedIcon() {
         tint = MaterialTheme.colorScheme.onBackground,
         modifier = Size30Modifier,
     )
+}
+
+/**
+ * Always-visible mute toggle for the bottom-right corner of the player.
+ *
+ * Unlike [MuteButton] it never fades out with the rest of the controls, so the user can
+ * mute/unmute without tapping the video first. It only flips the shared
+ * [DEFAULT_MUTED_SETTING]; every player reads that value reactively, so the change applies to
+ * all visible videos at once (unmute one → all unmuted) and the icon stays in sync.
+ */
+@Composable
+fun PersistentMuteButton(modifier: Modifier = Modifier) {
+    val muted = DEFAULT_MUTED_SETTING.value
+
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .clip(CircleShape)
+                .fillMaxSize(0.7f)
+                .align(Alignment.Center)
+                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.6f)),
+        )
+
+        IconButton(
+            onClick = { DEFAULT_MUTED_SETTING.value = !muted },
+            modifier = Size50Modifier,
+        ) {
+            if (muted) {
+                MutedIcon()
+            } else {
+                MuteIcon()
+            }
+        }
+    }
 }
 
 @Composable

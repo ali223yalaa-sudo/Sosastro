@@ -33,7 +33,6 @@ import com.vitorpamplona.amethyst.model.Account
 import com.vitorpamplona.amethyst.model.LocalCache
 import com.vitorpamplona.amethyst.service.lang.LanguageTranslatorService
 import com.vitorpamplona.amethyst.service.notifications.NotificationRelayService
-import com.vitorpamplona.amethyst.service.playback.composable.DEFAULT_MUTED_SETTING
 import com.vitorpamplona.amethyst.service.playback.pip.BackgroundMedia
 import com.vitorpamplona.amethyst.ui.navigation.findParameterValue
 import com.vitorpamplona.amethyst.ui.navigation.routes.Route
@@ -97,9 +96,6 @@ class MainActivity : AppCompatActivity() {
         isResumed = true
 
         Log.d("ActivityLifecycle") { "MainActivity.onResume $this" }
-
-        // starts muted every time
-        DEFAULT_MUTED_SETTING.value = true
 
         // If always-on notifications are enabled but the foreground service couldn't be
         // started from the background during cold-start (Android 12+ restriction), retry

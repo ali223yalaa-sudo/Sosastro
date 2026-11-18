@@ -50,6 +50,7 @@ import com.vitorpamplona.amethyst.commons.richtext.MediaUrlVideo
 import com.vitorpamplona.amethyst.commons.ui.layouts.LocalDisappearingScaffoldPadding
 import com.vitorpamplona.amethyst.model.MediaAspectRatioCache
 import com.vitorpamplona.amethyst.model.Note
+import com.vitorpamplona.amethyst.service.playback.composable.controls.PersistentMuteButton
 import com.vitorpamplona.amethyst.ui.components.BlurhashBackdrop
 import com.vitorpamplona.amethyst.ui.components.ContentWarningGate
 import com.vitorpamplona.amethyst.ui.components.ZoomableContentView
@@ -70,6 +71,7 @@ import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts.datasource.firstReelVideoMeta
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.video.UserCardHeader
 import com.vitorpamplona.amethyst.ui.theme.Size35dp
+import com.vitorpamplona.amethyst.ui.theme.VolumeBottomIconSize
 import com.vitorpamplona.quartz.nip01Core.core.Event
 import com.vitorpamplona.quartz.nip36SensitiveContent.isSensitiveOrNSFW
 import com.vitorpamplona.quartz.nip71Video.VideoEvent
@@ -83,6 +85,12 @@ private val ReelsOverlayWhite = Color.White
  * reserves the bar; this is the extra, deliberately small gap on top of it.
  */
 private val ReelsBottomSafeGap = 18.dp
+
+/**
+ * Vertical space kept clear at the bottom-right of a reel so the persistent mute toggle
+ * never sits on top of the side reaction column (which is anchored to the same corner).
+ */
+private val ReelsMuteButtonReserve = 64.dp
 
 @Composable
 fun VideoCardCompose(
@@ -161,7 +169,7 @@ fun VideoCardCompose(
                     nav = nav,
                     modifier = Modifier.align(Alignment.BottomEnd),
                     tint = ReelsOverlayWhite,
-                    bottomContentPadding = bottomOverlayPadding,
+                    bottomContentPadding = bottomOverlayPadding + ReelsMuteButtonReserve,
                 )
 
                 Column(
@@ -185,6 +193,14 @@ fun VideoCardCompose(
                         accountViewModel = accountViewModel,
                     )
                 }
+
+                PersistentMuteButton(
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 12.dp, bottom = bottomOverlayPadding)
+                            .then(VolumeBottomIconSize),
+                )
             }
         }
     } else {

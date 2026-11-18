@@ -78,6 +78,7 @@ fun VideoView(
     startUnmuted: Boolean = false,
     onDoubleTapAction: (() -> Unit)? = null,
     onPlaybackReady: (() -> Unit)? = null,
+    onTapAction: (() -> Unit)? = null,
 ) {
     val borderModifier =
         if (roundedCorner) {
@@ -112,6 +113,7 @@ fun VideoView(
         startUnmuted = startUnmuted,
         onDoubleTapAction = onDoubleTapAction,
         onPlaybackReady = onPlaybackReady,
+        onTapAction = onTapAction,
     )
 }
 
@@ -140,6 +142,7 @@ fun VideoView(
     startUnmuted: Boolean = false,
     onDoubleTapAction: (() -> Unit)? = null,
     onPlaybackReady: (() -> Unit)? = null,
+    onTapAction: (() -> Unit)? = null,
 ) {
     val initialAutoStart = if (alwaysShowVideo) true else accountViewModel.settings.startVideoPlayback()
     // Reset the manual-show toggle when the video URI changes so a recycled feed slot
@@ -217,6 +220,7 @@ fun VideoView(
                     startUnmuted = startUnmuted,
                     onDoubleTapAction = onDoubleTapAction,
                     onPlaybackReady = onPlaybackReady,
+                    onTapAction = onTapAction,
                 )
             }
         }
@@ -281,6 +285,7 @@ fun VideoView(
                     startUnmuted = startUnmuted,
                     onDoubleTapAction = onDoubleTapAction,
                     onPlaybackReady = onPlaybackReady,
+                    onTapAction = onTapAction,
                 )
             }
         }

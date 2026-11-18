@@ -23,12 +23,10 @@ package com.vitorpamplona.amethyst.ui.screen.loggedIn.shorts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vitorpamplona.amethyst.commons.ui.feeds.FeedContentState
-import com.vitorpamplona.amethyst.service.playback.composable.DEFAULT_MUTED_SETTING
 import com.vitorpamplona.amethyst.ui.feeds.LoadingReelsSkeleton
 import com.vitorpamplona.amethyst.ui.feeds.RefresheableBox
 import com.vitorpamplona.amethyst.ui.feeds.RenderFeedContentState
@@ -69,12 +67,6 @@ fun ShortsScreen(
     WatchLifecycleAndUpdateModel(shortsFeedContentState)
     WatchAccountForShortsScreen(videoFeedState = shortsFeedContentState, accountViewModel = accountViewModel)
     ShortsFilterAssemblerSubscription(accountViewModel)
-
-    // Reels autoplay muted by default; restore the preference on leave.
-    DisposableEffect(Unit) {
-        DEFAULT_MUTED_SETTING.value = true
-        onDispose { DEFAULT_MUTED_SETTING.value = true }
-    }
 
     DisappearingScaffold(
         isInvertedLayout = false,

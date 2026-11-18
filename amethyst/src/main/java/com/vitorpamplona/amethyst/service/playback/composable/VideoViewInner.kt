@@ -33,6 +33,7 @@ import com.vitorpamplona.amethyst.service.playback.composable.controls.ApplyInit
 import com.vitorpamplona.amethyst.service.playback.composable.controls.VideoQualityPolicy
 import com.vitorpamplona.amethyst.service.playback.composable.mainVideo.VideoPlayerActiveMutex
 import com.vitorpamplona.amethyst.service.playback.composable.mediaitem.GetMediaItem
+import com.vitorpamplona.amethyst.service.playback.pip.BackgroundMedia
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.quartz.nip94FileMetadata.tags.DimensionTag
 
@@ -68,15 +69,10 @@ fun VideoViewInner(
     onDoubleTapAction: (() -> Unit)? = null,
     onPlaybackReady: (() -> Unit)? = null,
 ) {
-    // keeps a copy of the value to avoid recompositions here when the DEFAULT value changes.
-    // Active Reels page starts unmuted; neighbors and feed cards stay muted by default.
-    val muted =
-        remember(videoUri, reelsGestures, startUnmuted) {
-            when {
-                reelsGestures && startUnmuted -> false
-                else -> DEFAULT_MUTED_SETTING.value
-            }
-        }
+    // Global mute: the shared setting drives every player, so unmuting one video unmutes
+    // them all and muting one keeps the rest silent. Read reactively (not remembered) so a
+    // change from the persistent bottom-right button or the top-bar button is picked up here.
+    val muted = DEFAULT_MUTED_SETTING.value
 
     // The proxy port is decided once per video URI; recomputing on every recomposition does
     // pointless work (the result is anyway dropped because GetMediaItem.remember is keyed on the
@@ -123,16 +119,24 @@ fun VideoViewInner(
                 }
             }
             if (reelsGestures) {
-                // Active reel page: unmute. Inactive / off-tab: mute + pause so
-                // HorizontalPager neighbors (e.g. Videos tab) never keep audio.
-                LaunchedEffect(controller, startUnmuted) {
+                // Active reel page: follow the global mute setting. Inactive / off-tab:
+                // mute + pause so HorizontalPager neighbors (e.g. Videos tab) never keep audio.
+                LaunchedEffect(controller, startUnmuted, muted) {
                     if (startUnmuted) {
-                        controller.controller.volume = 1f
+                        controller.controller.volume = if (muted) 0f else 1f
                     } else {
                         controller.controller.volume = 0f
                         if (controller.controller.isPlaying) {
                             controller.controller.pause()
                         }
+                    }
+                }
+            } else {
+                // Feed videos: keep every visible player in step with the shared setting, so
+                // unmuting one unmutes the others and muting one silences them all.
+                LaunchedEffect(controller, muted) {
+                    if (!BackgroundMedia.isPlaying()) {
+                        controller.controller.volume = if (muted) 0f else 1f
                     }
                 }
             }
@@ -145,7 +149,7 @@ fun VideoViewInner(
                     controller,
                     automaticallyStartPlayback = automaticallyStartPlayback && (!reelsGestures || startUnmuted),
                     isClosestToTheCenterOfTheScreen,
-                    forceUnmuted = reelsGestures && startUnmuted,
+                    forceUnmuted = false,
                 )
                 RenderVideoPlayer(
                     mediaItem = mediaItem,
