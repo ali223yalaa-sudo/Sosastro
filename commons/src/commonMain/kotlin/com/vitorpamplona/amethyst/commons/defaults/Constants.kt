@@ -71,6 +71,15 @@ object Constants {
      */
     const val TEMP_HOME_RELAY_ONLY = true
 
+    /**
+     * Relays the operator of this build owns end to end. Tor adds no privacy against the
+     * operator of the relay you are talking to, but it does add Arti's 12-51s bootstrap to
+     * every first connection — the whole app is gated behind it. These relays are therefore
+     * dialed directly, never through Tor. Kept as an explicit list (not "anything in nip65")
+     * so no relay we do not own can ever slip out of Tor by accident.
+     */
+    val ownedIslandRelays: Set<NormalizedRelayUrl> = setOf(amethystHome)
+
     fun homeRelayOnly(relays: Set<NormalizedRelayUrl>): Set<NormalizedRelayUrl> = if (!TEMP_HOME_RELAY_ONLY || relays.isEmpty()) relays else setOf(amethystHome)
 
     fun homeRelayOnlyMap(filters: Map<NormalizedRelayUrl, List<com.vitorpamplona.quartz.nip01Core.relay.filters.Filter>>): Map<NormalizedRelayUrl, List<com.vitorpamplona.quartz.nip01Core.relay.filters.Filter>> =

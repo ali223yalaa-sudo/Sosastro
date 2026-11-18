@@ -62,6 +62,20 @@ class SearchRelayListState(
 
     suspend fun normalizeSearchRelayListWithBackupNoDefaults(note: Note): Set<NormalizedRelayUrl> = searchListEvent(note)?.let { decryptionCache.relays(it) } ?: emptySet()
 
+    /** See `Nip65RelayListState.assumedDefaults`. Empty as soon as any kind:10007 exists. */
+    fun assumedDefaults(note: Note): Set<NormalizedRelayUrl> = if (searchListEvent(note) == null) DefaultSearchRelayList else emptySet()
+
+    val assumedDefaultsFlow =
+        getSearchRelayListFlow()
+            .map { assumedDefaults(it.note) }
+            .onStart { emit(assumedDefaults(searchListNote)) }
+            .flowOn(Dispatchers.IO)
+            .stateIn(
+                scope,
+                SharingStarted.Eagerly,
+                assumedDefaults(searchListNote),
+            )
+
     val flow =
         getSearchRelayListFlow()
             .map { normalizeSearchRelayListWithBackup(it.note) }

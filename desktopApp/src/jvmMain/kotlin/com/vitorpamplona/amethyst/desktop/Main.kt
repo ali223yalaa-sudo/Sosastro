@@ -892,8 +892,10 @@ private fun AppInner(
                         newRelaysViaTor = torSettings.newRelaysViaTor,
                         trustedRelaysViaTor = torSettings.trustedRelaysViaTor,
                     ),
-                trustedRelayList = emptySet(), // TODO: populate from account relay lists
-                dmRelayList = emptySet(), // TODO: populate from account relay lists
+                // TODO: populate from account relay lists
+                classification =
+                    com.vitorpamplona.amethyst.commons.tor
+                        .RelayClassification(),
             )
         }
 

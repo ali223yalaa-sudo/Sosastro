@@ -21,6 +21,7 @@
 package com.vitorpamplona.amethyst.model.torState
 
 import androidx.compose.runtime.Stable
+import com.vitorpamplona.amethyst.commons.tor.RelayClassification
 import com.vitorpamplona.amethyst.commons.tor.TorType
 import com.vitorpamplona.amethyst.service.okhttp.DualHttpClientManager
 import com.vitorpamplona.amethyst.ui.tor.TorSettingsFlow
@@ -45,6 +46,13 @@ class TorRelayState(
 ) {
     val dmRelays = MutableStateFlow<Set<NormalizedRelayUrl>>(emptySet())
     val trustedRelays = MutableStateFlow<Set<NormalizedRelayUrl>>(emptySet())
+
+    /**
+     * Relays guessed on the user's behalf while their own lists are unknown. Fed by
+     * [AccountsTorStateConnector]; see `AssumedRelayListsState` for why this is separate from
+     * [trustedRelays] rather than merged into it.
+     */
+    val assumedRelays = MutableStateFlow<Set<NormalizedRelayUrl>>(emptySet())
 
     /**
      * Relays known to be used for money operations from persistent configuration: NIP-47 wallet
@@ -130,47 +138,49 @@ class TorRelayState(
                 currentSettings(),
             )
 
-    val flow =
-        combineTransform(
-            torSettings,
+    private fun currentClassification() =
+        RelayClassification(
+            trusted = trustedRelays.value,
+            dm = dmRelays.value,
+            moneyOp = currentMoneyOpRelays(),
+            assumed = assumedRelays.value,
+        )
+
+    /**
+     * The four category sets as one value. Folding them here also keeps the evaluation flow below
+     * at two sources instead of six — `combineTransform`'s typed overloads stop at five.
+     */
+    private val classification =
+        combine(
             trustedRelays,
             dmRelays,
             moneyOpRelays,
             adHocMoneyOpCounts,
-        ) {
-            torSettings: TorRelaySettings,
-            trustedRelayList: Set<NormalizedRelayUrl>,
-            dmRelayList: Set<NormalizedRelayUrl>,
-            moneyOpRelayList: Set<NormalizedRelayUrl>,
-            adHocMoneyOps: Map<NormalizedRelayUrl, Int>,
-            ->
-            emit(
-                TorRelayEvaluation(
-                    torSettings = torSettings,
-                    trustedRelayList = trustedRelayList,
-                    dmRelayList = dmRelayList,
-                    moneyOpRelayList = moneyOpRelayList + adHocMoneyOps.keys,
-                ),
+            assumedRelays,
+        ) { trusted, dm, moneyOp, adHocMoneyOps, assumed ->
+            RelayClassification(
+                trusted = trusted,
+                dm = dm,
+                moneyOp = moneyOp + adHocMoneyOps.keys,
+                assumed = assumed,
             )
+        }
+
+    val flow =
+        combineTransform(
+            torSettings,
+            classification,
+        ) { torSettings: TorRelaySettings, classification: RelayClassification ->
+            emit(TorRelayEvaluation(torSettings, classification))
         }.onStart {
             emit(
-                TorRelayEvaluation(
-                    torSettings = torSettings.value,
-                    trustedRelayList = trustedRelays.value,
-                    dmRelayList = dmRelays.value,
-                    moneyOpRelayList = currentMoneyOpRelays(),
-                ),
+                TorRelayEvaluation(torSettings.value, currentClassification()),
             )
         }.flowOn(Dispatchers.IO)
             .stateIn(
                 scope,
                 SharingStarted.Eagerly,
-                TorRelayEvaluation(
-                    torSettings = torSettings.value,
-                    trustedRelayList = trustedRelays.value,
-                    dmRelayList = dmRelays.value,
-                    moneyOpRelayList = currentMoneyOpRelays(),
-                ),
+                TorRelayEvaluation(torSettings.value, currentClassification()),
             )
 
     /**
@@ -178,13 +188,7 @@ class TorRelayState(
      * snapshot. This makes ad-hoc money-op registration ([registerMoneyOpRelays]) take effect on the
      * very next connection attempt, with no dependency on the combine pipeline having propagated yet.
      */
-    fun shouldUseTorForRelay(relay: NormalizedRelayUrl) =
-        TorRelayEvaluation(
-            torSettings = currentSettings(),
-            trustedRelayList = trustedRelays.value,
-            dmRelayList = dmRelays.value,
-            moneyOpRelayList = currentMoneyOpRelays(),
-        ).useTor(relay)
+    fun shouldUseTorForRelay(relay: NormalizedRelayUrl) = TorRelayEvaluation(currentSettings(), currentClassification()).useTor(relay)
 
     fun okHttpClientForRelay(url: NormalizedRelayUrl): OkHttpClient = okHttpClient.getHttpClient(shouldUseTorForRelay(url))
 }

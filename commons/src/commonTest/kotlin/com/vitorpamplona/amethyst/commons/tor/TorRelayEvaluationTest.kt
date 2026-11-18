@@ -20,6 +20,7 @@
  */
 package com.vitorpamplona.amethyst.commons.tor
 
+import com.vitorpamplona.amethyst.commons.defaults.Constants
 import com.vitorpamplona.quartz.nip01Core.relay.normalizer.NormalizedRelayUrl
 import kotlin.test.Test
 import kotlin.test.assertFalse
@@ -34,6 +35,7 @@ class TorRelayEvaluationTest {
     private val dmRelay = NormalizedRelayUrl("wss://dm.relay.com/")
     private val trustedRelay = NormalizedRelayUrl("wss://trusted.relay.com/")
     private val moneyRelay = NormalizedRelayUrl("wss://wallet.relay.com/")
+    private val assumedRelay = NormalizedRelayUrl("wss://assumed.relay.com/")
 
     private fun buildEvaluation(
         torType: TorType = TorType.INTERNAL,
@@ -45,6 +47,7 @@ class TorRelayEvaluationTest {
         dmRelays: Set<NormalizedRelayUrl> = setOf(dmRelay),
         trustedRelays: Set<NormalizedRelayUrl> = setOf(trustedRelay),
         moneyOpRelays: Set<NormalizedRelayUrl> = setOf(moneyRelay),
+        assumedRelays: Set<NormalizedRelayUrl> = setOf(assumedRelay),
     ) = TorRelayEvaluation(
         torSettings =
             TorRelaySettings(
@@ -55,10 +58,67 @@ class TorRelayEvaluationTest {
                 trustedRelaysViaTor = trustedViaTor,
                 moneyOperationsViaTor = moneyViaTor,
             ),
-        trustedRelayList = trustedRelays,
-        dmRelayList = dmRelays,
-        moneyOpRelayList = moneyOpRelays,
+        classification =
+            RelayClassification(
+                trusted = trustedRelays,
+                dm = dmRelays,
+                moneyOp = moneyOpRelays,
+                assumed = assumedRelays,
+            ),
     )
+
+    // --- assumed relays: the app's stand-in while the user's lists are unknown ---
+
+    /**
+     * The whole point: a guessed relay inherits the policy the user chose for their *own* lists, so
+     * the default configuration starts on clearnet and gets a fast first login.
+     */
+    @Test
+    fun assumedRelay_followsTrustedPreference() {
+        assertFalse(buildEvaluation(trustedViaTor = false).useTor(assumedRelay))
+        assertTrue(buildEvaluation(trustedViaTor = true).useTor(assumedRelay))
+    }
+
+    /** Anyone who asked for Tor on their own relays keeps it here, with no separate opt-out. */
+    @Test
+    fun assumedRelay_hardenedUserStillUsesTor() {
+        assertTrue(buildEvaluation(trustedViaTor = true, newViaTor = true).useTor(assumedRelay))
+    }
+
+    /**
+     * The branch sits below every other classification, so being guessed can never downgrade a
+     * relay that already had a stricter policy.
+     */
+    @Test
+    fun assumedRelay_neverOverridesOnionDmOrMoney() {
+        val eval =
+            buildEvaluation(
+                trustedViaTor = false,
+                onionViaTor = true,
+                dmViaTor = true,
+                moneyViaTor = true,
+                assumedRelays = setOf(assumedRelay, onionRelay, dmRelay, moneyRelay),
+            )
+        assertTrue(eval.useTor(onionRelay))
+        assertTrue(eval.useTor(dmRelay))
+        assertTrue(eval.useTor(moneyRelay))
+    }
+
+    /** A relay we are not guessing about is still a stranger. */
+    @Test
+    fun unknownRelay_stillFollowsNewPreference() {
+        assertTrue(buildEvaluation(newViaTor = true).useTor(clearnetRelay))
+        assertFalse(buildEvaluation(newViaTor = false).useTor(clearnetRelay))
+    }
+
+    /** With nothing guessed — every account that has any list — behaviour is exactly as before. */
+    @Test
+    fun emptyAssumedList_isTodaysBehaviour() {
+        val eval = buildEvaluation(assumedRelays = emptySet(), newViaTor = true, trustedViaTor = false)
+        assertTrue(eval.useTor(assumedRelay))
+        assertTrue(eval.useTor(clearnetRelay))
+        assertFalse(eval.useTor(trustedRelay))
+    }
 
     // --- Tor OFF ---
     @Test
@@ -186,5 +246,54 @@ class TorRelayEvaluationTest {
         val eval = buildEvaluation(torType = TorType.EXTERNAL, newViaTor = true)
         assertTrue(eval.useTor(clearnetRelay))
         assertFalse(eval.useTor(localhostRelay))
+    }
+
+    // --- Owned island relay (Astro) ---
+    // The island relay is also the configured DM relay, so without the owned-list check the dm
+    // branch would route it through Tor and gate the whole app behind Arti's bootstrap.
+    @Test
+    fun ownedIslandRelay_neverUsesTor_evenAsDmRelay() {
+        val eval = buildEvaluation(dmViaTor = true, dmRelays = setOf(Constants.amethystHome))
+        assertFalse(eval.useTor(Constants.amethystHome))
+    }
+
+    @Test
+    fun ownedIslandRelay_neverUsesTor_whenNewRelaysViaTor() {
+        val eval = buildEvaluation(newViaTor = true, dmRelays = emptySet(), trustedRelays = emptySet())
+        assertFalse(eval.useTor(Constants.amethystHome))
+    }
+
+    @Test
+    fun ownedIslandRelay_neverUsesTor_whenTrustedViaTor() {
+        val eval = buildEvaluation(trustedViaTor = true, trustedRelays = setOf(Constants.amethystHome))
+        assertFalse(eval.useTor(Constants.amethystHome))
+    }
+
+    @Test
+    fun ownedIslandRelay_neverUsesTor_asMoneyOpRelay() {
+        val eval = buildEvaluation(moneyViaTor = true, moneyOpRelays = setOf(Constants.amethystHome))
+        assertFalse(eval.useTor(Constants.amethystHome))
+    }
+
+    @Test
+    fun ownedIslandRelay_stillFalseWhenTorOff() {
+        val eval = buildEvaluation(torType = TorType.OFF)
+        assertFalse(eval.useTor(Constants.amethystHome))
+    }
+
+    // The exemption must not widen: a relay we do not own stays on the DM policy even when the
+    // owned relay is the account's DM relay in the same evaluation.
+    @Test
+    fun ownedExemption_doesNotLeakToOtherRelays() {
+        val eval =
+            buildEvaluation(
+                dmViaTor = true,
+                newViaTor = true,
+                dmRelays = setOf(Constants.amethystHome),
+                trustedRelays = emptySet(),
+            )
+        assertFalse(eval.useTor(Constants.amethystHome))
+        assertTrue(eval.useTor(dmRelay)) // other DM relay still follows dmRelaysViaTor
+        assertTrue(eval.useTor(clearnetRelay)) // unknown relay still follows newRelaysViaTor
     }
 }

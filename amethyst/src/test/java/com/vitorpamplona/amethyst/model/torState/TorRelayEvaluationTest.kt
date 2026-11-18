@@ -20,6 +20,7 @@
  */
 package com.vitorpamplona.amethyst.model.torState
 
+import com.vitorpamplona.amethyst.commons.tor.RelayClassification
 import com.vitorpamplona.amethyst.commons.tor.TorType
 import com.vitorpamplona.quartz.nip01Core.relay.normalizer.NormalizedRelayUrl
 import org.junit.Assert.assertFalse
@@ -53,8 +54,11 @@ class TorRelayEvaluationTest {
                 newRelaysViaTor = newViaTor,
                 trustedRelaysViaTor = trustedViaTor,
             ),
-        trustedRelayList = trustedRelays,
-        dmRelayList = dmRelays,
+        classification =
+            RelayClassification(
+                trusted = trustedRelays,
+                dm = dmRelays,
+            ),
     )
 
     // --- Tor OFF: always false ---
