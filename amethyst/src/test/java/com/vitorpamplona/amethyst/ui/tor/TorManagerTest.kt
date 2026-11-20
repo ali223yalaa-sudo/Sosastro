@@ -22,6 +22,8 @@ package com.vitorpamplona.amethyst.ui.tor
 
 import com.vitorpamplona.amethyst.commons.tor.TorType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -323,6 +325,49 @@ class TorManagerTest {
         }
 
     @Test
+    fun `runtime AllGuardsDown wipes state even while status is Active`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val backend = FakeTorBackend()
+            val manager = buildManager(backend = backend, clock = { 1_000_000_000_000L })
+            advanceUntilIdle()
+
+            backend.setActive(9050)
+            advanceUntilIdle()
+            assertTrue(manager.status.value is TorServiceStatus.Active)
+
+            backend.emitGuardsDown()
+            advanceUntilIdle()
+
+            assertEquals("runtime guard rot must drop the client", 0, backend.resetCount)
+            assertEquals(1, backend.resetWithCleanStateCount)
+        }
+
+    @Test
+    fun `runtime AllGuardsDown respects the self-heal cooldown`() =
+        runTest(UnconfinedTestDispatcher()) {
+            var now = 1_000_000_000_000L
+            val backend = FakeTorBackend()
+            val manager = buildManager(backend = backend, clock = { now })
+            advanceUntilIdle()
+
+            backend.setActive(9050)
+            advanceUntilIdle()
+
+            backend.emitGuardsDown()
+            advanceUntilIdle()
+            assertEquals(1, backend.resetWithCleanStateCount)
+
+            backend.emitGuardsDown()
+            advanceUntilIdle()
+            assertEquals("inside the cooldown, no second wipe", 1, backend.resetWithCleanStateCount)
+
+            now += TorManager.SELF_HEAL_COOLDOWN_MS + 1L
+            backend.emitGuardsDown()
+            advanceUntilIdle()
+            assertEquals("after the cooldown, the wipe is allowed again", 2, backend.resetWithCleanStateCount)
+        }
+
+    @Test
     fun `watchdog cancels its delay when status leaves Connecting`() =
         runTest(UnconfinedTestDispatcher()) {
             val backend = FakeTorBackend()
@@ -505,6 +550,15 @@ private class FakeTorBackend : TorBackend {
 
     /** Simulates a persisted confirmed guard on disk (prior successful bootstrap). */
     var bootstrappedBefore = false
+
+    private val guardsDown = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    override val guardsDownSignal: Flow<Unit> = guardsDown
+
+    /** Simulates Arti reporting AllGuardsDown persistently while the status is Active. */
+    fun emitGuardsDown() {
+        guardsDown.tryEmit(Unit)
+    }
 
     override suspend fun hasBootstrappedBefore(): Boolean = bootstrappedBefore
 
