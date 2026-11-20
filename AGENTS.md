@@ -159,8 +159,10 @@ copies them under stable names):
 
 `/workspace/apk-download/index.html` is the Arabic landing page; its links must
 match what `publish.sh` writes (`astro-dm.apk`, `astro-dm-arm64.apk`). Public URL:
-https://work-1-iswqtkfbvispqkrh.prod-runtime.all-hands.dev/ (port 12000) and
-https://work-2-iswqtkfbvispqkrh.prod-runtime.all-hands.dev/ (port 12001).
+https://work-1-szzbeokyarhnsurp.prod-runtime.all-hands.dev/ (port 12000) and
+https://work-2-szzbeokyarhnsurp.prod-runtime.all-hands.dev/ (port 12001).
+The hostname prefix changes every session — read it from the
+`<work_hosts>` block rather than trusting this line.
 
 ### The download server must survive restarts
 
@@ -183,10 +185,13 @@ setsid nohup /workspace/apk-download/watchdog.sh &   # keeps it alive
 - Both live in `/workspace`, so they survive a root-fs wipe; only the running
   processes are lost, and the watchdog restarts the server. After a full sandbox
   restart, start the watchdog again (processes do not come back by themselves).
+- `server.py` must not use `BaseHTTPRequestHandler.guess_type` — it was removed in
+  Python 3.13 and every request then dies with `AttributeError`. Use
+  `mimetypes.guess_type(path)[0]`.
 - `start.sh` serves **two** ports: `:12000` and `:12001` (backup). The watchdog
   checks both and restarts them together. Public URLs:
-  https://work-1-sjgrvfcdashedalw.prod-runtime.all-hands.dev/ (12000) and
-  https://work-2-sjgrvfcdashedalw.prod-runtime.all-hands.dev/ (12001).
+  https://work-1-szzbeokyarhnsurp.prod-runtime.all-hands.dev/ (12000) and
+  https://work-2-szzbeokyarhnsurp.prod-runtime.all-hands.dev/ (12001).
 
 
 ### Release APK hosting (signed, per-ABI)
@@ -841,10 +846,20 @@ badge exists for future use but no follow events are produced yet.
 The container recycles periodically and wipes `/usr/lib/jvm` and `~/.gradle`.
 Keep toolchains under `/workspace` so they survive:
 
-- JDK 21 copied to `/workspace/jdk` (`org.gradle.java.home=/workspace/jdk`).
+- JDK 21 from apt (`/usr/lib/jvm/java-21-openjdk-amd64`). Do **not** pin
+  `org.gradle.java.home` in `gradle.properties` — it is committed and shared, so a
+  sandbox-only path there breaks every GitHub Actions job ("Java home supplied is
+  invalid"). Export `JAVA_HOME` in the shell instead.
 - `GRADLE_USER_HOME=/workspace/gradle-home` (wrapper + dependency cache).
 - Android SDK at `/workspace/android-sdk`.
-- Source `/workspace/env.sh` before every Gradle call.
+- There is no `/workspace/env.sh`; export the three vars inline:
+  `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`,
+  `ANDROID_HOME=/workspace/android-sdk`, `GRADLE_USER_HOME=/workspace/gradle-home`.
+- `local.properties` (`sdk.dir=/workspace/android-sdk`) is gitignored, so recreate it
+  after a recycle.
+- Install the SDK components with
+  `sdkmanager "platform-tools" "platforms;android-37.0" "build-tools;37.0.0"`;
+  the cmdline-tools zip has no exec bit after extraction (`chmod +x .../bin/*`).
 
 ### Repairing the JDK after a container recycle
 
